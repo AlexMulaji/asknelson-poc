@@ -1,0 +1,10 @@
+node_modules
+dist
+dist-ssr
+*.local
+.DS_Store
+.vite
+dev-dist
+.claude/
+# Runtime content store written by server/index.js (local, non-Docker runs)
+data-store/

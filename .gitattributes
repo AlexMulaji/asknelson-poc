@@ -1,0 +1,13 @@
+# Normalize line endings: store all text files with LF in the repo, regardless
+# of the contributor's OS. Keeps diffs clean and silences CRLF/LF warnings.
+* text=auto eol=lf
+
+# Treat common binary assets as binary (never normalize / diff as text).
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.webp binary
+*.ico binary
+*.mp3 binary
+*.woff binary
+*.woff2 binary

@@ -1,0 +1,662 @@
+{
+  "explore": {
+    "themes": [
+      {
+        "id": "anxiety",
+        "title": "Anxiety & Stress",
+        "description": "Understand and manage anxiety in everyday life.",
+        "color": "#7F77DD",
+        "bg": "#EEEDFE",
+        "icon": "ti-heart-rate-monitor",
+        "content": [
+          {
+            "id": "ax-01",
+            "type": "article",
+            "title": "What is anxiety and why do we feel it?",
+            "description": "A plain-language guide to what anxiety is, why it exists, and when it becomes a problem.",
+            "source": "Mind UK",
+            "url": "https://www.mind.org.uk/information-support/types-of-mental-health-problems/anxiety-and-panic-attacks/about-anxiety/",
+            "read_time_mins": 8
+          },
+          {
+            "id": "ax-02",
+            "type": "video",
+            "title": "How anxiety affects your body",
+            "description": "A short animated explainer on the fight-or-flight response and its physical effects.",
+            "source": "TED-Ed",
+            "url": "https://www.youtube.com/watch?v=BVJkc_-y034",
+            "duration_mins": 5
+          },
+          {
+            "id": "ax-03",
+            "type": "article",
+            "title": "Breathing exercises that reduce anxiety fast",
+            "description": "Practical breathing techniques — box breathing, 4-7-8, and more — with step-by-step instructions.",
+            "source": "Calm",
+            "url": "https://www.calm.com/blog/breathing-exercises-for-anxiety",
+            "read_time_mins": 6
+          },
+          {
+            "id": "ax-04",
+            "type": "article",
+            "title": "Cognitive distortions — the thinking traps that fuel anxiety",
+            "description": "The 15 most common ways our minds catastrophise — and how to challenge each one.",
+            "source": "Psych Central",
+            "url": "https://psychcentral.com/lib/15-common-cognitive-distortions",
+            "read_time_mins": 10
+          },
+          {
+            "id": "ax-05",
+            "type": "video",
+            "title": "How to break the anxiety cycle",
+            "description": "A clear walkthrough of how anxious thoughts spiral and the exact moment to interrupt them.",
+            "source": "Therapy in a Nutshell",
+            "url": "https://www.youtube.com/watch?v=bEBNMsQH_LU",
+            "duration_mins": 12
+          },
+          {
+            "id": "ax-06",
+            "type": "article",
+            "title": "Exercise as medicine for anxiety",
+            "description": "The science behind why physical movement is one of the most effective anxiety treatments available.",
+            "source": "Harvard Health",
+            "url": "https://www.health.harvard.edu/mind-and-mood/exercising-to-relax",
+            "read_time_mins": 5
+          },
+          {
+            "id": "ax-07",
+            "type": "article",
+            "title": "Anxiety management strategies that actually work",
+            "description": "Evidence-backed coping strategies from one of the world's leading mental health organisations.",
+            "source": "Beyond Blue",
+            "url": "https://www.beyondblue.org.au/mental-health/anxiety/treatments-for-anxiety/anxiety-management-strategies",
+            "read_time_mins": 7
+          },
+          {
+            "id": "ax-08",
+            "type": "video",
+            "title": "Self-compassion as an anxiety tool",
+            "description": "Research psychologist Dr Kristin Neff on why treating yourself kindly — not harshly — reduces anxiety.",
+            "source": "Dr Kristin Neff",
+            "url": "https://www.youtube.com/watch?v=IvtZBUSplr4",
+            "duration_mins": 9
+          }
+        ]
+      },
+      {
+        "id": "sleep",
+        "title": "Sleep",
+        "description": "Rest better, recover faster, and understand what sleep actually does for you.",
+        "color": "#185FA5",
+        "bg": "#E6F1FB",
+        "icon": "ti-moon",
+        "content": [
+          {
+            "id": "sl-01",
+            "type": "article",
+            "title": "Why sleep matters more than you think",
+            "description": "The science of what happens to your brain and body during sleep — and what's lost when you skip it.",
+            "source": "Sleep Foundation",
+            "url": "https://www.sleepfoundation.org/how-sleep-works/why-do-we-need-sleep",
+            "read_time_mins": 8
+          },
+          {
+            "id": "sl-02",
+            "type": "video",
+            "title": "Sleep is your superpower",
+            "description": "Neuroscientist Matthew Walker's famous TED Talk on why sleep is the single most important health behaviour.",
+            "source": "TED",
+            "url": "https://www.youtube.com/watch?v=5MuIMqhT8DM",
+            "duration_mins": 19
+          },
+          {
+            "id": "sl-03",
+            "type": "article",
+            "title": "How to fix your sleep schedule",
+            "description": "Practical, evidence-based steps to reset your circadian rhythm and build a consistent sleep routine.",
+            "source": "Sleep Foundation",
+            "url": "https://www.sleepfoundation.org/sleep-hygiene/how-to-fix-your-sleep-schedule",
+            "read_time_mins": 9
+          },
+          {
+            "id": "sl-04",
+            "type": "article",
+            "title": "Anxiety and sleep — a two-way relationship",
+            "description": "How anxiety disrupts sleep and how poor sleep worsens anxiety — and what breaks the cycle.",
+            "source": "Sleep Foundation",
+            "url": "https://www.sleepfoundation.org/mental-health/anxiety-and-sleep",
+            "read_time_mins": 7
+          },
+          {
+            "id": "sl-05",
+            "type": "article",
+            "title": "Sleep hygiene — the complete guide",
+            "description": "Every evidence-backed habit that improves sleep quality, from light exposure to bedroom temperature.",
+            "source": "Sleep Foundation",
+            "url": "https://www.sleepfoundation.org/sleep-hygiene",
+            "read_time_mins": 10
+          },
+          {
+            "id": "sl-06",
+            "type": "video",
+            "title": "The science of a good night's sleep",
+            "description": "A detailed walkthrough of sleep stages, REM cycles, and what quality sleep actually looks like.",
+            "source": "TED-Ed",
+            "url": "https://www.youtube.com/watch?v=gedoSfZvBgE",
+            "duration_mins": 5
+          },
+          {
+            "id": "sl-07",
+            "type": "article",
+            "title": "Shift work and sleep — protecting your health",
+            "description": "Specific guidance for people who work irregular hours, nights, or rotating shifts.",
+            "source": "Sleep Foundation",
+            "url": "https://www.sleepfoundation.org/shift-work",
+            "read_time_mins": 8
+          },
+          {
+            "id": "sl-08",
+            "type": "article",
+            "title": "How alcohol really affects your sleep",
+            "description": "Why alcohol as a sleep aid backfires — what it does to your sleep architecture.",
+            "source": "Sleep Foundation",
+            "url": "https://www.sleepfoundation.org/nutrition/alcohol-and-sleep",
+            "read_time_mins": 6
+          }
+        ]
+      },
+      {
+        "id": "relationships",
+        "title": "Relationships",
+        "description": "Build stronger connections with the people who matter most.",
+        "color": "#D4537E",
+        "bg": "#FBEAF0",
+        "icon": "ti-users",
+        "content": [
+          {
+            "id": "re-01",
+            "type": "video",
+            "title": "What makes a good life? Lessons from the longest study on happiness",
+            "description": "Harvard researcher Robert Waldinger reveals what 80 years of data says about what actually makes people happy.",
+            "source": "TED",
+            "url": "https://www.youtube.com/watch?v=8KkKuTCFvzI",
+            "duration_mins": 13
+          },
+          {
+            "id": "re-02",
+            "type": "video",
+            "title": "The power of vulnerability",
+            "description": "Brené Brown's landmark talk on why vulnerability is the foundation of genuine human connection.",
+            "source": "TED",
+            "url": "https://www.youtube.com/watch?v=iCvmsMzlF7o",
+            "duration_mins": 20
+          },
+          {
+            "id": "re-03",
+            "type": "article",
+            "title": "How to have conversations that actually matter",
+            "description": "Research-backed techniques for having deeper, more meaningful conversations with anyone.",
+            "source": "Greater Good Magazine",
+            "url": "https://greatergood.berkeley.edu/article/item/how_to_have_a_conversation_that_matters",
+            "read_time_mins": 7
+          },
+          {
+            "id": "re-04",
+            "type": "article",
+            "title": "What makes a good friend, according to science",
+            "description": "The surprising simplicity of what research says creates lasting friendship.",
+            "source": "Greater Good Magazine",
+            "url": "https://greatergood.berkeley.edu/article/item/what_makes_a_good_friend_according_to_science",
+            "read_time_mins": 6
+          },
+          {
+            "id": "re-05",
+            "type": "article",
+            "title": "Why making friends as an adult is so hard",
+            "description": "The structural and psychological reasons adult friendships are difficult — and what to do about them.",
+            "source": "The Atlantic",
+            "url": "https://www.theatlantic.com/family/archive/2021/06/why-is-it-hard-to-make-friends-after-30/619060/",
+            "read_time_mins": 10
+          },
+          {
+            "id": "re-06",
+            "type": "article",
+            "title": "The art of active listening",
+            "description": "How to actually listen — not just wait to talk — and why it changes every relationship.",
+            "source": "Greater Good Magazine",
+            "url": "https://greatergood.berkeley.edu/article/item/the_art_of_active_listening",
+            "read_time_mins": 6
+          },
+          {
+            "id": "re-07",
+            "type": "article",
+            "title": "Micro-moments of love — how small interactions build connection",
+            "description": "The science of how brief positive moments with others accumulate into genuine wellbeing.",
+            "source": "Greater Good Magazine",
+            "url": "https://greatergood.berkeley.edu/article/item/micro_moments_of_love",
+            "read_time_mins": 5
+          },
+          {
+            "id": "re-08",
+            "type": "article",
+            "title": "How anxiety affects your relationships",
+            "description": "How anxiety shows up in the way we relate to others — and what to do when it does.",
+            "source": "Verywell Mind",
+            "url": "https://www.verywellmind.com/how-anxiety-affects-relationships-5214441",
+            "read_time_mins": 7
+          }
+        ]
+      },
+      {
+        "id": "mindfulness",
+        "title": "Mindfulness",
+        "description": "Practical mindfulness for people who think they're bad at it.",
+        "color": "#1D9E75",
+        "bg": "#E1F5EE",
+        "icon": "ti-leaf",
+        "content": [
+          {
+            "id": "mn-01",
+            "type": "article",
+            "title": "Mindfulness — what it actually is and how to start",
+            "description": "A no-nonsense guide to mindfulness from the NHS — no retreat required.",
+            "source": "NHS",
+            "url": "https://www.nhs.uk/mental-health/self-help/tips-and-support/mindfulness/",
+            "read_time_mins": 7
+          },
+          {
+            "id": "mn-02",
+            "type": "video",
+            "title": "How mindfulness changes the brain",
+            "description": "The neuroscience of what consistent mindfulness practice actually does to your brain over time.",
+            "source": "TED-Ed",
+            "url": "https://www.youtube.com/watch?v=mB_fEjt3QeA",
+            "duration_mins": 5
+          },
+          {
+            "id": "mn-03",
+            "type": "article",
+            "title": "Mindfulness for people who hate meditating",
+            "description": "Informal mindfulness practices that fit into everyday life without sitting cross-legged on a cushion.",
+            "source": "Greater Good Magazine",
+            "url": "https://greatergood.berkeley.edu/article/item/mindfulness_for_people_who_hate_to_meditate",
+            "read_time_mins": 6
+          },
+          {
+            "id": "mn-04",
+            "type": "article",
+            "title": "The science of gratitude",
+            "description": "Why gratitude is one of the most evidence-backed wellbeing practices — and how to make it stick.",
+            "source": "Greater Good Magazine",
+            "url": "https://greatergood.berkeley.edu/article/item/why_gratitude_is_good",
+            "read_time_mins": 8
+          },
+          {
+            "id": "mn-05",
+            "type": "video",
+            "title": "All it takes is 10 mindful minutes",
+            "description": "Andy Puddicombe's famous TED Talk on what 10 minutes of daily mindfulness can do.",
+            "source": "TED",
+            "url": "https://www.youtube.com/watch?v=qzR62JJCMBQ",
+            "duration_mins": 10
+          },
+          {
+            "id": "mn-06",
+            "type": "article",
+            "title": "How to do a body scan meditation",
+            "description": "Step-by-step guide to one of the most accessible and effective mindfulness techniques.",
+            "source": "Verywell Mind",
+            "url": "https://www.verywellmind.com/body-scan-meditation-why-and-how-3144875",
+            "read_time_mins": 6
+          },
+          {
+            "id": "mn-07",
+            "type": "article",
+            "title": "The art of savouring — how to enjoy the good moments more",
+            "description": "Research on why we rush past positive experiences — and practices to slow down and absorb them.",
+            "source": "Greater Good Magazine",
+            "url": "https://greatergood.berkeley.edu/article/item/the_art_of_savoring",
+            "read_time_mins": 7
+          },
+          {
+            "id": "mn-08",
+            "type": "video",
+            "title": "How to practice mindfulness daily",
+            "description": "A practical video guide for building a consistent mindfulness habit without a major time commitment.",
+            "source": "Headspace on YouTube",
+            "url": "https://www.youtube.com/watch?v=w6T02g5hnT4",
+            "duration_mins": 8
+          }
+        ]
+      },
+      {
+        "id": "money",
+        "title": "Money & Financial Stress",
+        "description": "Handle financial pressure with clarity — and know where to get help.",
+        "color": "#BA7517",
+        "bg": "#FAEEDA",
+        "icon": "ti-coin",
+        "content": [
+          {
+            "id": "mo-01",
+            "type": "article",
+            "title": "How financial stress affects your mental health",
+            "description": "The documented links between money worries and anxiety, depression, and physical health.",
+            "source": "Mind UK",
+            "url": "https://www.mind.org.uk/information-support/tips-for-everyday-living/money-and-mental-health/",
+            "read_time_mins": 7
+          },
+          {
+            "id": "mo-02",
+            "type": "video",
+            "title": "Why you feel bad about money — and how to stop",
+            "description": "The psychology of money shame, and how to separate your financial situation from your self-worth.",
+            "source": "TED",
+            "url": "https://www.youtube.com/watch?v=cLdU9eAT-oo",
+            "duration_mins": 11
+          },
+          {
+            "id": "mo-03",
+            "type": "article",
+            "title": "How to budget when money is tight",
+            "description": "A practical, non-judgmental guide to managing money under pressure.",
+            "source": "National Debt Line / StepChange",
+            "url": "https://www.stepchange.org/debt-info/debt-advice/how-to-budget.aspx",
+            "read_time_mins": 8
+          },
+          {
+            "id": "mo-04",
+            "type": "article",
+            "title": "The emotional side of debt",
+            "description": "Why debt feels so much heavier than the numbers suggest — and how to manage the emotional load.",
+            "source": "Psychology Today",
+            "url": "https://www.psychologytoday.com/us/blog/fulfillment-any-age/201306/what-debt-does-to-your-mental-health",
+            "read_time_mins": 6
+          },
+          {
+            "id": "mo-05",
+            "type": "article",
+            "title": "How to talk to your family about money",
+            "description": "Practical guidance on having difficult money conversations without damaging relationships.",
+            "source": "Greater Good Magazine",
+            "url": "https://greatergood.berkeley.edu/article/item/how_to_talk_about_money_in_relationships",
+            "read_time_mins": 7
+          },
+          {
+            "id": "mo-06",
+            "type": "video",
+            "title": "Your relationship with money, explained",
+            "description": "How your childhood experiences shaped your money beliefs — and how to rewrite the ones that don't serve you.",
+            "source": "Big Think",
+            "url": "https://www.youtube.com/watch?v=tBFjFlPnSGw",
+            "duration_mins": 7
+          },
+          {
+            "id": "mo-07",
+            "type": "article",
+            "title": "Building an emergency fund from scratch",
+            "description": "Why emergency savings matter for mental health — and how to start, even with very little.",
+            "source": "Verywell Mind",
+            "url": "https://www.verywellmind.com/how-to-build-an-emergency-fund-5190064",
+            "read_time_mins": 6
+          },
+          {
+            "id": "mo-08",
+            "type": "article",
+            "title": "When to speak to a financial advisor",
+            "description": "The signs that your financial situation needs professional guidance — and what to expect from that first conversation.",
+            "source": "Money Helper",
+            "url": "https://www.moneyhelper.org.uk/en/money-troubles/dealing-with-debt/when-to-seek-debt-advice",
+            "read_time_mins": 5
+          }
+        ]
+      },
+      {
+        "id": "work",
+        "title": "Work & Purpose",
+        "description": "Navigate work stress, find meaning, and build a career that doesn't cost your health.",
+        "color": "#533489",
+        "bg": "#EEEDFE",
+        "icon": "ti-briefcase",
+        "content": [
+          {
+            "id": "wk-01",
+            "type": "article",
+            "title": "Why burnout is a workplace problem, not a people problem",
+            "description": "Harvard Business Review on why burnout is caused by systems — not personal weakness.",
+            "source": "Harvard Business Review",
+            "url": "https://hbr.org/2019/03/burnout-is-about-your-workplace-not-your-people",
+            "read_time_mins": 8
+          },
+          {
+            "id": "wk-02",
+            "type": "video",
+            "title": "How to find work you love",
+            "description": "Scott Dinsmore's TED Talk on building a career around what you actually care about.",
+            "source": "TED",
+            "url": "https://www.youtube.com/watch?v=jpe-LKn-4gM",
+            "duration_mins": 18
+          },
+          {
+            "id": "wk-03",
+            "type": "article",
+            "title": "Setting limits at work without losing your job",
+            "description": "Practical guidance on protecting your time and energy at work without damaging your career.",
+            "source": "Mind UK",
+            "url": "https://www.mind.org.uk/workplace/mental-health-at-work/taking-care-of-yourself/",
+            "read_time_mins": 7
+          },
+          {
+            "id": "wk-04",
+            "type": "article",
+            "title": "How to talk to your manager about mental health",
+            "description": "A practical guide to having a conversation you've been putting off — what to say, how to say it.",
+            "source": "Mind UK",
+            "url": "https://www.mind.org.uk/workplace/mental-health-at-work/talking-to-your-employer-about-your-mental-health/",
+            "read_time_mins": 8
+          },
+          {
+            "id": "wk-05",
+            "type": "video",
+            "title": "The puzzle of motivation",
+            "description": "Dan Pink's classic TED Talk on what actually drives performance at work — and why most incentive systems get it wrong.",
+            "source": "TED",
+            "url": "https://www.youtube.com/watch?v=rrkrvAUbU9Y",
+            "duration_mins": 18
+          },
+          {
+            "id": "wk-06",
+            "type": "article",
+            "title": "How to recover from a bad day at work",
+            "description": "Evidence-backed strategies for leaving work at work — and actually switching off in the evening.",
+            "source": "Greater Good Magazine",
+            "url": "https://greatergood.berkeley.edu/article/item/how_to_recover_from_work_stress_according_to_science",
+            "read_time_mins": 7
+          },
+          {
+            "id": "wk-07",
+            "type": "article",
+            "title": "Finding meaning in any job",
+            "description": "Research on how people find purpose even in roles that seem mundane — and how to shift your perspective.",
+            "source": "Greater Good Magazine",
+            "url": "https://greatergood.berkeley.edu/article/item/meaning_at_work",
+            "read_time_mins": 8
+          },
+          {
+            "id": "wk-08",
+            "type": "video",
+            "title": "Why good leaders make you feel safe",
+            "description": "Simon Sinek on what creates psychological safety at work — and why it matters more than any other management practice.",
+            "source": "TED",
+            "url": "https://www.youtube.com/watch?v=lmyZMtPVodo",
+            "duration_mins": 12
+          }
+        ]
+      },
+      {
+        "id": "self",
+        "title": "Self-Esteem & Identity",
+        "description": "Build a stronger, more honest relationship with yourself.",
+        "color": "#993556",
+        "bg": "#FBEAF0",
+        "icon": "ti-user",
+        "content": [
+          {
+            "id": "se-01",
+            "type": "article",
+            "title": "What is self-esteem and why does it matter?",
+            "description": "A clear, grounded explanation of self-esteem — what it is, what it isn't, and how it shapes your life.",
+            "source": "Mind UK",
+            "url": "https://www.mind.org.uk/information-support/types-of-mental-health-problems/self-esteem/",
+            "read_time_mins": 8
+          },
+          {
+            "id": "se-02",
+            "type": "video",
+            "title": "The surprising science of happiness",
+            "description": "Dan Gilbert on why we're bad at predicting what will make us happy — and what actually does.",
+            "source": "TED",
+            "url": "https://www.youtube.com/watch?v=4q1dgn_C0AU",
+            "duration_mins": 21
+          },
+          {
+            "id": "se-03",
+            "type": "article",
+            "title": "Self-compassion — the antidote to self-criticism",
+            "description": "Dr Kristin Neff's research on why treating yourself with the same kindness you'd offer a friend is a clinical intervention.",
+            "source": "Greater Good Magazine",
+            "url": "https://greatergood.berkeley.edu/article/item/the_value_of_self_compassion",
+            "read_time_mins": 7
+          },
+          {
+            "id": "se-04",
+            "type": "article",
+            "title": "How your inner critic works — and how to quiet it",
+            "description": "The psychological origins of self-critical thinking and practical ways to change the conversation in your head.",
+            "source": "Verywell Mind",
+            "url": "https://www.verywellmind.com/negative-self-talk-and-how-it-affects-us-4161304",
+            "read_time_mins": 7
+          },
+          {
+            "id": "se-05",
+            "type": "video",
+            "title": "The gift of a growth mindset",
+            "description": "Carol Dweck's landmark TED Talk on the difference between believing abilities are fixed vs. developable.",
+            "source": "TED",
+            "url": "https://www.youtube.com/watch?v=_X0mgOOSpLU",
+            "duration_mins": 10
+          },
+          {
+            "id": "se-06",
+            "type": "article",
+            "title": "How to build self-confidence — practically",
+            "description": "Evidence-based steps for building genuine confidence — not the fake-it variety.",
+            "source": "Psychology Today",
+            "url": "https://www.psychologytoday.com/us/basics/confidence",
+            "read_time_mins": 8
+          },
+          {
+            "id": "se-07",
+            "type": "article",
+            "title": "Setting personal values — why it matters",
+            "description": "How clearly knowing your values gives you a compass for decisions, relationships, and identity.",
+            "source": "Action for Happiness",
+            "url": "https://actionforhappiness.org/take-action/find-your-values",
+            "read_time_mins": 6
+          },
+          {
+            "id": "se-08",
+            "type": "video",
+            "title": "How to stop taking things personally",
+            "description": "A practical video on separating your identity from criticism, rejection, and other people's behaviour.",
+            "source": "Therapy in a Nutshell",
+            "url": "https://www.youtube.com/watch?v=4GFjNRUEBGc",
+            "duration_mins": 10
+          }
+        ]
+      },
+      {
+        "id": "body",
+        "title": "Physical Wellbeing",
+        "description": "Your body and mind are one system. Take care of both.",
+        "color": "#3B6D11",
+        "bg": "#EAF3DE",
+        "icon": "ti-run",
+        "content": [
+          {
+            "id": "bo-01",
+            "type": "article",
+            "title": "Exercise and mental health — the evidence",
+            "description": "A clear summary of what the research actually says about physical activity and mental health.",
+            "source": "Mind UK",
+            "url": "https://www.mind.org.uk/information-support/tips-for-everyday-living/physical-activity-and-your-mental-health/",
+            "read_time_mins": 8
+          },
+          {
+            "id": "bo-02",
+            "type": "video",
+            "title": "How walking changes the brain",
+            "description": "The neuroscience of why a simple daily walk has measurable effects on mood, creativity, and stress.",
+            "source": "TED-Ed",
+            "url": "https://www.youtube.com/watch?v=M4kC_pIfAGE",
+            "duration_mins": 5
+          },
+          {
+            "id": "bo-03",
+            "type": "article",
+            "title": "How food affects your mood",
+            "description": "The gut-brain connection explained — and practical dietary shifts that support mental health.",
+            "source": "Harvard Health",
+            "url": "https://www.health.harvard.edu/blog/nutritional-psychiatry-your-brain-on-food-201511168626",
+            "read_time_mins": 7
+          },
+          {
+            "id": "bo-04",
+            "type": "article",
+            "title": "How to start exercising when you really don't want to",
+            "description": "Evidence-based behavioural strategies for building an exercise habit when motivation is zero.",
+            "source": "Greater Good Magazine",
+            "url": "https://greatergood.berkeley.edu/article/item/how_to_make_exercise_less_awful",
+            "read_time_mins": 6
+          },
+          {
+            "id": "bo-05",
+            "type": "video",
+            "title": "Why the secret to success is setting the right goals",
+            "description": "A refreshing take on fitness goals — why the type of goal matters as much as the goal itself.",
+            "source": "TED",
+            "url": "https://www.youtube.com/watch?v=L4N1q4RNi9I",
+            "duration_mins": 12
+          },
+          {
+            "id": "bo-06",
+            "type": "article",
+            "title": "Alcohol and mental health — what you need to know",
+            "description": "The relationship between alcohol use and mental health — clear, non-judgmental, evidence-based.",
+            "source": "Mind UK",
+            "url": "https://www.mind.org.uk/information-support/types-of-mental-health-problems/alcohol-drugs-mental-health/",
+            "read_time_mins": 7
+          },
+          {
+            "id": "bo-07",
+            "type": "article",
+            "title": "The science of rest and recovery",
+            "description": "Why rest is not laziness — the physiology of recovery and how to actually recharge.",
+            "source": "Harvard Health",
+            "url": "https://www.health.harvard.edu/mind-and-mood/how-to-recover-from-burnout",
+            "read_time_mins": 6
+          },
+          {
+            "id": "bo-08",
+            "type": "video",
+            "title": "The connection between breath and health",
+            "description": "Science journalist James Nestor on how breathing patterns affect everything from anxiety to athletic performance.",
+            "source": "Big Think",
+            "url": "https://www.youtube.com/watch?v=rkZl2gsLUp4",
+            "duration_mins": 9
+          }
+        ]
+      }
+    ]
+  }
+}

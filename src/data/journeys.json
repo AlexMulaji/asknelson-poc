@@ -1,0 +1,1124 @@
+{
+  "journeys": [
+    {
+      "id": "anxiety",
+      "title": "Understanding Your Anxiety",
+      "description": "A 30-day guided journey to understand, manage, and reduce anxiety in everyday life.",
+      "duration_days": 30,
+      "color": "#7F77DD",
+      "icon": "ti-heart-rate-monitor",
+      "days": [
+        {
+          "day": 1,
+          "type": "read",
+          "title": "What is anxiety, really?",
+          "task": "Read this plain-language explainer on what anxiety is and why your body creates it.",
+          "source_title": "What is anxiety? — Mind UK",
+          "source_url": "https://www.mind.org.uk/information-support/types-of-mental-health-problems/anxiety-and-panic-attacks/about-anxiety/",
+          "reflection": "After reading, write down one situation this week where you felt anxious. Just name it — no analysis needed."
+        },
+        {
+          "day": 2,
+          "type": "watch",
+          "title": "How to calm your anxiety",
+          "task": "Watch this short, science-based explainer on what anxiety does in the body — and two tools to calm it.",
+          "source_title": "How to calm your anxiety, from a neuroscientist — TED-Ed",
+          "source_url": "https://ed.ted.com/lessons/how-to-calm-your-anxiety-from-a-neuroscientist-wendy-suzuki",
+          "reflection": null
+        },
+        {
+          "day": 3,
+          "type": "reflect",
+          "title": "Name your anxiety triggers",
+          "task": "Write down 5 things that consistently make you feel anxious. Be specific — not 'work' but 'Monday morning emails'.",
+          "source_title": null,
+          "source_url": null,
+          "reflection": "Keep this list. You'll come back to it on day 10."
+        },
+        {
+          "day": 4,
+          "type": "read",
+          "title": "The anxiety-breathing connection",
+          "task": "Read about how your breathing patterns directly affect your anxiety levels.",
+          "source_title": "How breathing affects anxiety — Calm Blog",
+          "source_url": "https://www.calm.com/blog/breathing-exercises-for-anxiety",
+          "reflection": null
+        },
+        {
+          "day": 5,
+          "type": "practice",
+          "title": "Try box breathing",
+          "task": "Use the Meditate tab to do a 5-minute box breathing session. Inhale 4 counts, hold 4, exhale 4, hold 4.",
+          "source_title": null,
+          "source_url": null,
+          "reflection": "Notice how you feel before and after. Even a small shift counts."
+        },
+        {
+          "day": 6,
+          "type": "read",
+          "title": "Anxiety vs. worry — what's the difference?",
+          "task": "Read this article on the difference between normal worry and anxiety disorder.",
+          "source_title": "Worry vs. Anxiety — Verywell Mind",
+          "source_url": "https://www.verywellmind.com/worry-vs-anxiety-5176875",
+          "reflection": null
+        },
+        {
+          "day": 7,
+          "type": "reflect",
+          "title": "Week 1 check-in",
+          "task": "Write 3 sentences: what you've learned this week, one thing that surprised you, and one thing you want to try next week.",
+          "source_title": null,
+          "source_url": null,
+          "reflection": null
+        },
+        {
+          "day": 8,
+          "type": "watch",
+          "title": "How to cope with anxiety",
+          "task": "Watch this practical, research-based talk laying out simple strategies for coping with everyday anxiety.",
+          "source_title": "How to cope with anxiety — Olivia Remes (TED)",
+          "source_url": "https://www.ted.com/talks/olivia_remes_how_to_cope_with_anxiety",
+          "reflection": null
+        },
+        {
+          "day": 9,
+          "type": "read",
+          "title": "The role of sleep in anxiety",
+          "task": "Read about how poor sleep amplifies anxiety — and what to do about it.",
+          "source_title": "Anxiety and sleep — Sleep Foundation",
+          "source_url": "https://www.sleepfoundation.org/mental-health/anxiety-and-sleep",
+          "reflection": "One small change: no screens 20 minutes before bed tonight. Just try it once."
+        },
+        {
+          "day": 10,
+          "type": "reflect",
+          "title": "Revisit your trigger list",
+          "task": "Pull out the list you wrote on Day 3. Which triggers are within your control? Circle those. For the others — can you reduce your exposure or prepare better?",
+          "source_title": null,
+          "source_url": null,
+          "reflection": null
+        },
+        {
+          "day": 11,
+          "type": "read",
+          "title": "Anxious thoughts vs. facts",
+          "task": "Read about cognitive distortions — the thinking patterns that make anxiety worse.",
+          "source_title": "Common cognitive distortions — Psych Central",
+          "source_url": "https://psychcentral.com/lib/15-common-cognitive-distortions",
+          "reflection": null
+        },
+        {
+          "day": 12,
+          "type": "practice",
+          "title": "The 5-4-3-2-1 grounding technique",
+          "task": "When you next feel anxious, stop and name: 5 things you can see, 4 you can touch, 3 you can hear, 2 you can smell, 1 you can taste. Try it now as practice.",
+          "source_title": null,
+          "source_url": null,
+          "reflection": null
+        },
+        {
+          "day": 13,
+          "type": "watch",
+          "title": "What cognitive behavioural therapy teaches us about anxiety",
+          "task": "Watch this accessible overview of CBT techniques used to treat anxiety.",
+          "source_title": "CBT for anxiety explained — Therapy in a Nutshell",
+          "source_url": "https://www.youtube.com/watch?v=9c_Bv_FBE-c",
+          "reflection": null
+        },
+        {
+          "day": 14,
+          "type": "read",
+          "title": "Exercise as anxiety medicine",
+          "task": "Read the evidence behind why physical movement is one of the most effective anxiety reducers.",
+          "source_title": "Exercise for anxiety — Harvard Health",
+          "source_url": "https://www.health.harvard.edu/mind-and-mood/exercising-to-relax",
+          "reflection": "Commit to a 15-minute walk today. No phone, no podcasts — just walk."
+        },
+        {
+          "day": 15,
+          "type": "reflect",
+          "title": "Halfway point",
+          "task": "You're 15 days in. Write down: one old habit that's shifting, one new thing you've tried, one thing you're still struggling with. Honest answers only.",
+          "source_title": null,
+          "source_url": null,
+          "reflection": null
+        },
+        {
+          "day": 16,
+          "type": "read",
+          "title": "How anxiety affects relationships",
+          "task": "Read about how anxiety can show up in how we relate to others — and what to do about it.",
+          "source_title": "Anxiety in relationships — Verywell Mind",
+          "source_url": "https://www.verywellmind.com/how-anxiety-affects-relationships-5214441",
+          "reflection": null
+        },
+        {
+          "day": 17,
+          "type": "watch",
+          "title": "The anxiety spiral — and how to break it",
+          "task": "Watch this short explainer on how anxious thoughts spiral and the exact moment to interrupt them.",
+          "source_title": "Breaking the anxiety spiral — Therapy in a Nutshell",
+          "source_url": "https://www.youtube.com/watch?v=bEBNMsQH_LU",
+          "reflection": null
+        },
+        {
+          "day": 18,
+          "type": "practice",
+          "title": "Write a worry list — then close it",
+          "task": "Set a 10-minute timer. Write every worry currently in your head. When the timer ends, fold or close the list. Tell yourself: 'I've given my worries their time. Now I'm done for today.'",
+          "source_title": null,
+          "source_url": null,
+          "reflection": null
+        },
+        {
+          "day": 19,
+          "type": "read",
+          "title": "Caffeine, alcohol, and anxiety",
+          "task": "Read how common substances fuel anxiety — and what to be mindful of.",
+          "source_title": "Caffeine and anxiety — Healthline",
+          "source_url": "https://www.healthline.com/health/caffeine-and-anxiety",
+          "reflection": "Try reducing your coffee by one cup today. Note any difference in your baseline tension."
+        },
+        {
+          "day": 20,
+          "type": "watch",
+          "title": "How to stay calm when you know you'll be stressed",
+          "task": "Watch this talk on building the mental habits that let you stay steady when facing uncertainty and pressure.",
+          "source_title": "How to stay calm under pressure — TED (Daniel Levitin)",
+          "source_url": "https://www.ted.com/talks/daniel_levitin_how_to_stay_calm_when_you_know_you_ll_be_stressed",
+          "reflection": null
+        },
+        {
+          "day": 21,
+          "type": "reflect",
+          "title": "What has anxiety protected you from?",
+          "task": "Anxiety often developed for a reason — it kept you alert, safe, prepared. Write down one way your anxiety has actually served you in the past. Then write whether that protection is still needed today.",
+          "source_title": null,
+          "source_url": null,
+          "reflection": null
+        },
+        {
+          "day": 22,
+          "type": "read",
+          "title": "Mindfulness for anxious people",
+          "task": "Read this practical guide to mindfulness — written for people who find it hard to sit still.",
+          "source_title": "Mindfulness for anxiety — NHS",
+          "source_url": "https://www.nhs.uk/mental-health/self-help/tips-and-support/mindfulness/",
+          "reflection": null
+        },
+        {
+          "day": 23,
+          "type": "practice",
+          "title": "Two-minute body scan",
+          "task": "Sit quietly. Starting from your feet, slowly move your attention up through your body. Notice where you're holding tension. Don't try to fix it — just notice. Take two minutes.",
+          "source_title": null,
+          "source_url": null,
+          "reflection": null
+        },
+        {
+          "day": 24,
+          "type": "read",
+          "title": "When to get professional help",
+          "task": "Read about the signs that anxiety may need professional support — no shame in this read.",
+          "source_title": "When to seek help for anxiety — Mind UK",
+          "source_url": "https://www.mind.org.uk/information-support/types-of-mental-health-problems/anxiety-and-panic-attacks/treatment/",
+          "reflection": "If any of this resonates, the AskNelson tab connects you with a counsellor today."
+        },
+        {
+          "day": 25,
+          "type": "watch",
+          "title": "Self-compassion and anxiety",
+          "task": "Watch this short video on how treating yourself with kindness — not criticism — is a clinical anxiety tool.",
+          "source_title": "The space between self-esteem and self-compassion — Kristin Neff (TEDx)",
+          "source_url": "https://www.youtube.com/watch?v=IvtZBUSplr4",
+          "reflection": null
+        },
+        {
+          "day": 26,
+          "type": "reflect",
+          "title": "Write a letter to your anxious self",
+          "task": "Write a short letter — 5 to 10 sentences — to the version of you that feels most anxious. Be kind. Tell them what you know now that you didn't before.",
+          "source_title": null,
+          "source_url": null,
+          "reflection": null
+        },
+        {
+          "day": 27,
+          "type": "read",
+          "title": "Building your personal anxiety toolkit",
+          "task": "Read this guide to building a set of go-to strategies that work specifically for you.",
+          "source_title": "Anxiety coping strategies — Beyond Blue",
+          "source_url": "https://www.beyondblue.org.au/mental-health/anxiety/treatments-for-anxiety/anxiety-management-strategies",
+          "reflection": null
+        },
+        {
+          "day": 28,
+          "type": "practice",
+          "title": "Design your toolkit",
+          "task": "Write down your 5 personal go-to anxiety strategies from this journey. Keep it somewhere you'll find it — phone notes, back of a notebook, wherever works.",
+          "source_title": null,
+          "source_url": null,
+          "reflection": null
+        },
+        {
+          "day": 29,
+          "type": "watch",
+          "title": "How to make stress your friend",
+          "task": "Watch this classic talk on changing your relationship with stress and anxiety so it works for you, not against you.",
+          "source_title": "How to make stress your friend — TED (Kelly McGonigal)",
+          "source_url": "https://www.ted.com/talks/kelly_mcgonigal_how_to_make_stress_your_friend",
+          "reflection": null
+        },
+        {
+          "day": 30,
+          "type": "reflect",
+          "title": "Day 30 — your letter to yourself",
+          "task": "Write a final reflection. How do you feel compared to Day 1? What has changed? What do you want to keep working on? Seal this somewhere and read it in 3 months.",
+          "source_title": null,
+          "source_url": null,
+          "reflection": "You showed up for 30 days. That matters."
+        }
+      ]
+    },
+    {
+      "id": "loneliness",
+      "title": "Finding Connection",
+      "description": "A 30-day journey to understand loneliness, rebuild connection, and feel less alone — starting from where you are right now.",
+      "duration_days": 30,
+      "color": "#1D9E75",
+      "icon": "ti-users",
+      "days": [
+        {
+          "day": 1,
+          "type": "read",
+          "title": "Loneliness is not the same as being alone",
+          "task": "Read this short piece on the difference between solitude and loneliness — and why the distinction matters.",
+          "source_title": "Loneliness vs. solitude — Psychology Today",
+          "source_url": "https://www.psychologytoday.com/us/blog/living-single/201907/the-difference-between-being-alone-and-being-lonely",
+          "reflection": "Which one describes how you feel most often right now?"
+        },
+        {
+          "day": 2,
+          "type": "watch",
+          "title": "The loneliness epidemic",
+          "task": "Watch this TED Talk on why loneliness has become one of the defining health issues of our time.",
+          "source_title": "What makes a good life — Robert Waldinger (TED)",
+          "source_url": "https://www.ted.com/talks/robert_waldinger_what_makes_a_good_life_lessons_from_the_longest_study_on_happiness",
+          "reflection": null
+        },
+        {
+          "day": 3,
+          "type": "reflect",
+          "title": "Map your connections",
+          "task": "Draw three circles on a page. In the inner circle, write names of people you feel truly close to. Middle circle: people you enjoy but aren't intimate with. Outer circle: acquaintances. Look at what you've drawn — what do you notice?",
+          "source_title": null,
+          "source_url": null,
+          "reflection": null
+        },
+        {
+          "day": 4,
+          "type": "read",
+          "title": "What loneliness does to the body",
+          "task": "Read the science of how chronic loneliness affects physical health — not to scare you, but to show it's real.",
+          "source_title": "The health effects of loneliness — Harvard Health",
+          "source_url": "https://www.health.harvard.edu/mental-health/can-relationships-boost-longevity-and-well-being",
+          "reflection": null
+        },
+        {
+          "day": 5,
+          "type": "practice",
+          "title": "Send one message",
+          "task": "Reach out to one person you haven't spoken to in a while. It doesn't need to be long. 'Hey, been thinking about you. Hope you're well.' That's enough.",
+          "source_title": null,
+          "source_url": null,
+          "reflection": null
+        },
+        {
+          "day": 6,
+          "type": "read",
+          "title": "Why connection feels hard",
+          "task": "Read about the barriers that stop people from reaching out — fear of rejection, pride, shame — and how common they are.",
+          "source_title": "Why making friends as an adult is hard — Greater Good Magazine",
+          "source_url": "https://greatergood.berkeley.edu/article/item/how_to_keep_your_friendships_strong",
+          "reflection": null
+        },
+        {
+          "day": 7,
+          "type": "reflect",
+          "title": "Week 1 check-in",
+          "task": "What type of connection do you miss most — deep conversation, company, physical presence, being known? Write it down honestly.",
+          "source_title": null,
+          "source_url": null,
+          "reflection": null
+        },
+        {
+          "day": 8,
+          "type": "watch",
+          "title": "The art of vulnerability",
+          "task": "Watch Brené Brown's famous talk on why vulnerability is not weakness — it's the foundation of real connection.",
+          "source_title": "The power of vulnerability — Brené Brown (TED)",
+          "source_url": "https://www.ted.com/talks/brene_brown_the_power_of_vulnerability",
+          "reflection": null
+        },
+        {
+          "day": 9,
+          "type": "read",
+          "title": "How to have a real conversation",
+          "task": "Read this practical guide to deeper conversations — the kind that actually create connection.",
+          "source_title": "How to have deeper conversations — Greater Good Magazine",
+          "source_url": "https://greatergood.berkeley.edu/article/item/how_to_have_a_conversation_that_matters",
+          "reflection": null
+        },
+        {
+          "day": 10,
+          "type": "practice",
+          "title": "One honest conversation",
+          "task": "In your next conversation with someone — anyone — try to go one level deeper than you normally would. Ask something real. Share something real.",
+          "source_title": null,
+          "source_url": null,
+          "reflection": "You don't need to overshare. One honest moment is enough."
+        },
+        {
+          "day": 11,
+          "type": "read",
+          "title": "The role of community in wellbeing",
+          "task": "Read about how belonging to a community — any community — acts as a buffer against loneliness.",
+          "source_title": "The importance of belonging — APA",
+          "source_url": "https://www.apa.org/monitor/2019/03/nurtured-nature",
+          "reflection": null
+        },
+        {
+          "day": 12,
+          "type": "reflect",
+          "title": "Where could you belong?",
+          "task": "List 3 communities, groups, or activities where you could show up regularly — a class, a club, a volunteer group, a running group. They don't need to be close yet — just where you could start.",
+          "source_title": null,
+          "source_url": null,
+          "reflection": null
+        },
+        {
+          "day": 13,
+          "type": "watch",
+          "title": "The personal connection that makes work matter",
+          "task": "Watch this short talk on why genuine connection at work protects against loneliness and burnout.",
+          "source_title": "Why we need connection at work — TED",
+          "source_url": "https://www.ted.com/talks/shawn_achor_the_happy_secret_to_better_work",
+          "reflection": null
+        },
+        {
+          "day": 14,
+          "type": "read",
+          "title": "Small acts, big connection",
+          "task": "Read about micro-moments of connection — how brief positive interactions with strangers and colleagues accumulate into genuine wellbeing.",
+          "source_title": "Micro-moments of love — Greater Good Magazine",
+          "source_url": "https://greatergood.berkeley.edu/article/item/micro_moments_of_love",
+          "reflection": "Today, make eye contact and genuinely smile at three people. That's the whole task."
+        },
+        {
+          "day": 15,
+          "type": "reflect",
+          "title": "Halfway check-in",
+          "task": "Has anything shifted in how you see your own loneliness? Write three sentences: where you started, where you are, where you want to go.",
+          "source_title": null,
+          "source_url": null,
+          "reflection": null
+        },
+        {
+          "day": 16,
+          "type": "read",
+          "title": "Loneliness and social media",
+          "task": "Read the nuanced take on how social media can both deepen loneliness and — when used intentionally — help.",
+          "source_title": "Social media and loneliness — Verywell Mind",
+          "source_url": "https://www.verywellmind.com/is-social-media-making-you-lonely-4790497",
+          "reflection": null
+        },
+        {
+          "day": 17,
+          "type": "practice",
+          "title": "Digital audit",
+          "task": "For one day, notice every time you open social media out of boredom or loneliness. Don't try to stop — just notice. Count the moments.",
+          "source_title": null,
+          "source_url": null,
+          "reflection": null
+        },
+        {
+          "day": 18,
+          "type": "watch",
+          "title": "The secret to making new friends as an adult",
+          "task": "Watch this practical talk on why adult friendships are hard to keep — and science-backed ways to invest in them.",
+          "source_title": "The secret to making new friends as an adult — Marisa G. Franco (TED)",
+          "source_url": "https://www.ted.com/talks/marisa_g_franco_the_secret_to_making_new_friends_as_an_adult",
+          "reflection": null
+        },
+        {
+          "day": 19,
+          "type": "read",
+          "title": "Being a good friend",
+          "task": "Read about what the research says makes someone a good friend — it's simpler than we think.",
+          "source_title": "What makes a good friend — Greater Good Magazine",
+          "source_url": "https://greatergood.berkeley.edu/article/item/what_makes_a_good_friend_according_to_science",
+          "reflection": "Who in your life could use you showing up as a better friend right now?"
+        },
+        {
+          "day": 20,
+          "type": "practice",
+          "title": "Plan something concrete",
+          "task": "Reach out to someone and make a specific plan — coffee, a walk, a call at a specific time. Not 'we should catch up' — an actual date.",
+          "source_title": null,
+          "source_url": null,
+          "reflection": null
+        },
+        {
+          "day": 21,
+          "type": "reflect",
+          "title": "What connection means to you",
+          "task": "Write your own definition of connection. Not what it means in general — what it personally means to feel connected. What does that feel like in your body? When did you last feel it?",
+          "source_title": null,
+          "source_url": null,
+          "reflection": null
+        },
+        {
+          "day": 22,
+          "type": "read",
+          "title": "Helping others as a path out of loneliness",
+          "task": "Read about why acts of service — volunteering, helping a neighbour — are one of the most evidence-backed ways to reduce loneliness.",
+          "source_title": "Giving and wellbeing — Action for Happiness",
+          "source_url": "https://actionforhappiness.org/take-action/do-good-things",
+          "reflection": null
+        },
+        {
+          "day": 23,
+          "type": "watch",
+          "title": "How to cope with loneliness",
+          "task": "Watch this compassionate, research-based talk that reframes loneliness as a signal — and shares strategies to cope with it.",
+          "source_title": "How to cope with loneliness — Olivia Remes (TED)",
+          "source_url": "https://www.ted.com/talks/olivia_remes_how_to_cope_with_loneliness",
+          "reflection": null
+        },
+        {
+          "day": 24,
+          "type": "read",
+          "title": "When loneliness needs professional support",
+          "task": "Read about when loneliness tips into something that needs more than self-help.",
+          "source_title": "Loneliness and depression — Mind UK",
+          "source_url": "https://www.mind.org.uk/information-support/tips-for-everyday-living/loneliness/",
+          "reflection": "The AskNelson tab has a counsellor booking if any of this resonates."
+        },
+        {
+          "day": 25,
+          "type": "practice",
+          "title": "Do one thing in public",
+          "task": "Go somewhere — a café, a library, a park, a gym class — not to meet anyone, just to be around people. Bring nothing to hide behind. Sit and exist alongside others for 30 minutes.",
+          "source_title": null,
+          "source_url": null,
+          "reflection": null
+        },
+        {
+          "day": 26,
+          "type": "reflect",
+          "title": "Write to a future friend",
+          "task": "Write a short letter introducing yourself to a friend you haven't met yet. Describe what kind of friend you are, what you're looking for, and what you'd bring to the friendship.",
+          "source_title": null,
+          "source_url": null,
+          "reflection": "This is as much about knowing yourself as about finding others."
+        },
+        {
+          "day": 27,
+          "type": "read",
+          "title": "The science of belonging",
+          "task": "Read the research on what makes humans feel they belong — and the small, surprising things that create it.",
+          "source_title": "The science of belonging — Greater Good Magazine",
+          "source_url": "https://greatergood.berkeley.edu/article/item/how_to_foster_belonging",
+          "reflection": null
+        },
+        {
+          "day": 28,
+          "type": "watch",
+          "title": "Connection in unexpected places",
+          "task": "Watch this film on how people find community in unlikely ways — a reminder that connection doesn't have to look conventional.",
+          "source_title": "The art of community — TED Playlist",
+          "source_url": "https://www.ted.com/playlists/299/the_art_of_community",
+          "reflection": null
+        },
+        {
+          "day": 29,
+          "type": "practice",
+          "title": "Invest in one relationship",
+          "task": "Choose one relationship from your connection map on Day 3 that you want to nurture. Make a concrete commitment to investing in it over the next month. Write it down.",
+          "source_title": null,
+          "source_url": null,
+          "reflection": null
+        },
+        {
+          "day": 30,
+          "type": "reflect",
+          "title": "Day 30 — you are not alone",
+          "task": "Write your final reflection. What has changed? What do you understand about your loneliness now that you didn't before? What is one relationship you're going to invest in next month?",
+          "source_title": null,
+          "source_url": null,
+          "reflection": "Showing up for 30 days takes courage. You did it."
+        }
+      ]
+    },
+    {
+      "id": "burnout",
+      "title": "Recovering from Burnout",
+      "description": "A 30-day journey to understand burnout, recover your energy, and rebuild a sustainable relationship with work and life.",
+      "duration_days": 30,
+      "color": "#D85A30",
+      "icon": "ti-flame",
+      "days": [
+        {
+          "day": 1,
+          "type": "read",
+          "title": "What burnout actually is",
+          "task": "Read the WHO's definition of burnout and how it differs from stress or tiredness.",
+          "source_title": "What is burnout? — WHO / Verywell Mind",
+          "source_url": "https://www.verywellmind.com/stress-and-burnout-symptoms-and-causes-3144516",
+          "reflection": "Score yourself 1–10 on these three dimensions: exhaustion, cynicism, feeling ineffective. Write the numbers down."
+        },
+        {
+          "day": 2,
+          "type": "watch",
+          "title": "How burnout builds — and how to spot it",
+          "task": "Watch this clear talk on how burnout creeps up gradually and why it's so hard to see coming.",
+          "source_title": "The cure for burnout — TED (Emily & Amelia Nagoski)",
+          "source_url": "https://www.ted.com/talks/emily_nagoski_and_amelia_nagoski_the_cure_for_burnout_hint_it_isn_t_self_care",
+          "reflection": null
+        },
+        {
+          "day": 3,
+          "type": "reflect",
+          "title": "When did it start?",
+          "task": "Try to trace your burnout backwards. When did you last feel genuinely energised by your work? What changed? Write it out — this is not about blame, it's about understanding.",
+          "source_title": null,
+          "source_url": null,
+          "reflection": null
+        },
+        {
+          "day": 4,
+          "type": "read",
+          "title": "The six causes of burnout",
+          "task": "Read the research-backed framework of the six workplace factors that cause burnout. Not all of them are your fault.",
+          "source_title": "Six causes of burnout — Christina Maslach / Mind Tools",
+          "source_url": "https://www.mindtools.com/pages/article/burnout-causes.htm",
+          "reflection": "Circle the 1–2 causes that apply most to you."
+        },
+        {
+          "day": 5,
+          "type": "practice",
+          "title": "Do absolutely nothing for 20 minutes",
+          "task": "No phone. No TV. No podcast. Sit or lie down and do nothing for 20 minutes. If thoughts come, let them. This is rest, not meditation.",
+          "source_title": null,
+          "source_url": null,
+          "reflection": "Notice how uncomfortable this feels. That discomfort is data."
+        },
+        {
+          "day": 6,
+          "type": "read",
+          "title": "Why rest doesn't fix burnout",
+          "task": "Read about why a holiday or weekend off doesn't cure burnout — and what actually does.",
+          "source_title": "Why rest doesn't cure burnout — Harvard Business Review",
+          "source_url": "https://hbr.org/2021/02/resilience-is-about-how-you-recharge-not-how-you-endure",
+          "reflection": null
+        },
+        {
+          "day": 7,
+          "type": "reflect",
+          "title": "Week 1 check-in",
+          "task": "Score yourself again: exhaustion, cynicism, feeling ineffective — 1 to 10. Compare to Day 1. Write one sentence about what you've noticed.",
+          "source_title": null,
+          "source_url": null,
+          "reflection": null
+        },
+        {
+          "day": 8,
+          "type": "watch",
+          "title": "Why working more doesn't work",
+          "task": "Watch this talk on the cultural myths around productivity and overwork that drive high achievers into burnout.",
+          "source_title": "Rethinking productivity and overwork — TED (Rahaf Harfoush)",
+          "source_url": "https://www.ted.com/talks/rahaf_harfoush_how_burnout_makes_us_less_creative",
+          "reflection": null
+        },
+        {
+          "day": 9,
+          "type": "read",
+          "title": "Your nervous system and burnout",
+          "task": "Read about how chronic stress physically changes your nervous system — and the first steps to regulate it.",
+          "source_title": "Nervous system and burnout — Healthline",
+          "source_url": "https://www.healthline.com/health/mental-health/burnout-recovery",
+          "reflection": null
+        },
+        {
+          "day": 10,
+          "type": "practice",
+          "title": "A morning without urgency",
+          "task": "Tomorrow morning, don't look at your phone for the first 30 minutes after waking. Do something slow — make tea, stretch, sit outside. Give yourself a morning that belongs to you.",
+          "source_title": null,
+          "source_url": null,
+          "reflection": null
+        },
+        {
+          "day": 11,
+          "type": "read",
+          "title": "Setting limits at work",
+          "task": "Read this practical guide to setting limits — not walls — with work demands.",
+          "source_title": "How to set boundaries at work — Mind",
+          "source_url": "https://www.mind.org.uk/workplace/mental-health-at-work/taking-care-of-yourself/five-ways-to-wellbeing/",
+          "reflection": "What is one boundary you need to set this week? Be specific."
+        },
+        {
+          "day": 12,
+          "type": "watch",
+          "title": "The gift and power of emotional courage",
+          "task": "Watch this profound talk on facing difficult emotions honestly — the deeper work that rest alone can't do.",
+          "source_title": "Emotional courage — TED (Susan David)",
+          "source_url": "https://www.ted.com/talks/susan_david_the_gift_and_power_of_emotional_courage",
+          "reflection": null
+        },
+        {
+          "day": 13,
+          "type": "reflect",
+          "title": "What do you actually value?",
+          "task": "List your top 5 personal values — what matters most to you in life. Then list how much time you actually spent on each one last week. The gap between the two lists is worth examining.",
+          "source_title": null,
+          "source_url": null,
+          "reflection": null
+        },
+        {
+          "day": 14,
+          "type": "read",
+          "title": "Burnout and identity",
+          "task": "Read about how burnout often hits people whose identity is tightly wrapped up in their work.",
+          "source_title": "Burnout and identity — Harvard Business Review",
+          "source_url": "https://hbr.org/2019/03/burnout-is-about-your-workplace-not-your-people",
+          "reflection": null
+        },
+        {
+          "day": 15,
+          "type": "reflect",
+          "title": "Halfway point",
+          "task": "Who are you outside of your job title? List 10 things about yourself that have nothing to do with work. Take as long as you need.",
+          "source_title": null,
+          "source_url": null,
+          "reflection": null
+        },
+        {
+          "day": 16,
+          "type": "read",
+          "title": "Sleep and burnout recovery",
+          "task": "Read about the specific sleep changes that accelerate burnout recovery.",
+          "source_title": "Sleep and burnout — Sleep Foundation",
+          "source_url": "https://www.sleepfoundation.org/mental-health/burnout-and-sleep",
+          "reflection": "Choose one sleep habit to implement tonight: consistent bedtime, no screens 30 minutes before bed, or a wind-down routine. Pick one."
+        },
+        {
+          "day": 17,
+          "type": "practice",
+          "title": "The three-item day",
+          "task": "Today, choose only three things that matter most to get done. Not a full to-do list — three. When they're done, you're done. Let the rest wait.",
+          "source_title": null,
+          "source_url": null,
+          "reflection": null
+        },
+        {
+          "day": 18,
+          "type": "watch",
+          "title": "Burnout and how to recover",
+          "task": "Watch this candid talk on the warning signs of burnout and what genuine recovery actually looks like.",
+          "source_title": "The cure for burnout — TED (Emily & Amelia Nagoski)",
+          "source_url": "https://www.ted.com/talks/emily_nagoski_and_amelia_nagoski_the_cure_for_burnout_hint_it_isn_t_self_care",
+          "reflection": null
+        },
+        {
+          "day": 19,
+          "type": "read",
+          "title": "How to ask for help at work",
+          "task": "Read this guide to raising workload concerns with a manager — practically and professionally.",
+          "source_title": "How to talk to your boss about burnout — Harvard Business Review",
+          "source_url": "https://hbr.org/2021/02/are-you-experiencing-burnout-heres-how-to-tell-your-boss",
+          "reflection": null
+        },
+        {
+          "day": 20,
+          "type": "reflect",
+          "title": "What needs to change?",
+          "task": "Be honest. List the structural things in your work or life that are driving your burnout. Then mark each one: Can I change this? Can I change how I relate to it? Or do I need help changing it?",
+          "source_title": null,
+          "source_url": null,
+          "reflection": null
+        },
+        {
+          "day": 21,
+          "type": "read",
+          "title": "The joy audit",
+          "task": "Read about how reconnecting with enjoyment — not productivity — is a clinical burnout recovery tool.",
+          "source_title": "Reclaiming joy — Greater Good Magazine",
+          "source_url": "https://greatergood.berkeley.edu/article/item/the_art_of_savoring",
+          "reflection": "Write down three activities that used to bring you joy. When did you last do any of them?"
+        },
+        {
+          "day": 22,
+          "type": "practice",
+          "title": "Do something just for joy",
+          "task": "Today, do one thing from your joy list — even a small version. Not because it's productive. Not because it makes you better at your job. Just because it's enjoyable.",
+          "source_title": null,
+          "source_url": null,
+          "reflection": null
+        },
+        {
+          "day": 23,
+          "type": "watch",
+          "title": "How to succeed? Get more sleep",
+          "task": "Watch this short talk challenging the overwork culture that equates exhaustion with success.",
+          "source_title": "How to succeed? Get more sleep — Arianna Huffington (TED)",
+          "source_url": "https://www.ted.com/talks/arianna_huffington_how_to_succeed_get_more_sleep",
+          "reflection": null
+        },
+        {
+          "day": 24,
+          "type": "read",
+          "title": "When to get professional support",
+          "task": "Read about the signs that burnout has crossed into something that needs a professional — a counsellor, coach, or doctor.",
+          "source_title": "When burnout needs professional help — Mind UK",
+          "source_url": "https://www.mind.org.uk/information-support/types-of-mental-health-problems/stress/",
+          "reflection": "If any of this matches your experience, the AskNelson tab can connect you with a counsellor or coach today."
+        },
+        {
+          "day": 25,
+          "type": "practice",
+          "title": "Protect one hour",
+          "task": "Block one hour in your calendar this week that is completely yours. Not a meeting. Not a task. Not 'catch up'. Your hour. Guard it.",
+          "source_title": null,
+          "source_url": null,
+          "reflection": null
+        },
+        {
+          "day": 26,
+          "type": "reflect",
+          "title": "Your sustainable pace",
+          "task": "Describe — in writing — what a sustainable week looks like for you. Not ideal, but sustainable. What time do you start? What time do you stop? What do you protect? What do you let go of?",
+          "source_title": null,
+          "source_url": null,
+          "reflection": null
+        },
+        {
+          "day": 27,
+          "type": "read",
+          "title": "Recovery is not linear",
+          "task": "Read about why burnout recovery takes longer than people expect — and how to be compassionate with yourself on hard days.",
+          "source_title": "Burnout recovery timeline — Psychology Today",
+          "source_url": "https://www.psychologytoday.com/us/blog/urban-survival/202005/7-strategies-help-you-recover-burnout",
+          "reflection": null
+        },
+        {
+          "day": 28,
+          "type": "practice",
+          "title": "Write your recovery commitments",
+          "task": "Write three specific commitments to yourself for the next 90 days — things you will do differently to prevent burnout returning. Make them concrete, not vague.",
+          "source_title": null,
+          "source_url": null,
+          "reflection": null
+        },
+        {
+          "day": 29,
+          "type": "watch",
+          "title": "Designing your life",
+          "task": "Watch this talk on applying design thinking to build a life and career that fit you — instead of just reacting to demands.",
+          "source_title": "Designing your life — TEDx (Bill Burnett)",
+          "source_url": "https://www.youtube.com/watch?v=SemHh0n19LA",
+          "reflection": null
+        },
+        {
+          "day": 30,
+          "type": "reflect",
+          "title": "Day 30 — you came back to yourself",
+          "task": "Final reflection. How does your energy compare to Day 1? What do you know about yourself now? Read the commitments you wrote on Day 28. Sign them.",
+          "source_title": null,
+          "source_url": null,
+          "reflection": "Recovery takes time. But you started. That's not nothing."
+        }
+      ]
+    },
+    {
+      "id": "grief",
+      "title": "Moving Through Grief",
+      "description": "A 30-day companion for people navigating loss — of a person, a relationship, a job, or anything that mattered.",
+      "duration_days": 30,
+      "color": "#534AB7",
+      "icon": "ti-leaf",
+      "days": [
+        {
+          "day": 1,
+          "type": "read",
+          "title": "Grief is not a problem to solve",
+          "task": "Read this compassionate piece that reframes grief not as something to fix but as something to move through.",
+          "source_title": "What grief really is — David Kessler",
+          "source_url": "https://grief.com/the-five-stages-of-grief/",
+          "reflection": "There's no right way to grieve. You're doing it the right way for you."
+        },
+        {
+          "day": 2,
+          "type": "watch",
+          "title": "We don't 'move on' from grief — we move forward",
+          "task": "Watch this honest, moving talk that reframes how grief actually works — far beyond the famous 'five stages'.",
+          "source_title": "We don't move on from grief, we move forward — Nora McInerny (TED)",
+          "source_url": "https://www.ted.com/talks/nora_mcinerny_we_don_t_move_on_from_grief_we_move_forward_with_it",
+          "reflection": null
+        },
+        {
+          "day": 3,
+          "type": "reflect",
+          "title": "Name your loss",
+          "task": "Write about what you've lost — not just the person or thing, but what their absence means. What did they give you? What has changed in your daily life? What future have you lost alongside them?",
+          "source_title": null,
+          "source_url": null,
+          "reflection": "Take as long as you need. There's no word count here."
+        },
+        {
+          "day": 4,
+          "type": "read",
+          "title": "How grief lives in the body",
+          "task": "Read about the physical experience of grief — why you feel it in your chest, your stomach, your sleep.",
+          "source_title": "The body in grief — Verywell Mind",
+          "source_url": "https://www.verywellmind.com/physical-symptoms-of-grief-4065428",
+          "reflection": null
+        },
+        {
+          "day": 5,
+          "type": "practice",
+          "title": "Be gentle with your body today",
+          "task": "Do something kind for your body today. It could be sleep, a slow walk, a warm bath, eating something nourishing. Grief is physical work. Your body is working hard.",
+          "source_title": null,
+          "source_url": null,
+          "reflection": null
+        },
+        {
+          "day": 6,
+          "type": "read",
+          "title": "Grief and isolation",
+          "task": "Read about why people pull away from others when grieving — and the cost of doing so alone.",
+          "source_title": "Grief and loneliness — Psychology Today",
+          "source_url": "https://www.psychologytoday.com/us/blog/understanding-grief/201611/grief-and-loneliness",
+          "reflection": null
+        },
+        {
+          "day": 7,
+          "type": "reflect",
+          "title": "Week 1 check-in",
+          "task": "In one sentence: how are you, honestly? Not 'fine'. The real answer.",
+          "source_title": null,
+          "source_url": null,
+          "reflection": null
+        },
+        {
+          "day": 8,
+          "type": "watch",
+          "title": "The journey through loss and grief",
+          "task": "Watch this honest talk from someone who has lived through profound loss about what helped and what didn't.",
+          "source_title": "A journey through grief — TED (Jason B. Rosenthal)",
+          "source_url": "https://www.ted.com/talks/jason_b_rosenthal_the_journey_through_loss_and_grief",
+          "reflection": null
+        },
+        {
+          "day": 9,
+          "type": "read",
+          "title": "Continuing bonds — staying connected to who you've lost",
+          "task": "Read about the theory of continuing bonds — that healthy grief doesn't mean moving on, it means finding a new relationship with what you've lost.",
+          "source_title": "Continuing bonds theory — What's Your Grief",
+          "source_url": "https://whatsyourgrief.com/continuing-bonds-in-grief/",
+          "reflection": null
+        },
+        {
+          "day": 10,
+          "type": "practice",
+          "title": "A letter you won't send",
+          "task": "Write a letter to whoever or whatever you've lost. Say what you didn't get to say, or what you need to say now. You will not send this. It's for you.",
+          "source_title": null,
+          "source_url": null,
+          "reflection": null
+        },
+        {
+          "day": 11,
+          "type": "read",
+          "title": "Complicated grief",
+          "task": "Read about when grief becomes 'complicated' — when it intensifies or gets stuck rather than shifting over time.",
+          "source_title": "Complicated grief — Mayo Clinic",
+          "source_url": "https://www.mayoclinic.org/diseases-conditions/complicated-grief/symptoms-causes/syc-20360374",
+          "reflection": "If any of this applies to you, please use the AskNelson tab to speak to someone."
+        },
+        {
+          "day": 12,
+          "type": "watch",
+          "title": "How to grieve — and keep living",
+          "task": "Watch this nuanced talk on holding grief and gratitude at the same time, and letting both be true.",
+          "source_title": "Grief and gratitude — TED",
+          "source_url": "https://www.ted.com/talks/nora_mcinerny_we_don_t_move_on_from_grief_we_move_forward_with_it",
+          "reflection": null
+        },
+        {
+          "day": 13,
+          "type": "reflect",
+          "title": "What you are grateful for",
+          "task": "Write 5 things about the person, relationship, or situation you lost that you are grateful for. Not things you miss — things you're grateful to have had.",
+          "source_title": null,
+          "source_url": null,
+          "reflection": null
+        },
+        {
+          "day": 14,
+          "type": "read",
+          "title": "How to support yourself when you're grieving",
+          "task": "Read this practical guide to self-care during grief — especially when getting through the day is already hard enough.",
+          "source_title": "Self-care in grief — What's Your Grief",
+          "source_url": "https://whatsyourgrief.com/grief-self-care-ideas/",
+          "reflection": null
+        },
+        {
+          "day": 15,
+          "type": "reflect",
+          "title": "Halfway — what has shifted?",
+          "task": "Not 'are you better?' but 'what has shifted?'. Write one thing that feels different than it did on Day 1.",
+          "source_title": null,
+          "source_url": null,
+          "reflection": null
+        },
+        {
+          "day": 16,
+          "type": "read",
+          "title": "Grief anniversaries and triggers",
+          "task": "Read about grief triggers — dates, smells, songs, places — and how to prepare for and navigate them.",
+          "source_title": "Grief triggers — What's Your Grief",
+          "source_url": "https://whatsyourgrief.com/grief-triggers/",
+          "reflection": null
+        },
+        {
+          "day": 17,
+          "type": "practice",
+          "title": "Create a small ritual",
+          "task": "Create a small ritual to honour what you've lost. Light a candle on a certain day. Visit a place that mattered. Cook their favourite meal. Small rituals give grief somewhere to go.",
+          "source_title": null,
+          "source_url": null,
+          "reflection": null
+        },
+        {
+          "day": 18,
+          "type": "watch",
+          "title": "Living and grieving at the same time",
+          "task": "Watch this hard-won talk from a resilience researcher on coping strategies for getting through tough times while still functioning day to day.",
+          "source_title": "3 secrets of resilient people — Lucy Hone (TED)",
+          "source_url": "https://www.ted.com/talks/lucy_hone_3_secrets_of_resilient_people",
+          "reflection": null
+        },
+        {
+          "day": 19,
+          "type": "read",
+          "title": "How other cultures grieve",
+          "task": "Read about how different cultures and traditions approach grief — some have a lot to teach us.",
+          "source_title": "How different cultures grieve — HuffPost",
+          "source_url": "https://www.huffpost.com/entry/grief-around-the-world_n_5799872",
+          "reflection": null
+        },
+        {
+          "day": 20,
+          "type": "reflect",
+          "title": "What has this loss taught you?",
+          "task": "Not 'what is the silver lining'. But honestly — what has this experience revealed about yourself, your values, or what matters to you? Even difficult answers are valid here.",
+          "source_title": null,
+          "source_url": null,
+          "reflection": null
+        },
+        {
+          "day": 21,
+          "type": "read",
+          "title": "Post-traumatic growth",
+          "task": "Read about post-traumatic growth — the genuine, evidence-based phenomenon of people finding meaning after profound loss.",
+          "source_title": "Post-traumatic growth — Greater Good Magazine",
+          "source_url": "https://greatergood.berkeley.edu/article/item/what_is_posttraumatic_growth",
+          "reflection": "This is not 'everything happens for a reason'. It's about what we build from what happens."
+        },
+        {
+          "day": 22,
+          "type": "practice",
+          "title": "Share a memory",
+          "task": "Share a memory of what you've lost with someone who will listen. A friend, a family member, a colleague. Just one memory. Grief carried alone is heavier.",
+          "source_title": null,
+          "source_url": null,
+          "reflection": null
+        },
+        {
+          "day": 23,
+          "type": "watch",
+          "title": "We don't 'move on' — we move forward",
+          "task": "Watch this powerful short talk reframing what it means to live after loss.",
+          "source_title": "We don't move on, we move forward — Nora McInerny (TED)",
+          "source_url": "https://www.ted.com/talks/nora_mcinerny_we_don_t_move_on_from_grief_we_move_forward_with_it",
+          "reflection": null
+        },
+        {
+          "day": 24,
+          "type": "read",
+          "title": "When grief needs professional support",
+          "task": "Read about the signs that grief would benefit from professional support — and why asking for help is not weakness.",
+          "source_title": "Getting help for grief — NHS",
+          "source_url": "https://www.nhs.uk/mental-health/feelings-symptoms-behaviours/feelings-and-symptoms/grief-bereavement-loss/",
+          "reflection": "The AskNelson tab has a counsellor available if you need to talk."
+        },
+        {
+          "day": 25,
+          "type": "practice",
+          "title": "Give yourself permission",
+          "task": "Write yourself a short note giving yourself explicit permission — to grieve, to feel better, to laugh, to be sad again, to take as long as you need. Sign it.",
+          "source_title": null,
+          "source_url": null,
+          "reflection": null
+        },
+        {
+          "day": 26,
+          "type": "reflect",
+          "title": "What do you want to carry forward?",
+          "task": "Write about what you want to carry forward from this loss — a value, a lesson, a way of being, something they stood for. How will they remain part of who you are?",
+          "source_title": null,
+          "source_url": null,
+          "reflection": null
+        },
+        {
+          "day": 27,
+          "type": "read",
+          "title": "Life after loss",
+          "task": "Read about how people rebuild — not to the same life, but a different one that makes room for what happened.",
+          "source_title": "Rebuilding after loss — What's Your Grief",
+          "source_url": "https://whatsyourgrief.com/rebuilding-your-life-after-loss/",
+          "reflection": null
+        },
+        {
+          "day": 28,
+          "type": "watch",
+          "title": "Finding meaning",
+          "task": "Watch this talk on how humans find meaning — and how meaning can exist even inside profound pain.",
+          "source_title": "There's more to life than being happy — Emily Esfahani Smith (TED)",
+          "source_url": "https://www.ted.com/talks/emily_esfahani_smith_there_s_more_to_life_than_being_happy",
+          "reflection": null
+        },
+        {
+          "day": 29,
+          "type": "practice",
+          "title": "Do something that honours them",
+          "task": "Do something today that honours what or who you've lost. Plant something. Cook something. Write something. Give something. Make it intentional.",
+          "source_title": null,
+          "source_url": null,
+          "reflection": null
+        },
+        {
+          "day": 30,
+          "type": "reflect",
+          "title": "Day 30 — still here",
+          "task": "Write a final reflection. You came to this journey carrying something heavy. Write about what you've learned, what has softened, and how you want to move forward. Then write these words at the end: I am still here.",
+          "source_title": null,
+          "source_url": null,
+          "reflection": "You showed up every day. That takes real strength."
+        }
+      ]
+    }
+  ]
+}

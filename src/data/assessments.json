@@ -1,0 +1,446 @@
+{
+  "assessments": [
+    {
+      "id": "anxiety",
+      "title": "Anxiety Check",
+      "subtitle": "A quick, validated screen for anxiety symptoms.",
+      "description": "A couple of minutes to check in on how anxious or on edge you've been feeling lately. Seven short questions about the past two weeks — answer honestly and you'll get a clear, private sense of where things stand, with a gentle next step if you want one. It's based on the GAD-7, a screening questionnaire used widely by health professionals.",
+      "instrument": "GAD-7 (public domain)",
+      "color": "#7F77DD",
+      "bg": "#EEEDFE",
+      "icon": "ti-heart-rate-monitor",
+      "time_mins": 2,
+      "retake_after_days": 14,
+      "disclaimer": "This is a self-check, not a diagnosis. Only a qualified professional can diagnose an anxiety disorder.",
+      "instructions": "Over the last 2 weeks, how often have you been bothered by the following?",
+      "response_scale": [
+        { "label": "Not at all", "value": 0 },
+        { "label": "Several days", "value": 1 },
+        { "label": "More than half the days", "value": 2 },
+        { "label": "Nearly every day", "value": 3 }
+      ],
+      "questions": [
+        { "id": "q1", "text": "Feeling nervous, anxious, or on edge" },
+        { "id": "q2", "text": "Not being able to stop or control worrying" },
+        { "id": "q3", "text": "Worrying too much about different things" },
+        { "id": "q4", "text": "Trouble relaxing" },
+        { "id": "q5", "text": "Being so restless that it's hard to sit still" },
+        { "id": "q6", "text": "Becoming easily annoyed or irritable" },
+        { "id": "q7", "text": "Feeling afraid, as if something awful might happen" }
+      ],
+      "scoring": { "type": "sum", "min": 0, "max": 21 },
+      "results": [
+        {
+          "band": "Minimal anxiety",
+          "min": 0,
+          "max": 4,
+          "headline": "Your anxiety levels look low right now",
+          "body": "Your responses suggest minimal anxiety over the past two weeks. A good moment to build habits that keep it that way.",
+          "cta": { "type": "explore", "target": "mindfulness", "label": "Explore mindfulness tools" }
+        },
+        {
+          "band": "Mild anxiety",
+          "min": 5,
+          "max": 9,
+          "headline": "Some signs of mild anxiety",
+          "body": "You're showing some symptoms of anxiety. This is common and very manageable with the right tools. The Anxiety journey is a good place to start.",
+          "cta": { "type": "journey", "target": "anxiety", "label": "Start the Anxiety journey" }
+        },
+        {
+          "band": "Moderate anxiety",
+          "min": 10,
+          "max": 14,
+          "headline": "Moderate anxiety symptoms",
+          "body": "Your responses point to a moderate level of anxiety. Self-help tools can help, and it may be worth talking to someone. Consider booking a counsellor.",
+          "cta": { "type": "asknelson", "label": "Talk to a counsellor on AskNelson" }
+        },
+        {
+          "band": "Severe anxiety",
+          "min": 15,
+          "max": 21,
+          "headline": "Significant anxiety symptoms",
+          "body": "Your responses suggest a high level of anxiety. You don't have to manage this on your own — speaking to a professional is a strong next step.",
+          "cta": { "type": "asknelson", "label": "Talk to a counsellor on AskNelson" }
+        }
+      ]
+    },
+    {
+      "id": "depression",
+      "title": "Mood Check",
+      "subtitle": "A validated screen for low mood and depression.",
+      "description": "A short, private check-in on how your mood has been over the past two weeks. Nine questions, with no right or wrong answers — just answer as honestly as you can, and you'll see a clear picture of how you've been doing, along with support that fits. It's based on the PHQ-9, used widely by health professionals.",
+      "instrument": "PHQ-9 (public domain)",
+      "color": "#4F6D8C",
+      "bg": "#EAF0F5",
+      "icon": "ti-cloud",
+      "time_mins": 3,
+      "retake_after_days": 14,
+      "disclaimer": "This is a self-check, not a diagnosis. Only a qualified professional can diagnose depression.",
+      "instructions": "Over the last 2 weeks, how often have you been bothered by any of the following?",
+      "response_scale": [
+        { "label": "Not at all", "value": 0 },
+        { "label": "Several days", "value": 1 },
+        { "label": "More than half the days", "value": 2 },
+        { "label": "Nearly every day", "value": 3 }
+      ],
+      "questions": [
+        { "id": "q1", "text": "Little interest or pleasure in doing things" },
+        { "id": "q2", "text": "Feeling down, depressed, or hopeless" },
+        { "id": "q3", "text": "Trouble falling or staying asleep, or sleeping too much" },
+        { "id": "q4", "text": "Feeling tired or having little energy" },
+        { "id": "q5", "text": "Poor appetite or overeating" },
+        { "id": "q6", "text": "Feeling bad about yourself, or that you are a failure, or that you have let yourself or your family down" },
+        { "id": "q7", "text": "Trouble concentrating on things, such as reading or watching television" },
+        { "id": "q8", "text": "Moving or speaking so slowly that other people could have noticed — or the opposite, being so fidgety or restless that you've been moving around a lot more than usual" },
+        { "id": "q9", "text": "Thoughts that you would be better off dead, or of hurting yourself in some way", "safety_item": true }
+      ],
+      "scoring": { "type": "sum", "min": 0, "max": 27 },
+      "safety": {
+        "trigger_question": "q9",
+        "trigger_when": "value > 0",
+        "priority": true,
+        "note": "If q9 is answered with any value above 0, show this safety screen FIRST, before the band result, regardless of total score.",
+        "headline": "Let's pause for a moment",
+        "body": "One of your answers suggests you've had thoughts that you'd be better off dead, or of hurting yourself. That can be a heavy and frightening thing to carry — and you don't have to carry it alone. Please reach out to someone today. Talking to a real person can make a genuine difference.",
+        "cta": { "type": "asknelson", "label": "Talk to someone now on AskNelson" }
+      },
+      "results": [
+        {
+          "band": "Minimal",
+          "min": 0,
+          "max": 4,
+          "headline": "Your mood looks steady right now",
+          "body": "Your responses suggest minimal symptoms of low mood over the past two weeks. Keep doing what supports you.",
+          "cta": { "type": "explore", "target": "body", "label": "Explore wellbeing habits" }
+        },
+        {
+          "band": "Mild",
+          "min": 5,
+          "max": 9,
+          "headline": "Some signs of low mood",
+          "body": "You're showing some mild symptoms. Movement, sleep, and connection all help — and small, consistent steps matter most.",
+          "cta": { "type": "explore", "target": "body", "label": "Explore mood-supporting habits" }
+        },
+        {
+          "band": "Moderate",
+          "min": 10,
+          "max": 14,
+          "headline": "Moderate symptoms of depression",
+          "body": "Your responses point to a moderate level of low mood. This is worth taking seriously — talking to a professional is a good next step.",
+          "cta": { "type": "asknelson", "label": "Talk to a counsellor on AskNelson" }
+        },
+        {
+          "band": "Moderately severe",
+          "min": 15,
+          "max": 19,
+          "headline": "Moderately severe symptoms",
+          "body": "Your responses suggest a significant level of depression symptoms. Please consider speaking to a professional soon — support helps, and you deserve it.",
+          "cta": { "type": "asknelson", "label": "Talk to a counsellor on AskNelson" }
+        },
+        {
+          "band": "Severe",
+          "min": 20,
+          "max": 27,
+          "headline": "Severe symptoms of depression",
+          "body": "Your responses suggest a high level of depression symptoms. You don't have to manage this alone — reaching out to a professional is an important step to take now.",
+          "cta": { "type": "asknelson", "label": "Talk to a counsellor on AskNelson" }
+        }
+      ]
+    },
+    {
+      "id": "burnout",
+      "title": "Burnout Check",
+      "subtitle": "Measure exhaustion, cynicism, and sense of effectiveness.",
+      "description": "Feeling worn down? These twelve questions look at the past month across the three sides of burnout — how drained you feel, how connected you are to your work, and how effective you feel doing it. You'll see not just whether you're running low, but what's driving it, so you know where to start.",
+      "instrument": "Original (Maslach three-dimension model)",
+      "color": "#D85A30",
+      "bg": "#FBE7DE",
+      "icon": "ti-flame",
+      "time_mins": 4,
+      "retake_after_days": 30,
+      "disclaimer": "This is a self-check to help you reflect, not a clinical diagnosis.",
+      "instructions": "Thinking about the past month, how often have you felt each of the following?",
+      "response_scale": [
+        { "label": "Never", "value": 0 },
+        { "label": "Rarely", "value": 1 },
+        { "label": "Sometimes", "value": 2 },
+        { "label": "Often", "value": 3 },
+        { "label": "Always", "value": 4 }
+      ],
+      "questions": [
+        { "id": "q1", "text": "I feel emotionally drained by my work or daily responsibilities", "dimension": "exhaustion" },
+        { "id": "q2", "text": "I feel used up at the end of the day", "dimension": "exhaustion" },
+        { "id": "q3", "text": "I feel tired when I wake up and have to face another day", "dimension": "exhaustion" },
+        { "id": "q4", "text": "I have little energy left for the people and things outside of work", "dimension": "exhaustion" },
+        { "id": "q5", "text": "I feel less interested in my work than I used to", "dimension": "cynicism" },
+        { "id": "q6", "text": "I've become more cynical about whether what I do matters", "dimension": "cynicism" },
+        { "id": "q7", "text": "I feel detached or distant from the people I work with", "dimension": "cynicism" },
+        { "id": "q8", "text": "I just want to get through the day rather than do things well", "dimension": "cynicism" },
+        { "id": "q9", "text": "I feel confident that I'm effective at what I do", "dimension": "efficacy", "reverse": true },
+        { "id": "q10", "text": "I feel I'm making a meaningful contribution", "dimension": "efficacy", "reverse": true },
+        { "id": "q11", "text": "I can deal well with the problems that come up", "dimension": "efficacy", "reverse": true },
+        { "id": "q12", "text": "I feel a sense of accomplishment from what I do", "dimension": "efficacy", "reverse": true }
+      ],
+      "scoring": {
+        "type": "sum_with_dimensions",
+        "scale_max": 4,
+        "min": 0,
+        "max": 48,
+        "reverse_note": "For questions marked reverse:true, score as (scale_max - response), so that higher always means more burnout.",
+        "dimensions": [
+          { "id": "exhaustion", "label": "Exhaustion", "questions": ["q1", "q2", "q3", "q4"], "min": 0, "max": 16, "high_threshold": 11 },
+          { "id": "cynicism", "label": "Cynicism / detachment", "questions": ["q5", "q6", "q7", "q8"], "min": 0, "max": 16, "high_threshold": 11 },
+          { "id": "efficacy", "label": "Sense of effectiveness", "questions": ["q9", "q10", "q11", "q12"], "min": 0, "max": 16, "high_threshold": 11 }
+        ]
+      },
+      "results": [
+        {
+          "band": "Low burnout risk",
+          "min": 0,
+          "max": 12,
+          "headline": "You're in a sustainable place",
+          "body": "Your responses suggest a low risk of burnout right now. Worth protecting — notice what's working and keep it.",
+          "cta": { "type": "explore", "target": "work", "label": "Explore Work & Purpose" }
+        },
+        {
+          "band": "Mild burnout risk",
+          "min": 13,
+          "max": 24,
+          "headline": "Early warning signs",
+          "body": "You're showing some early signs of burnout. This is the best time to act, before it builds. Check the dimension breakdown to see where the pressure is coming from.",
+          "cta": { "type": "journey", "target": "burnout", "label": "Start the Burnout journey" }
+        },
+        {
+          "band": "Moderate burnout risk",
+          "min": 25,
+          "max": 36,
+          "headline": "Moderate burnout",
+          "body": "Your responses point to a meaningful level of burnout. The Burnout journey is built exactly for this — and it may be worth talking to someone too.",
+          "cta": { "type": "journey", "target": "burnout", "label": "Start the Burnout journey" }
+        },
+        {
+          "band": "High burnout risk",
+          "min": 37,
+          "max": 48,
+          "headline": "High burnout",
+          "body": "Your responses suggest you're significantly burned out. Recovery is possible, but it takes more than a weekend off. Consider both the Burnout journey and speaking to a professional.",
+          "cta": { "type": "asknelson", "label": "Talk to a counsellor on AskNelson" }
+        }
+      ],
+      "dimension_flags": {
+        "note": "If any single dimension is at or above its high_threshold, show a short flag even when the overall band is lower.",
+        "exhaustion": "Your exhaustion levels are high — rest and recovery are the priority here.",
+        "cynicism": "You're feeling detached from your work — a sign to reconnect with what gives it meaning.",
+        "efficacy": "Your sense of effectiveness has dropped — this often recovers as exhaustion eases."
+      }
+    },
+    {
+      "id": "sleep",
+      "title": "Sleep Quality Check",
+      "subtitle": "See how well you're really sleeping.",
+      "description": "A quick, honest look at how you've really been sleeping over the past two weeks — how long you take to drop off, how often you wake, and how it's shaping your days. Eight questions to help you see what's working and what might need a little attention.",
+      "instrument": "Original (sleep-hygiene & insomnia informed)",
+      "color": "#185FA5",
+      "bg": "#E6F1FB",
+      "icon": "ti-moon",
+      "time_mins": 2,
+      "retake_after_days": 14,
+      "disclaimer": "This is a self-check, not a diagnosis. Persistent sleep problems are worth discussing with a doctor.",
+      "instructions": "Thinking about the past two weeks, answer as honestly as you can.",
+      "response_scale": null,
+      "questions": [
+        {
+          "id": "q1",
+          "text": "How long does it usually take you to fall asleep?",
+          "options": [
+            { "label": "Less than 15 minutes", "value": 0 },
+            { "label": "15–30 minutes", "value": 1 },
+            { "label": "30–60 minutes", "value": 2 },
+            { "label": "More than an hour", "value": 3 }
+          ]
+        },
+        {
+          "id": "q2",
+          "text": "On an average night, how many hours of sleep do you actually get?",
+          "options": [
+            { "label": "7 or more", "value": 0 },
+            { "label": "6–7", "value": 1 },
+            { "label": "5–6", "value": 2 },
+            { "label": "Less than 5", "value": 3 }
+          ]
+        },
+        {
+          "id": "q3",
+          "text": "How often do you wake during the night and struggle to fall back asleep?",
+          "options": [
+            { "label": "Rarely or never", "value": 0 },
+            { "label": "Some nights", "value": 1 },
+            { "label": "Most nights", "value": 2 },
+            { "label": "Every night", "value": 3 }
+          ]
+        },
+        {
+          "id": "q4",
+          "text": "How often do you wake earlier than you want to and can't get back to sleep?",
+          "options": [
+            { "label": "Rarely or never", "value": 0 },
+            { "label": "Some nights", "value": 1 },
+            { "label": "Most nights", "value": 2 },
+            { "label": "Every night", "value": 3 }
+          ]
+        },
+        {
+          "id": "q5",
+          "text": "How would you rate your overall sleep quality lately?",
+          "options": [
+            { "label": "Very good", "value": 0 },
+            { "label": "Fairly good", "value": 1 },
+            { "label": "Fairly poor", "value": 2 },
+            { "label": "Very poor", "value": 3 }
+          ]
+        },
+        {
+          "id": "q6",
+          "text": "How often does poor sleep affect your mood, focus, or energy during the day?",
+          "options": [
+            { "label": "Rarely or never", "value": 0 },
+            { "label": "Sometimes", "value": 1 },
+            { "label": "Often", "value": 2 },
+            { "label": "Almost every day", "value": 3 }
+          ]
+        },
+        {
+          "id": "q7",
+          "text": "How consistent are your sleep and wake times from day to day?",
+          "options": [
+            { "label": "Very consistent", "value": 0 },
+            { "label": "Fairly consistent", "value": 1 },
+            { "label": "Fairly inconsistent", "value": 2 },
+            { "label": "All over the place", "value": 3 }
+          ]
+        },
+        {
+          "id": "q8",
+          "text": "How often do racing thoughts or worry keep you awake?",
+          "options": [
+            { "label": "Rarely or never", "value": 0 },
+            { "label": "Some nights", "value": 1 },
+            { "label": "Most nights", "value": 2 },
+            { "label": "Every night", "value": 3 }
+          ]
+        }
+      ],
+      "scoring": { "type": "sum", "min": 0, "max": 24 },
+      "results": [
+        {
+          "band": "Healthy sleep",
+          "min": 0,
+          "max": 6,
+          "headline": "Your sleep looks healthy",
+          "body": "Your responses suggest you're sleeping well. Protect the habits that are working for you.",
+          "cta": { "type": "explore", "target": "sleep", "label": "Explore sleep science" }
+        },
+        {
+          "band": "Mild disruption",
+          "min": 7,
+          "max": 12,
+          "headline": "Some sleep disruption",
+          "body": "Your sleep is being disrupted in a few ways. Small changes to routine and wind-down often make a real difference here.",
+          "cta": { "type": "explore", "target": "sleep", "label": "See sleep hygiene tips" }
+        },
+        {
+          "band": "Moderate disruption",
+          "min": 13,
+          "max": 18,
+          "headline": "Moderate sleep problems",
+          "body": "Your sleep is meaningfully disrupted. The Sleep theme has practical, evidence-based steps to help you reset.",
+          "cta": { "type": "explore", "target": "sleep", "label": "Explore the Sleep theme" }
+        },
+        {
+          "band": "Significant disruption",
+          "min": 19,
+          "max": 24,
+          "headline": "Significant sleep problems",
+          "body": "Your sleep is significantly disrupted. Self-help can help, but ongoing problems like this are worth raising with a doctor.",
+          "cta": { "type": "explore", "target": "sleep", "label": "Explore the Sleep theme" }
+        }
+      ]
+    },
+    {
+      "id": "relationship",
+      "title": "Relationship Health Check",
+      "subtitle": "A reflection on your closest relationship.",
+      "description": "A moment to step back and reflect on your closest relationship. Ten honest questions about communication, trust, closeness, and how supported you feel. It's written with a romantic partner in mind, but works for any close relationship — and it's a reflection, not a verdict.",
+      "instrument": "Original (relationship-satisfaction informed)",
+      "color": "#D4537E",
+      "bg": "#FBEAF0",
+      "icon": "ti-heart-handshake",
+      "time_mins": 3,
+      "retake_after_days": 60,
+      "disclaimer": "This is a reflection tool, not a verdict on your relationship. It can't capture everything — trust your own judgement.",
+      "instructions": "Thinking about your relationship over the past while, how much do you agree with each statement?",
+      "response_scale": [
+        { "label": "Strongly disagree", "value": 0 },
+        { "label": "Disagree", "value": 1 },
+        { "label": "Neutral", "value": 2 },
+        { "label": "Agree", "value": 3 },
+        { "label": "Strongly agree", "value": 4 }
+      ],
+      "questions": [
+        { "id": "q1", "text": "I can be open and honest with my partner", "dimension": "communication" },
+        { "id": "q2", "text": "My partner really listens when I talk about what matters to me", "dimension": "communication" },
+        { "id": "q3", "text": "I trust my partner", "dimension": "trust" },
+        { "id": "q4", "text": "When we disagree, we're able to work through it respectfully", "dimension": "conflict" },
+        { "id": "q5", "text": "Our arguments often leave me feeling hurt or disrespected", "dimension": "conflict", "reverse": true },
+        { "id": "q6", "text": "I feel emotionally close to my partner", "dimension": "connection" },
+        { "id": "q7", "text": "I feel supported by my partner during stressful times", "dimension": "support" },
+        { "id": "q8", "text": "I often feel lonely even when we're together", "dimension": "connection", "reverse": true },
+        { "id": "q9", "text": "I feel valued and respected in this relationship", "dimension": "respect" },
+        { "id": "q10", "text": "Overall, I'm satisfied with this relationship", "dimension": "satisfaction" }
+      ],
+      "scoring": {
+        "type": "sum",
+        "scale_max": 4,
+        "min": 0,
+        "max": 40,
+        "reverse_note": "For questions marked reverse:true, score as (scale_max - response). Higher total means a healthier relationship.",
+        "direction": "higher_is_better"
+      },
+      "results": [
+        {
+          "band": "Thriving",
+          "min": 32,
+          "max": 40,
+          "headline": "A strong, healthy relationship",
+          "body": "Your responses suggest a relationship that's working well across the things that matter most. Keep investing in it.",
+          "cta": { "type": "explore", "target": "relationships", "label": "Explore Relationships" }
+        },
+        {
+          "band": "Generally healthy",
+          "min": 24,
+          "max": 31,
+          "headline": "Healthy, with room to grow",
+          "body": "Your relationship is generally in good shape, with a few areas worth attention. Small, consistent effort goes a long way.",
+          "cta": { "type": "explore", "target": "relationships", "label": "Explore Relationships" }
+        },
+        {
+          "band": "Strained",
+          "min": 16,
+          "max": 23,
+          "headline": "Some real strain",
+          "body": "Your responses point to meaningful strain in the relationship. The Relationships theme has tools for communication and connection — and talking it through, together or with a counsellor, can help.",
+          "cta": { "type": "explore", "target": "relationships", "label": "Explore Relationships" }
+        },
+        {
+          "band": "Struggling",
+          "min": 0,
+          "max": 15,
+          "headline": "The relationship is under real pressure",
+          "body": "Your responses suggest the relationship is struggling across several areas. That's hard to sit in. Support — through honest conversation or a counsellor — can make a difference.",
+          "cta": { "type": "asknelson", "label": "Talk to a counsellor on AskNelson" },
+          "safety_note": "If you ever feel unsafe, controlled, or afraid in your relationship, that is different from relationship difficulty — and confidential support is available."
+        }
+      ]
+    }
+  ]
+}

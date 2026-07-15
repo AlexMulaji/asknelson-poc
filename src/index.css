@@ -1,0 +1,157 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ─── Safe-area / nav clearance ─────────────────────────────────────────── */
+:root {
+  color-scheme: light;
+  /* Nav bar is ~64px tall. Bottom clearance adds the device safe area on top
+     so content never hides behind the home indicator on notched phones. */
+  --nav-h: 64px;
+  --bottom-clearance: calc(var(--nav-h) + env(safe-area-inset-bottom, 0px));
+  /* Status-bar safe area — used by sticky headers on iOS. */
+  --top-safe: env(safe-area-inset-top, 0px);
+}
+
+/* On desktop the bottom nav is replaced by the sidebar, so the content no
+   longer needs to clear a fixed bottom bar. */
+@media (min-width: 1024px) {
+  :root {
+    --bottom-clearance: 0px;
+  }
+}
+
+/* ─── Layout base ────────────────────────────────────────────────────────── */
+html {
+  height: 100%;
+  /* Prevent layout shift from scrollbar appearing/disappearing on desktop. */
+  overflow-y: scroll;
+}
+
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  /* Soft canvas so white cards lift off the background (see tailwind `canvas`). */
+  background-color: #f6f7fb;
+  color: #000000;
+  font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  /* Prevent pull-to-refresh bounce and iOS elastic overscroll. */
+  overscroll-behavior-y: none;
+  /* Momentum scrolling for the whole page on iOS. */
+  -webkit-overflow-scrolling: touch;
+}
+
+/* ─── Touch / interaction polish ────────────────────────────────────────── */
+
+/* Remove the default blue flash on tap for every element in the app. */
+* {
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Eliminate the 300ms click delay on touch devices. */
+button,
+a,
+[role='button'] {
+  touch-action: manipulation;
+}
+
+/* Prevent accidental text selection when tapping cards / buttons. */
+button,
+a {
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+/* Focus ring: visible for keyboard navigation but hidden on touch/click. */
+:focus-visible {
+  outline: 2px solid #172b5c;
+  outline-offset: 2px;
+}
+:focus:not(:focus-visible) {
+  outline: none;
+}
+
+/* ─── Scrollbar hiding ───────────────────────────────────────────────────── */
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+/* ─── Bottom nav safe area ───────────────────────────────────────────────── */
+.safe-bottom {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+/* ─── Animations ─────────────────────────────────────────────────────────── */
+
+/* Subtle fade-up for page entry (applied per-page via .page-enter). */
+@keyframes page-enter {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.page-enter {
+  animation: page-enter 0.22s ease-out both;
+}
+
+/* Meditation ring pulse. */
+@keyframes ring-pulse {
+  0%,
+  100% {
+    opacity: 0.35;
+  }
+  50% {
+    opacity: 0.85;
+  }
+}
+.animate-ring {
+  animation: ring-pulse 4s ease-in-out infinite;
+}
+
+/* ─── Card press states ──────────────────────────────────────────────────── */
+/* Applied to any tappable card so the press feels physical on mobile. */
+.card-press {
+  transition: transform 0.14s ease, box-shadow 0.14s ease;
+}
+.card-press:active {
+  transform: scale(0.975);
+}
+/* On devices that hover (desktop), lift cards slightly on hover. */
+@media (hover: hover) {
+  .card-press:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 34px -10px rgb(16 24 40 / 0.2);
+  }
+}
+
+/* ─── Display type ───────────────────────────────────────────────────────── */
+/* Headings use Plus Jakarta Sans with slightly tighter tracking for polish. */
+.font-display {
+  letter-spacing: -0.015em;
+}
+
+/* ─── Reduced motion ─────────────────────────────────────────────────────── */
+/* Respect users who prefer less movement — disable entrance/loop animations. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}
