@@ -24,7 +24,7 @@
             "title": "How to calm your anxiety, from a neuroscientist",
             "description": "Neuroscientist Wendy Suzuki explains two evidence-based tools — breathing and movement — that calm the body's stress response.",
             "source": "TED-Ed",
-            "url": "https://ed.ted.com/lessons/how-to-calm-your-anxiety-from-a-neuroscientist-wendy-suzuki",
+            "url": "https://www.psychologytoday.com/za/blog/the-addiction-connection/202301/grounding-techniques-for-trauma-and-anxiety",
             "duration_mins": 5
           },
           {
@@ -57,29 +57,38 @@
           {
             "id": "ax-06",
             "type": "article",
-            "title": "Hey Kelsey",
-            "description": "I went to Serengeti this weekend",
-            "source": "I Accidentally slept there",
-            "url": "https://serengeti-estates.co.za/",
-            "duration_mins": 1
-          },
-          {
-            "id": "ax-07",
-            "type": "article",
-            "title": "Anxiety management strategies that actually work",
-            "description": "Evidence-backed coping strategies from one of the world's leading mental health organisations.",
-            "source": "Beyond Blue",
-            "url": "https://www.beyondblue.org.au/mental-health/anxiety/treatments-for-anxiety/anxiety-management-strategies",
+            "title": "Breathing techniques for managing stress and anxiety",
+            "description": "Science-backed breathing techniques — including breath awareness and humming — that calm the nervous system and can be used anywhere to ease stress and anxiety.",
+            "source": "Dr Ela Manga (Lenmed)",
+            "url": "https://www.lenmed.co.za/breathing-techniques-stress-anxiety/",
             "read_time_mins": 7
           },
           {
-            "id": "ax-08",
+            "id": "ax-07",
             "type": "video",
             "title": "The space between self-esteem and self-compassion",
             "description": "Self-compassion researcher Kristin Neff on why treating yourself kindly — not harshly — reduces anxiety and builds resilience.",
             "source": "TEDx",
             "url": "https://www.youtube.com/watch?v=IvtZBUSplr4",
             "duration_mins": 9
+          },
+          {
+            "id": "ax-08",
+            "type": "video",
+            "title": "The Stress Flip: From Drain to Gain",
+            "description": "A Kaelo webinar on becoming stress-literate — learning to read your stress like a dashboard instead of suffering through it. Unmanaged stress, not stress itself, is the enemy.",
+            "source": "Kaelo",
+            "url": "https://www.youtube.com/watch?v=CJ1ZXQdrges",
+            "duration_mins": 45
+          },
+          {
+            "id": "ax-09",
+            "type": "video",
+            "title": "Burnout to Breakthrough",
+            "description": "A Kaelo Mental Health Awareness Month webinar on spotting the early signs of burnout, running an energy audit, and building daily rituals that restore balance, focus, and vitality.",
+            "source": "Kaelo",
+            "url": "https://www.youtube.com/watch?v=BPluTQVvuq4",
+            "duration_mins": 45
           }
         ]
       },
@@ -115,7 +124,7 @@
             "title": "How to fix your sleep schedule",
             "description": "Practical, evidence-based steps to reset your circadian rhythm and build a consistent sleep routine.",
             "source": "Sleep Foundation",
-            "url": "https://www.sleepfoundation.org/sleep-hygiene/how-to-fix-your-sleep-schedule",
+            "url": "https://www.sleepfoundation.org/sleep-hygiene/how-to-reset-your-sleep-routine",
             "read_time_mins": 9
           },
           {
@@ -124,7 +133,7 @@
             "title": "Anxiety and sleep — a two-way relationship",
             "description": "How anxiety disrupts sleep and how poor sleep worsens anxiety — and what breaks the cycle.",
             "source": "Sleep Foundation",
-            "url": "https://www.sleepfoundation.org/mental-health/anxiety-and-sleep",
+            "url": "https://www.sleepfoundation.org/sleep-hygiene/how-to-reset-your-sleep-routine",
             "read_time_mins": 7
           },
           {
@@ -197,7 +206,7 @@
             "title": "How to have conversations that actually matter",
             "description": "Research-backed techniques for having deeper, more meaningful conversations with anyone.",
             "source": "Greater Good Magazine",
-            "url": "https://greatergood.berkeley.edu/article/item/how_to_have_a_conversation_that_matters",
+            "url": "https://greatergood.berkeley.edu/article/item/go_deep",
             "read_time_mins": 7
           },
           {
@@ -206,7 +215,7 @@
             "title": "What makes a good friend, according to science",
             "description": "The surprising simplicity of what research says creates lasting friendship.",
             "source": "Greater Good Magazine",
-            "url": "https://greatergood.berkeley.edu/article/item/what_makes_a_good_friend_according_to_science",
+            "url": "https://greatergood.berkeley.edu/article/item/how_to_make_the_lasting_friendships_you_want",
             "read_time_mins": 6
           },
           {
@@ -221,15 +230,6 @@
           {
             "id": "re-06",
             "type": "article",
-            "title": "The art of active listening",
-            "description": "How to actually listen — not just wait to talk — and why it changes every relationship.",
-            "source": "Greater Good Magazine",
-            "url": "https://greatergood.berkeley.edu/article/item/the_art_of_active_listening",
-            "read_time_mins": 6
-          },
-          {
-            "id": "re-07",
-            "type": "article",
             "title": "Micro-moments of love — how small interactions build connection",
             "description": "The science of how brief positive moments with others accumulate into genuine wellbeing.",
             "source": "Greater Good Magazine",
@@ -237,13 +237,22 @@
             "read_time_mins": 5
           },
           {
-            "id": "re-08",
+            "id": "re-07",
             "type": "article",
             "title": "How anxiety affects your relationships",
             "description": "How anxiety shows up in the way we relate to others — and what to do when it does.",
             "source": "Verywell Mind",
             "url": "https://www.verywellmind.com/how-anxiety-affects-relationships-5214441",
             "read_time_mins": 7
+          },
+          {
+            "id": "re-08",
+            "type": "video",
+            "title": "Healthy Relationships Start With a Healthy Relationship With Yourself",
+            "description": "A Kaelo webinar on how good relationships with others begin with the relationship you have with yourself — practical areas to work on to enhance your capacity for strong, lasting connection.",
+            "source": "Kaelo",
+            "url": "https://www.youtube.com/watch?v=1djgS7Z_qFc",
+            "duration_mins": 45
           }
         ]
       },
@@ -408,6 +417,33 @@
             "source": "Meerkat",
             "url": "https://www.meerkat.co.za/blog/your-ultimate-guide-to-financial-health-in-south-africa",
             "read_time_mins": 5
+          },
+          {
+            "id": "mo-09",
+            "type": "video",
+            "title": "Mind Over Money: Financial Wellness and Mental Health",
+            "description": "A Kaelo webinar on the connection between financial wellness and mental health — how money stress drives anxiety, overwhelm, and burnout, and simple tools for budgeting and reducing money-related anxiety.",
+            "source": "Kaelo",
+            "url": "https://www.youtube.com/watch?v=aUlyvQzFqPg",
+            "duration_mins": 45
+          },
+          {
+            "id": "mo-10",
+            "type": "video",
+            "title": "Building Resilience: Thriving in Challenging Times",
+            "description": "A Kaelo webinar on financial resilience as a 'muscle' that can be developed — how to strengthen it and cope with common financial roadblocks.",
+            "source": "Kaelo",
+            "url": "https://www.youtube.com/watch?v=O5j4EPLjshA",
+            "duration_mins": 45
+          },
+          {
+            "id": "mo-11",
+            "type": "video",
+            "title": "Connecting the Dots: How Money Impacts Relationships",
+            "description": "A Kaelo webinar on how financial habits, beliefs, and communication patterns shape relationships — and how to have healthier money conversations that build trust and alignment.",
+            "source": "Kaelo",
+            "url": "https://www.youtube.com/watch?v=Z17WVCLvEGM",
+            "duration_mins": 45
           }
         ]
       },
@@ -490,6 +526,33 @@
             "source": "TED",
             "url": "https://www.ted.com/talks/simon_sinek_why_good_leaders_make_you_feel_safe",
             "duration_mins": 12
+          },
+          {
+            "id": "wk-09",
+            "type": "video",
+            "title": "Setting Boundaries That Count — Embracing Balance",
+            "description": "A Kaelo webinar on why healthy boundaries lower burnout and build sustainable balance across work, family, and personal wellbeing — how to communicate them confidently and manage guilt or pushback.",
+            "source": "Kaelo",
+            "url": "https://www.youtube.com/watch?v=_mi3GUz7B98",
+            "duration_mins": 45
+          },
+          {
+            "id": "wk-10",
+            "type": "video",
+            "title": "Are Employee Assistance Programmes Still Relevant Today?",
+            "description": "A Kaelo panel discussion on the daily realities of mental health, financial stress, burnout, and 'quiet quitting' for South African employees — and how workplace support is evolving to meet them.",
+            "source": "Kaelo",
+            "url": "https://www.youtube.com/watch?v=j_svuawo5PQ",
+            "duration_mins": 45
+          },
+          {
+            "id": "wk-11",
+            "type": "article",
+            "title": "Your mental health rights at work — the South African law",
+            "description": "What South African law says about mental health in the workplace: the employer's duty of care under the Occupational Health and Safety Act, protection from unfair discrimination under the Employment Equity Act, and your right to reasonable accommodation.",
+            "source": "Labour Law with Luzan",
+            "url": "https://www.luzan.co.za/mental-health-in-the-workplace-what-the-law-says-for-employers/",
+            "read_time_mins": 8
           }
         ]
       },
@@ -654,6 +717,15 @@
             "source": "Big Think",
             "url": "https://www.youtube.com/watch?v=rkZl2gsLUp4",
             "duration_mins": 9
+          },
+          {
+            "id": "bo-09",
+            "type": "video",
+            "title": "Breaking the Cycle: Alcohol's Impact on Mental Health",
+            "description": "A Kaelo webinar on how alcohol affects stress, sleep, concentration, and workplace performance — the mental health connection, and practical strategies to take back control.",
+            "source": "Kaelo",
+            "url": "https://www.youtube.com/watch?v=vGpY1E7bjzg",
+            "duration_mins": 45
           }
         ]
       }
