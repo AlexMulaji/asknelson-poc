@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
+import { trackEvent } from '../services/EventTracker.js'
 
 // Audio files are added manually to /src/assets/sounds/.
 // We import them so Vite fingerprints + the service worker can cache them.
@@ -89,6 +90,7 @@ export function useMeditation() {
       setRemaining(durationMin * 60)
       setIsComplete(false)
     }
+    trackEvent('meditation_start', { durationMin, sound })
     setIsRunning(true)
     playAudio()
     clearTick()
@@ -101,7 +103,7 @@ export function useMeditation() {
         return prev - 1
       })
     }, 1000)
-  }, [isComplete, durationMin, playAudio, clearTick, finish])
+  }, [isComplete, durationMin, sound, playAudio, clearTick, finish])
 
   const pause = useCallback(() => {
     clearTick()

@@ -6,6 +6,10 @@ stays in the browser's `localStorage`; the content itself (Explore tiles,
 journeys, assessments) is served by a small Express backend and can be edited
 live from the **`/admin`** console.
 
+Members reach the app via a personal WhatsApp link (`.../?t=<token>`) that
+identifies them, backed by a SQLite database (`server/db.js`) that also
+records click/page-view events per member.
+
 ## Stack
 
 - Vite + React
@@ -13,7 +17,9 @@ live from the **`/admin`** console.
 - PWA via `vite-plugin-pwa` (service worker + manifest, offline-capable)
 - Routing via `react-router-dom`
 - Express content API (`server/index.js`) — serves the build and editable JSON
-- Docker (multi-stage build, named volume for content edits)
+- SQLite (`better-sqlite3`, `server/db.js`) — member identity, sessions, and
+  event tracking, stored alongside the content JSON in the same data volume
+- Docker (multi-stage build, named volume for content edits + the database)
 
 ## Getting started
 
@@ -25,16 +31,22 @@ docker compose up --build
 # Admin: http://localhost:8180/admin
 ```
 
-Set the admin password via the `ADMIN_PASSWORD` environment variable (compose
-defaults to `change-me`):
+Set the admin password and the server secret via environment variables
+(compose defaults both to insecure placeholders — change them before
+deploying anywhere):
 
 ```bash
-ADMIN_PASSWORD=my-secret docker compose up --build
+ADMIN_PASSWORD=my-secret SERVER_SECRET=some-long-random-value docker compose up --build
 ```
 
+- `ADMIN_PASSWORD` protects `/admin`.
+- `SERVER_SECRET` salts the one-way pseudonymous id used for sensitive
+  (assessment) event tracking — see [Event tracking](#event-tracking).
+
 Content edits made in `/admin` are written to the `asknelson-data` volume and
-survive rebuilds. Use **Reset to defaults** in the admin console to restore the
-JSON shipped with the image.
+survive rebuilds, as does the SQLite database (`asknelson.db`, same volume)
+holding members and events. Use **Reset to defaults** in the admin console to
+restore the JSON shipped with the image.
 
 ### Without Docker
 
@@ -64,6 +76,10 @@ for everything the member-facing app displays:
   (response scales, scoring bands, result copy, safety screens) is edited in
   the **Raw JSON** tab, available for all three datasets as a full-control
   escape hatch.
+- **Members** — add a member to generate their personal WhatsApp link, copy
+  it, and revoke access if needed. See [Member identity](#member-identity--whatsapp-links).
+- **Events** — read-only counts of what members are clicking on, sourced
+  straight from the events table. See [Event tracking](#event-tracking).
 
 Saves go live immediately: the app fetches content from `/api/content/<key>`
 (network-first, falling back to the bundled JSON when offline).
@@ -77,6 +93,53 @@ Saves go live immediately: the app fetches content from `/api/content/<key>`
 | POST   | `/api/content/:key/reset`  | Bearer `ADMIN_PASSWORD` | Restore the shipped JSON |
 | POST   | `/api/admin/login`         | body `{ password }` | Validate the admin password |
 | GET    | `/api/health`              | none   | Liveness check |
+| POST   | `/api/auth/link`           | none   | Exchange a `?t=<token>` link for a session |
+| GET    | `/api/auth/session`        | header `X-Session-Id` | Re-validate a stored session |
+| POST   | `/api/events`              | none (attributed via `sessionId` in the body) | Record a tracking event |
+| GET    | `/api/admin/members`       | Bearer `ADMIN_PASSWORD` | List members |
+| POST   | `/api/admin/members`       | Bearer `ADMIN_PASSWORD` | Create a member + WhatsApp link |
+| POST   | `/api/admin/members/:id/revoke` | Bearer `ADMIN_PASSWORD` | Revoke a member's access |
+| GET    | `/api/admin/events/summary`| Bearer `ADMIN_PASSWORD` | Aggregate event counts |
+
+## Member identity & WhatsApp links
+
+Anyone opening the app needs a personal link — there's no anonymous access,
+since this is confidential EAP content. In **`/admin` → Members**, add a
+member (a name/label, optionally an employee id or phone number) to generate
+a unique link: `https://<your-domain>/?t=<token>`. Send that link to them on
+WhatsApp.
+
+The first time it's opened, the app exchanges the token for a session id
+(`POST /api/auth/link`) and stores it in `localStorage` — from then on the
+device is recognised without needing the token again (works offline, like the
+rest of the PWA). Revoking a member in the admin console blocks their next
+sign-in attempt; anyone with no valid session and no token sees a full-screen
+"open from your WhatsApp link" gate (`src/components/LinkGate.jsx`) instead of
+the app.
+
+This is identity for attribution and access, not a security perimeter — a
+device that's already linked stays linked until you revoke it or the user
+clears their browser storage.
+
+## Event tracking
+
+`src/services/EventTracker.js` posts a small event (`type`, `path`, a short
+payload) to `/api/events` for page views and taps on Explore tiles, journey
+days, meditation starts, the AskNelson SOS button/service links, and
+assessment start/completion — see the call sites in `App.jsx`, `ContentCard.jsx`,
+`ServiceCard.jsx`, `JourneyCard.jsx`, `DayCard.jsx`, `useMeditation.js`, and
+`AssessmentFlow.jsx`. Calls use `navigator.sendBeacon` (falling back to
+`fetch(..., { keepalive: true })`) and never throw — a dropped tracking call
+never breaks navigation.
+
+**Privacy split:** ordinary navigation/click events are stored against the
+member directly (`server/db.js`), which is the point — seeing what members
+are using. Assessment engagement (`assessment_started`, `assessment_completed`,
+with which topic and resulting band) is wellbeing data, so it's stored
+**pseudonymized**: under a one-way id derived from a per-member secret salt
+and `SERVER_SECRET`, with `member_id` left `NULL`. It's never joined back to
+a member's name anywhere — including in the admin **Events** tab, which only
+ever shows assessment rows by their pseudonymous id.
 
 ## Pages
 

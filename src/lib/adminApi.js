@@ -74,3 +74,44 @@ export async function resetDataset(key) {
   if (!res.ok) throw new Error(await parseError(res, `Failed to reset ${key}`))
   return res.json()
 }
+
+// --- members (WhatsApp link identity) -----------------------------------------
+
+async function adminFetch(url, options = {}) {
+  const res = await fetch(url, {
+    ...options,
+    headers: {
+      ...(options.body ? { 'Content-Type': 'application/json' } : {}),
+      Authorization: `Bearer ${getAdminKey()}`,
+      ...options.headers,
+    },
+  })
+  if (res.status === 401) {
+    setAdminKey('')
+    throw new Error('Session expired — please log in again.')
+  }
+  if (!res.ok) throw new Error(await parseError(res, 'Request failed'))
+  return res.json()
+}
+
+export async function fetchMembers() {
+  const { members } = await adminFetch('/api/admin/members')
+  return members
+}
+
+export async function createMember({ label, externalRef }) {
+  return adminFetch('/api/admin/members', {
+    method: 'POST',
+    body: JSON.stringify({ label, externalRef }),
+  })
+}
+
+export async function revokeMember(id) {
+  return adminFetch(`/api/admin/members/${id}/revoke`, { method: 'POST' })
+}
+
+// --- event insights --------------------------------------------------------------
+
+export async function fetchEventsSummary() {
+  return adminFetch('/api/admin/events/summary')
+}

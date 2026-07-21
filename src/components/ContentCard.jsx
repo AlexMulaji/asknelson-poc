@@ -1,4 +1,5 @@
 import { ExternalLinkIcon } from './Icons.jsx'
+import { trackEvent } from '../services/EventTracker.js'
 
 // Renders one Explore item (article or video).
 // Items are enriched in Explore.jsx with theme label/colour + a duration string.
@@ -12,6 +13,9 @@ export default function ContentCard({ item }) {
       href={item.url}
       target="_blank"
       rel="noopener noreferrer"
+      onClick={() =>
+        trackEvent('content_click', { id: item.id, title: item.title, theme: item.theme, type: item.type })
+      }
       // card-press gives a physical scale-down on tap (defined in index.css).
       className="card-press block overflow-hidden rounded-card bg-white shadow-card"
     >

@@ -3,6 +3,7 @@ import { listContainer, listItem } from '../lib/motion.js'
 import PageHeader from '../components/PageHeader.jsx'
 import ServiceCard from '../components/ServiceCard.jsx'
 import { AlertIcon, ChatIcon, CompassIcon, CoinIcon, ScaleIcon } from '../components/Icons.jsx'
+import { trackEvent } from '../services/EventTracker.js'
 import logoUrl from '../assets/logo-asknelson.png'
 
 const KAELO_URL = 'https://www.kaelo.co.za/kaelo-lifestyle/'
@@ -45,6 +46,7 @@ export default function AskNelson() {
           href={KAELO_URL}
           target="_blank"
           rel="noopener noreferrer"
+          onClick={() => trackEvent('sos_click')}
           className="mt-4 flex min-h-[56px] w-full items-center justify-center gap-2 rounded-card
                      bg-red-600 px-5 text-[15px] font-bold text-white shadow-sm
                      transition-transform duration-100 active:scale-[0.98]"

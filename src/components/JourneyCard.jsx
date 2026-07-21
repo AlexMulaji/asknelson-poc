@@ -1,4 +1,5 @@
 import { withAlpha } from '../lib/colorUtils.js'
+import { trackEvent } from '../services/EventTracker.js'
 
 // A selectable 30-day programme card shown on the journey selection screen.
 export default function JourneyCard({ journey, onStart }) {
@@ -26,7 +27,10 @@ export default function JourneyCard({ journey, onStart }) {
         {/* 44px min-height ensures comfortable touch target */}
         <button
           type="button"
-          onClick={() => onStart(journey.id)}
+          onClick={() => {
+            trackEvent('journey_open', { id: journey.id, title: journey.title })
+            onStart(journey.id)
+          }}
           className="mt-4 min-h-[44px] w-full rounded-btn text-[14px] font-semibold text-white
                      transition-transform duration-100 active:scale-[0.97]"
           style={{ backgroundColor: color }}

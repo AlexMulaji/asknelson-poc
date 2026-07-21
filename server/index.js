@@ -3,6 +3,7 @@ import crypto from 'node:crypto'
 import fs from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { openStore } from './db.js'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const ROOT = path.resolve(__dirname, '..')
@@ -12,11 +13,19 @@ const DATA_DIR = process.env.DATA_DIR || path.join(ROOT, 'data-store')
 const SEED_DIR = process.env.SEED_DIR || path.join(ROOT, 'src', 'data')
 const DIST_DIR = process.env.DIST_DIR || path.join(ROOT, 'dist')
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'admin'
+const SERVER_SECRET = process.env.SERVER_SECRET || 'change-me-server-secret'
 
 if (!process.env.ADMIN_PASSWORD) {
   console.warn(
     '[asknelson] WARNING: ADMIN_PASSWORD is not set — using the default "admin". ' +
       'Set ADMIN_PASSWORD before exposing this server anywhere.'
+  )
+}
+
+if (!process.env.SERVER_SECRET) {
+  console.warn(
+    '[asknelson] WARNING: SERVER_SECRET is not set — using an insecure default. ' +
+      'Set SERVER_SECRET before exposing this server anywhere (it salts pseudonymized event data).'
   )
 }
 
@@ -83,6 +92,7 @@ function requireAdmin(req, res, next) {
 // --- app ----------------------------------------------------------------------
 
 seedIfMissing()
+const store = openStore(DATA_DIR, SERVER_SECRET)
 
 const app = express()
 app.disable('x-powered-by')
@@ -108,6 +118,65 @@ app.post('/api/admin/login', (req, res) => {
     return res.status(401).json({ error: 'Wrong password' })
   }
   res.json({ ok: true })
+})
+
+// --- member identity (WhatsApp link tokens) -----------------------------------
+
+// Exchanges a per-member link token for a session id the client keeps in
+// localStorage. Called once, when the app is opened with `?t=<token>`.
+app.post('/api/auth/link', (req, res) => {
+  const { token } = req.body || {}
+  if (!token) return res.status(400).json({ error: 'Missing token' })
+  const member = store.getMemberByToken(token)
+  if (!member) return res.status(404).json({ error: 'That link is invalid or has expired.' })
+  const sessionId = store.createSession(member.id, req.get('user-agent'))
+  res.json({ sessionId, label: member.label })
+})
+
+// Re-validates a stored session (e.g. to confirm access hasn't been revoked).
+app.get('/api/auth/session', (req, res) => {
+  const member = store.resolveSession(req.get('x-session-id'))
+  if (!member) return res.status(401).json({ error: 'Invalid session' })
+  res.json({ label: member.label })
+})
+
+// --- event tracking ------------------------------------------------------------
+
+// Fire-and-forget click/page tracking. Never errors the client over a bad or
+// unknown session — an untracked click should never break navigation.
+app.post('/api/events', (req, res) => {
+  const { sessionId, type, path: eventPath, payload, sensitive } = req.body || {}
+  if (sessionId && type) {
+    store.recordEvent({ sessionId, type, path: eventPath, payload, sensitive: Boolean(sensitive) })
+  }
+  res.status(204).end()
+})
+
+// --- admin: members --------------------------------------------------------------
+
+app.get('/api/admin/members', requireAdmin, (req, res) => {
+  res.json({ members: store.listMembers() })
+})
+
+app.post('/api/admin/members', requireAdmin, (req, res) => {
+  const { label, externalRef } = req.body || {}
+  if (!label || !String(label).trim()) {
+    return res.status(400).json({ error: 'A label/name is required.' })
+  }
+  const member = store.createMember({ label: String(label).trim(), externalRef: externalRef || null })
+  const origin = `${req.protocol}://${req.get('host')}`
+  res.json({ member, link: `${origin}/?t=${member.token}` })
+})
+
+app.post('/api/admin/members/:id/revoke', requireAdmin, (req, res) => {
+  store.revokeMember(Number(req.params.id))
+  res.json({ ok: true })
+})
+
+// --- admin: event insights -----------------------------------------------------
+
+app.get('/api/admin/events/summary', requireAdmin, (req, res) => {
+  res.json(store.eventsSummary())
 })
 
 app.put('/api/content/:key', requireAdmin, (req, res) => {

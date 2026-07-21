@@ -1,4 +1,5 @@
 import { LockIcon, CheckIcon, ExternalLinkIcon } from './Icons.jsx'
+import { trackEvent } from '../services/EventTracker.js'
 
 const TYPE_COLORS = {
   read: '#172B5C',
@@ -93,7 +94,10 @@ export default function DayCard({ day, status, color, onMarkDone, prominent = fa
           {isCurrent && onMarkDone ? (
             <button
               type="button"
-              onClick={() => onMarkDone(day.day)}
+              onClick={() => {
+                trackEvent('journey_day_complete', { day: day.day, type: day.type })
+                onMarkDone(day.day)
+              }}
               className="mt-4 min-h-[48px] w-full rounded-btn text-[14px] font-semibold text-white
                          transition-transform duration-100 active:scale-[0.97]"
               style={{ backgroundColor: color || '#172B5C' }}

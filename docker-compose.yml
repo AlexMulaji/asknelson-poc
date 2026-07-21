@@ -6,8 +6,12 @@ services:
     environment:
       # Change this before deploying anywhere — it protects /admin.
       ADMIN_PASSWORD: ${ADMIN_PASSWORD:-kaelo}
+      # Change this before deploying anywhere — it salts the pseudonymous id
+      # used for sensitive (assessment) event tracking. See server/db.js.
+      SERVER_SECRET: ${SERVER_SECRET:-please-change-this-server-secret}
     volumes:
-      # Admin content edits survive rebuilds and restarts.
+      # Admin content edits + the SQLite member/event database survive
+      # rebuilds and restarts.
       - asknelson-data:/app/data
     restart: unless-stopped
 

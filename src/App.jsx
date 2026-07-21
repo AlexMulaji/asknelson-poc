@@ -1,9 +1,10 @@
-import { useEffect } from 'react'
-import { Routes, Route, Navigate, useLocation } from 'react-router-dom'
+import { useEffect, useState } from 'react'
+import { Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-dom'
 import { MotionConfig } from 'framer-motion'
 import BottomNav from './components/BottomNav.jsx'
 import Sidebar from './components/Sidebar.jsx'
 import ConfidentialityStamp from './components/ConfidentialityStamp.jsx'
+import LinkGate from './components/LinkGate.jsx'
 import Explore from './pages/Explore.jsx'
 import Journeys from './pages/Journeys.jsx'
 import Assessments from './pages/Assessments.jsx'
@@ -15,30 +16,64 @@ import {
   getNotificationPreference,
   requestNotificationPermission,
 } from './services/NotificationService.js'
+import { getSessionId, linkWithToken } from './lib/authApi.js'
+import { trackEvent } from './services/EventTracker.js'
 
-// Scroll the page back to the top whenever the user switches tabs.
+// Scroll the page back to the top whenever the user switches tabs, and log a
+// page view for the member behind the current session (no-ops if unlinked).
 function ScrollToTop() {
   const { pathname } = useLocation()
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'instant' })
+    trackEvent('page_view')
   }, [pathname])
   return null
 }
 
 export default function App() {
   // The admin console lives outside the member-facing shell — no sidebar,
-  // bottom nav, or phone-width column.
-  const { pathname } = useLocation()
+  // bottom nav, phone-width column, or WhatsApp-link gate. It has its own
+  // password gate (see pages/Admin.jsx).
+  const { pathname, search } = useLocation()
+  const navigate = useNavigate()
   const isAdmin = pathname.startsWith('/admin')
+
+  // 'checking' -> 'linked' | 'blocked'. A `?t=<token>` in the URL (the
+  // WhatsApp link) is exchanged for a session once; after that, a session id
+  // already in localStorage is trusted without a network round-trip so the
+  // installed PWA keeps working offline.
+  const [authState, setAuthState] = useState(() => (getSessionId() ? 'linked' : 'checking'))
+
+  useEffect(() => {
+    if (isAdmin) return
+    const params = new URLSearchParams(search)
+    const token = params.get('t')
+    if (!token) {
+      setAuthState(getSessionId() ? 'linked' : 'blocked')
+      return
+    }
+    linkWithToken(token)
+      .then(() => {
+        // Strip the token from the URL/history so it doesn't linger in a
+        // browser history entry or a screenshot.
+        params.delete('t')
+        const rest = params.toString()
+        navigate({ pathname, search: rest ? `?${rest}` : '' }, { replace: true })
+        setAuthState('linked')
+      })
+      .catch(() => setAuthState('blocked'))
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isAdmin, search])
 
   // After first load, gently ask for notification permission once (after 5s).
   useEffect(() => {
+    if (isAdmin || authState !== 'linked') return
     if (getNotificationPreference()) return
     const timer = window.setTimeout(() => {
       requestNotificationPermission()
     }, 5000)
     return () => window.clearTimeout(timer)
-  }, [])
+  }, [isAdmin, authState])
 
   if (isAdmin) {
     return (
@@ -50,6 +85,12 @@ export default function App() {
         </Routes>
       </MotionConfig>
     )
+  }
+
+  // Not linked to a member yet. 'checking' briefly covers the token-exchange
+  // round trip; render nothing but the canvas colour to avoid a white flash.
+  if (authState !== 'linked') {
+    return authState === 'blocked' ? <LinkGate /> : <div className="min-h-screen bg-canvas" />
   }
 
   return (

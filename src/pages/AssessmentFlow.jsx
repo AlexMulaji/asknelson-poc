@@ -10,6 +10,7 @@ import { CloseIcon } from '../components/Icons.jsx'
 import { computeResult } from '../lib/assessmentScoring.js'
 import { useAssessmentHistory, retakeInfo } from '../hooks/useAssessmentHistory.js'
 import { useContent } from '../hooks/useContent.js'
+import { trackEvent } from '../services/EventTracker.js'
 
 // Orchestrates a single assessment: intro -> one question at a time -> results.
 // Responses live in component state only (session/device, never persisted);
@@ -60,6 +61,12 @@ export default function AssessmentFlow() {
     if (step === 'results' && result && assessment && !savedRef.current) {
       savedRef.current = true
       saveResult(assessment.id, { score: result.total, band: result.band?.band ?? null })
+      // Sensitive: stored pseudonymously server-side, never tied to the member.
+      trackEvent(
+        'assessment_completed',
+        { assessmentId: assessment.id, band: result.band?.band ?? null },
+        { sensitive: true }
+      )
     }
   }, [step, result, assessment, saveResult])
 
@@ -108,6 +115,7 @@ export default function AssessmentFlow() {
     setIndex(0)
     savedRef.current = false
     setStep('questions')
+    trackEvent('assessment_started', { assessmentId: assessment.id }, { sensitive: true })
   }
 
   const record = getRecord(assessment.id)

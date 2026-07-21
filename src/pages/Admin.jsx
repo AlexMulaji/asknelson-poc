@@ -2,6 +2,8 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import CollectionEditor from '../components/admin/CollectionEditor.jsx'
 import RawJsonEditor from '../components/admin/RawJsonEditor.jsx'
+import MembersManager from '../components/admin/MembersManager.jsx'
+import EventsSummary from '../components/admin/EventsSummary.jsx'
 import { DATASET_SCHEMAS } from '../components/admin/schemas.js'
 import {
   adminLogin,
@@ -13,6 +15,14 @@ import {
 } from '../lib/adminApi.js'
 
 const DATASET_KEYS = Object.keys(DATASET_SCHEMAS)
+
+// Members/Events aren't JSON content datasets — they have their own shape
+// and their own components — so they're kept out of DATASET_SCHEMAS and
+// handled as a couple of extra static tabs alongside it.
+const EXTRA_TABS = [
+  { key: 'members', label: 'Members' },
+  { key: 'events', label: 'Events' },
+]
 
 // ---------------------------------------------------------------------------
 // Login screen
@@ -84,7 +94,8 @@ export default function Admin() {
   const [status, setStatus] = useState(null) // { kind: 'ok' | 'error', text }
   const [busy, setBusy] = useState(false)
 
-  const schema = DATASET_SCHEMAS[active]
+  const isDataset = DATASET_KEYS.includes(active)
+  const schema = isDataset ? DATASET_SCHEMAS[active] : null
   const entry = docs[active]
   const dirty = useMemo(
     () => Boolean(entry) && JSON.stringify(entry.draft) !== JSON.stringify(entry.original),
@@ -101,8 +112,8 @@ export default function Admin() {
   }, [])
 
   useEffect(() => {
-    if (authed && !docs[active]) load(active)
-  }, [authed, active, docs, load])
+    if (authed && isDataset && !docs[active]) load(active)
+  }, [authed, isDataset, active, docs, load])
 
   const setDraft = (draft) => {
     setDocs((prev) => ({ ...prev, [active]: { ...prev[active], draft } }))
@@ -200,75 +211,103 @@ export default function Admin() {
               </button>
             )
           })}
+
+          {/* Divider before the non-dataset tabs */}
+          <span aria-hidden className="mx-1 w-px self-stretch bg-gray-200" />
+
+          {EXTRA_TABS.map((tab) => (
+            <button
+              key={tab.key}
+              type="button"
+              onClick={() => {
+                setActive(tab.key)
+                setStatus(null)
+              }}
+              className={[
+                'rounded-lg px-3.5 py-1.5 text-sm font-semibold transition',
+                active === tab.key ? 'bg-brand text-white' : 'text-gray-500 hover:bg-gray-100',
+              ].join(' ')}
+            >
+              {tab.label}
+            </button>
+          ))}
         </div>
       </header>
 
       <main className="mx-auto max-w-4xl px-5 py-6">
-        <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-          <div>
-            <p className="text-sm text-gray-500">{schema.description}</p>
-            {status ? (
-              <p
-                className={`mt-1 text-sm font-medium ${
-                  status.kind === 'ok' ? 'text-green-600' : 'text-red-600'
-                }`}
-              >
-                {status.text}
-              </p>
-            ) : null}
-          </div>
+        {active === 'members' ? (
+          <MembersManager />
+        ) : active === 'events' ? (
+          <EventsSummary />
+        ) : (
+          <>
+            <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+              <div>
+                <p className="text-sm text-gray-500">{schema.description}</p>
+                {status ? (
+                  <p
+                    className={`mt-1 text-sm font-medium ${
+                      status.kind === 'ok' ? 'text-green-600' : 'text-red-600'
+                    }`}
+                  >
+                    {status.text}
+                  </p>
+                ) : null}
+              </div>
 
-          <div className="flex items-center gap-2">
-            {/* Visual / raw toggle */}
-            <div className="flex rounded-lg border border-gray-200 bg-white p-0.5">
-              {['visual', 'raw'].map((m) => (
+              <div className="flex items-center gap-2">
+                {/* Visual / raw toggle */}
+                <div className="flex rounded-lg border border-gray-200 bg-white p-0.5">
+                  {['visual', 'raw'].map((m) => (
+                    <button
+                      key={m}
+                      type="button"
+                      onClick={() => setMode(m)}
+                      className={[
+                        'rounded-md px-3 py-1 text-xs font-semibold transition',
+                        mode === m ? 'bg-gray-900 text-white' : 'text-gray-500',
+                      ].join(' ')}
+                    >
+                      {m === 'visual' ? 'Visual' : 'Raw JSON'}
+                    </button>
+                  ))}
+                </div>
+
                 <button
-                  key={m}
                   type="button"
-                  onClick={() => setMode(m)}
-                  className={[
-                    'rounded-md px-3 py-1 text-xs font-semibold transition',
-                    mode === m ? 'bg-gray-900 text-white' : 'text-gray-500',
-                  ].join(' ')}
+                  onClick={reset}
+                  disabled={busy}
+                  className="rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-xs font-semibold text-gray-600 hover:bg-gray-50 disabled:opacity-40"
                 >
-                  {m === 'visual' ? 'Visual' : 'Raw JSON'}
+                  Reset to defaults
                 </button>
-              ))}
+                <button
+                  type="button"
+                  onClick={() => setDraft(entry.original)}
+                  disabled={!dirty || busy}
+                  className="rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-xs font-semibold text-gray-600 hover:bg-gray-50 disabled:opacity-40"
+                >
+                  Discard
+                </button>
+                <button
+                  type="button"
+                  onClick={save}
+                  disabled={!dirty || busy}
+                  className="rounded-lg bg-brand px-4 py-1.5 text-sm font-semibold text-white transition disabled:opacity-40"
+                >
+                  {busy ? 'Saving…' : 'Save'}
+                </button>
+              </div>
             </div>
 
-            <button
-              type="button"
-              onClick={reset}
-              disabled={busy}
-              className="rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-xs font-semibold text-gray-600 hover:bg-gray-50 disabled:opacity-40"
-            >
-              Reset to defaults
-            </button>
-            <button
-              type="button"
-              onClick={() => setDraft(entry.original)}
-              disabled={!dirty || busy}
-              className="rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-xs font-semibold text-gray-600 hover:bg-gray-50 disabled:opacity-40"
-            >
-              Discard
-            </button>
-            <button
-              type="button"
-              onClick={save}
-              disabled={!dirty || busy}
-              className="rounded-lg bg-brand px-4 py-1.5 text-sm font-semibold text-white transition disabled:opacity-40"
-            >
-              {busy ? 'Saving…' : 'Save'}
-            </button>
-          </div>
-        </div>
-
-        {!entry ? (
-          <p className="py-16 text-center text-sm text-gray-400">Loading {schema.label}…</p>
-        ) : mode === 'raw' ? (
-          <RawJsonEditor doc={entry.draft} onChange={setDraft} />
-        ) : (
-          <CollectionEditor schema={schema} doc={entry.draft} onChange={setDraft} />
+            {!entry ? (
+              <p className="py-16 text-center text-sm text-gray-400">Loading {schema.label}…</p>
+            ) : mode === 'raw' ? (
+              <RawJsonEditor doc={entry.draft} onChange={setDraft} />
+            ) : (
+              <CollectionEditor schema={schema} doc={entry.draft} onChange={setDraft} />
+            )}
+          </>
         )}
       </main>
     </div>
