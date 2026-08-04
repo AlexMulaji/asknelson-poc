@@ -11,10 +11,13 @@ import AssessmentFlow from './pages/AssessmentFlow.jsx'
 import Meditate from './pages/Meditate.jsx'
 import AskNelson from './pages/AskNelson.jsx'
 import Admin from './pages/Admin.jsx'
+import Login from './pages/Login.jsx'
+import Register from './pages/Register.jsx'
 import {
   getNotificationPreference,
   requestNotificationPermission,
 } from './services/NotificationService.js'
+import { track } from './lib/analytics.js'
 
 // Scroll the page back to the top whenever the user switches tabs.
 function ScrollToTop() {
@@ -25,11 +28,23 @@ function ScrollToTop() {
   return null
 }
 
+// One page_view per client-side navigation, including the first render.
+function RouteTracker() {
+  const { pathname } = useLocation()
+  useEffect(() => {
+    track('page_view', { path: pathname })
+  }, [pathname])
+  return null
+}
+
 export default function App() {
   // The admin console lives outside the member-facing shell — no sidebar,
   // bottom nav, or phone-width column.
   const { pathname } = useLocation()
   const isAdmin = pathname.startsWith('/admin')
+  // Sign-in and registration are full-screen too: a nav bar during sign-up
+  // invites people to wander off mid-flow.
+  const isAuth = pathname === '/login' || pathname.startsWith('/register')
 
   // After first load, gently ask for notification permission once (after 5s).
   useEffect(() => {
@@ -52,12 +67,26 @@ export default function App() {
     )
   }
 
+  if (isAuth) {
+    return (
+      <MotionConfig reducedMotion="user">
+        <ScrollToTop />
+        <RouteTracker />
+        <Routes>
+          <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
+        </Routes>
+      </MotionConfig>
+    )
+  }
+
   return (
     // Mobile: a single column. Desktop (lg+): a flex row with a fixed sidebar
     // on the left and a wide, centered content column on the right.
     <MotionConfig reducedMotion="user">
     <div className="min-h-screen bg-canvas lg:flex">
       <ScrollToTop />
+      <RouteTracker />
       <Sidebar />
       {/* Content column. min-w-0 lets it shrink correctly beside the sidebar;
           overflow-x-hidden contains horizontally-scrolling rows (chips, etc.). */}

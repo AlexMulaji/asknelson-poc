@@ -9,6 +9,7 @@ import { listContainer, listItem } from '../lib/motion.js'
 import { meshGradient } from '../lib/colorUtils.js'
 import { useJourneyProgress } from '../hooks/useJourneyProgress.js'
 import { useContent } from '../hooks/useContent.js'
+import { track } from '../lib/analytics.js'
 
 function dayStatus(dayNumber, currentDay, completedDays) {
   if (completedDays.includes(dayNumber)) return 'completed'
@@ -51,6 +52,39 @@ export default function Journeys() {
 
   const hasData = journeysData.length > 0
 
+  // --- Tracked wrappers ------------------------------------------------------
+  // Defined above the early returns so both the selection and progress views
+  // can use them.
+
+  const handleStart = (journeyId) => {
+    startJourney(journeyId)
+    const journey = journeysData.find((j) => j.id === journeyId)
+    track('journey_started', { journey: journeyId, title: journey?.title })
+  }
+
+  const handleMarkDayDone = (dayNumber) => {
+    markDayDone(dayNumber)
+    if (!activeJourney) return
+    const day = (activeJourney.days ?? []).find((d) => d.day === dayNumber)
+    const total = (activeJourney.days ?? []).length
+    // completedDays is this render's value, so the day just finished isn't in
+    // it yet — hence the +1 when checking for the final day.
+    const done = completedDays.includes(dayNumber)
+      ? completedDays.length
+      : completedDays.length + 1
+
+    track('journey_day_completed', {
+      journey: activeJourney.id,
+      day: dayNumber,
+      type: day?.type,
+      completed: done,
+      total,
+    })
+    if (total > 0 && done >= total) {
+      track('journey_completed', { journey: activeJourney.id, total })
+    }
+  }
+
   // --- No data yet -----------------------------------------------------------
   if (!hasData) {
     return (
@@ -77,7 +111,7 @@ export default function Journeys() {
         >
           {journeysData.map((journey) => (
             <motion.div key={journey.id} variants={listItem}>
-              <JourneyCard journey={journey} onStart={startJourney} />
+              <JourneyCard journey={journey} onStart={handleStart} />
             </motion.div>
           ))}
         </motion.div>
@@ -115,7 +149,14 @@ export default function Journeys() {
               day={todaysDay}
               status="current"
               color={color}
-              onMarkDone={markDayDone}
+              onMarkDone={handleMarkDayDone}
+              onOpenResource={() =>
+                track('journey_resource_opened', {
+                  journey: activeJourney.id,
+                  day: todaysDay.day,
+                  title: todaysDay.source_title,
+                })
+              }
               prominent
             />
           </div>
@@ -172,6 +213,7 @@ export default function Journeys() {
           onCancel={() => setPendingSwitch(null)}
           onConfirm={() => {
             switchJourney(pendingSwitch)
+            track('journey_switched', { from: activeJourneyId, to: pendingSwitch })
             setPendingSwitch(null)
           }}
         />

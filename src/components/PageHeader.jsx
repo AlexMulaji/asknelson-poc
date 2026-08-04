@@ -1,3 +1,5 @@
+import AccountBadge from './AccountBadge.jsx'
+
 // Sticky page header — stays visible as the user scrolls, with a frosted
 // background so content doesn't collide with the title.
 // Pass `logo` (an image src) to render the brand logo in place of the text title.
@@ -17,16 +19,25 @@ export default function PageHeader({ title, subtitle, logo }) {
         '[box-shadow:0_1px_0_0_rgb(0_0_0/0.06)]',
       ].join(' ')}
     >
-      {logo ? (
-        <h1 className="leading-none">
-          <img src={logo} alt={title} className="h-8 w-auto" />
-        </h1>
-      ) : (
-        <h1 className="font-display text-[26px] font-semibold leading-tight text-black">{title}</h1>
-      )}
-      {subtitle ? (
-        <p className="mt-0.5 text-[13px] leading-snug text-gray-500">{subtitle}</p>
-      ) : null}
+      {/* Title on the left, account control on the right. The badge is hidden
+          on desktop, where the sidebar carries the account panel instead. */}
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          {logo ? (
+            <h1 className="leading-none">
+              <img src={logo} alt={title} className="h-8 w-auto" />
+            </h1>
+          ) : (
+            <h1 className="font-display text-[26px] font-semibold leading-tight text-black">
+              {title}
+            </h1>
+          )}
+          {subtitle ? (
+            <p className="mt-0.5 text-[13px] leading-snug text-gray-500">{subtitle}</p>
+          ) : null}
+        </div>
+        <AccountBadge className="mt-1 shrink-0 lg:hidden" />
+      </div>
     </header>
   )
 }

@@ -6,10 +6,59 @@ services:
     environment:
       # Change this before deploying anywhere — it protects /admin.
       ADMIN_PASSWORD: ${ADMIN_PASSWORD:-kaelo}
+      # Event tracking. Remove this line to run without analytics: the app works
+      # exactly as before and the tracking endpoints become no-ops.
+      DATABASE_URL: postgres://asknelson:${POSTGRES_PASSWORD:-asknelson}@db:5432/asknelson
+      DATABASE_SSL: disable
+      # Used to build the WhatsApp link shown in /admin. Set this to the public
+      # URL members will actually open.
+      PUBLIC_BASE_URL: ${PUBLIC_BASE_URL:-http://localhost:8180}
+      # Keys the one-way hashes of email / phone / ID number. Change it before
+      # first run and then never again — rotating it invalidates every
+      # anonymous account's login.
+      AUTH_PEPPER: ${AUTH_PEPPER:-change-me-before-first-run}
+      # OTP delivery. 'console' logs the PIN in the container logs; set
+      # OTP_TRANSPORT=twilio|sendgrid|webhook plus that provider's credentials
+      # to send for real. See the README.
+      OTP_TRANSPORT: ${OTP_TRANSPORT:-console}
+      #
+      # ⚠  DEMO MODE — defaults ON so sign-up can be tested without an SMS or
+      #    email provider. The PIN is shown on the verification screen, which
+      #    means ANYONE CAN VERIFY AN ADDRESS THEY DO NOT OWN.
+      #
+      #    Set OTP_ECHO=false before this is reachable by real users.
+      #
+      OTP_ECHO: ${OTP_ECHO:-true}
     volumes:
       # Admin content edits survive rebuilds and restarts.
       - asknelson-data:/app/data
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
+
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: asknelson
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-asknelson}
+      POSTGRES_DB: asknelson
+    ports:
+      # Bound to loopback only, so a GUI client on this machine can connect but
+      # the database is never reachable from the network. 5433 on the host keeps
+      # out of the way of a local Postgres already using 5432.
+      - "127.0.0.1:${POSTGRES_HOST_PORT:-5433}:5432"
+    volumes:
+      - asknelson-db:/var/lib/postgresql/data
+    # The app runs migrations at boot and exits if they fail, so it must not
+    # start until Postgres is actually accepting connections.
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U asknelson -d asknelson"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
     restart: unless-stopped
 
 volumes:
   asknelson-data:
+  asknelson-db:

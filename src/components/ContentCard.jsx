@@ -1,4 +1,5 @@
 import { ExternalLinkIcon } from './Icons.jsx'
+import { track } from '../lib/analytics.js'
 
 // Renders one Explore item (article or video).
 // Items are enriched in Explore.jsx with theme label/colour + a duration string.
@@ -12,6 +13,17 @@ export default function ContentCard({ item }) {
       href={item.url}
       target="_blank"
       rel="noopener noreferrer"
+      // The tile opens a new tab, so this page stays alive and the event
+      // flushes normally on the next interval.
+      onClick={() =>
+        track('content_opened', {
+          id: item.id,
+          title: item.title,
+          type: isVideo ? 'video' : 'article',
+          theme: item.themeId,
+          source: item.source,
+        })
+      }
       // card-press gives a physical scale-down on tap (defined in index.css).
       className="card-press block overflow-hidden rounded-card bg-white shadow-card"
     >

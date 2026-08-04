@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import CollectionEditor from '../components/admin/CollectionEditor.jsx'
 import RawJsonEditor from '../components/admin/RawJsonEditor.jsx'
+import AnalyticsPanel from '../components/admin/AnalyticsPanel.jsx'
 import { DATASET_SCHEMAS } from '../components/admin/schemas.js'
 import {
   adminLogin,
@@ -13,6 +14,15 @@ import {
 } from '../lib/adminApi.js'
 
 const DATASET_KEYS = Object.keys(DATASET_SCHEMAS)
+
+// Analytics sits alongside the content datasets as a read-only tab; it has no
+// draft/save cycle, so the editor toolbar is hidden while it is open.
+const ANALYTICS_TAB = 'analytics'
+const TABS = [...DATASET_KEYS, ANALYTICS_TAB]
+const TAB_LABELS = {
+  ...Object.fromEntries(DATASET_KEYS.map((k) => [k, DATASET_SCHEMAS[k].label])),
+  [ANALYTICS_TAB]: 'Analytics',
+}
 
 // ---------------------------------------------------------------------------
 // Login screen
@@ -84,6 +94,7 @@ export default function Admin() {
   const [status, setStatus] = useState(null) // { kind: 'ok' | 'error', text }
   const [busy, setBusy] = useState(false)
 
+  const isAnalytics = active === ANALYTICS_TAB
   const schema = DATASET_SCHEMAS[active]
   const entry = docs[active]
   const dirty = useMemo(
@@ -101,8 +112,8 @@ export default function Admin() {
   }, [])
 
   useEffect(() => {
-    if (authed && !docs[active]) load(active)
-  }, [authed, active, docs, load])
+    if (authed && !isAnalytics && !docs[active]) load(active)
+  }, [authed, active, isAnalytics, docs, load])
 
   const setDraft = (draft) => {
     setDocs((prev) => ({ ...prev, [active]: { ...prev[active], draft } }))
@@ -178,7 +189,7 @@ export default function Admin() {
 
         {/* Dataset tabs */}
         <div className="mx-auto flex max-w-4xl gap-1 px-5 pb-2">
-          {DATASET_KEYS.map((key) => {
+          {TABS.map((key) => {
             const isActive = key === active
             const keyDirty =
               docs[key] && JSON.stringify(docs[key].draft) !== JSON.stringify(docs[key].original)
@@ -195,7 +206,7 @@ export default function Admin() {
                   isActive ? 'bg-brand text-white' : 'text-gray-500 hover:bg-gray-100',
                 ].join(' ')}
               >
-                {DATASET_SCHEMAS[key].label}
+                {TAB_LABELS[key]}
                 {keyDirty ? ' •' : ''}
               </button>
             )
@@ -203,7 +214,17 @@ export default function Admin() {
         </div>
       </header>
 
-      <main className="mx-auto max-w-4xl px-5 py-6">
+      <main className={`mx-auto px-5 py-6 ${isAnalytics ? 'max-w-6xl' : 'max-w-4xl'}`}>
+        {isAnalytics ? (
+          <>
+            <p className="mb-4 text-sm text-gray-500">
+              Every event recorded by the app, tied to the device that produced it and — for
+              members who arrived on a WhatsApp link — to the person behind it.
+            </p>
+            <AnalyticsPanel />
+          </>
+        ) : (
+          <>
         <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
           <div>
             <p className="text-sm text-gray-500">{schema.description}</p>
@@ -269,6 +290,8 @@ export default function Admin() {
           <RawJsonEditor doc={entry.draft} onChange={setDraft} />
         ) : (
           <CollectionEditor schema={schema} doc={entry.draft} onChange={setDraft} />
+        )}
+          </>
         )}
       </main>
     </div>

@@ -1,10 +1,11 @@
 // A booking service tile (Counsellor, Life Coach, etc.) for AskNelson.
-export default function ServiceCard({ title, description, href, Icon, color = '#172B5C', className = '' }) {
+export default function ServiceCard({ title, description, href, Icon, onOpen, color = '#172B5C', className = '' }) {
   return (
     <a
       href={href}
       target="_blank"
       rel="noopener noreferrer"
+      onClick={onOpen}
       className={['card-press flex h-full w-full flex-col rounded-card bg-white p-4 shadow-card', className].join(' ')}
     >
       <span

@@ -3,6 +3,9 @@ import crypto from 'node:crypto'
 import fs from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { isEnabled as analyticsEnabled, migrate } from './db.js'
+import { createAnalyticsRouter, startSessionSweeper } from './analytics.js'
+import { createAuthRouter, startAuthSweeper } from './auth.js'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const ROOT = path.resolve(__dirname, '..')
@@ -86,7 +89,18 @@ seedIfMissing()
 
 const app = express()
 app.disable('x-powered-by')
+// Behind a load balancer or ingress: needed for correct req.ip (analytics rate
+// limiting) and req.secure (the Secure flag on the device cookie).
+app.set('trust proxy', Number(process.env.TRUST_PROXY_HOPS || 1))
 app.use(express.json({ limit: '5mb' }))
+
+// Event tracking. Mounted before the static handler so /api wins, and a no-op
+// when DATABASE_URL is unset.
+app.use('/api/analytics', createAnalyticsRouter({ requireAdmin }))
+
+// Accounts, OTP verification and sessions. Also requires a database; the app
+// stays fully browsable without one, it just can't offer sign-in.
+app.use('/api/auth', createAuthRouter())
 
 // Content is fetched by the PWA; keep it out of the HTTP cache so edits show up
 // on the next load (the service worker applies its own NetworkFirst strategy).
@@ -153,7 +167,7 @@ app.post('/api/content/:key/reset', requireAdmin, (req, res) => {
   }
 })
 
-app.get('/api/health', (_req, res) => res.json({ ok: true }))
+app.get('/api/health', (_req, res) => res.json({ ok: true, analytics: analyticsEnabled }))
 
 // --- static frontend ------------------------------------------------------------
 
@@ -167,6 +181,25 @@ if (fs.existsSync(DIST_DIR)) {
   })
 } else {
   console.warn(`[asknelson] no dist/ build found at ${DIST_DIR} — API-only mode`)
+}
+
+// Run migrations before accepting traffic, so the first request can never hit a
+// half-built schema. A database that is configured but unreachable is fatal —
+// failing loudly beats silently dropping every event.
+if (analyticsEnabled) {
+  try {
+    await migrate()
+    startSessionSweeper()
+    startAuthSweeper()
+    console.log('[asknelson] analytics + accounts enabled — schema up to date')
+  } catch (err) {
+    // Log the whole error, not just .message — a refused connection surfaces as
+    // an AggregateError whose message is empty, which tells an operator nothing.
+    console.error('[asknelson] FATAL: analytics migration failed:', err)
+    process.exit(1)
+  }
+} else {
+  console.log('[asknelson] analytics disabled — set DATABASE_URL to enable event tracking')
 }
 
 app.listen(PORT, () => {

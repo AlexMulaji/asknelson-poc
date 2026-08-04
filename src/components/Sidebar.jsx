@@ -1,6 +1,7 @@
 import { NavLink } from 'react-router-dom'
 import { navTabs } from './navTabs.js'
 import ConfidentialityStamp from './ConfidentialityStamp.jsx'
+import AccountBadge from './AccountBadge.jsx'
 import logoUrl from '../assets/logo-asknelson.png'
 
 // Desktop-only left navigation. Hidden below the `lg` breakpoint, where the
@@ -38,7 +39,10 @@ export default function Sidebar() {
         </ul>
       </nav>
 
-      {/* Confidentiality stamp — always visible alongside the desktop nav */}
+      {/* Account panel, then the confidentiality stamp */}
+      <div className="px-3 pt-4">
+        <AccountBadge variant="full" />
+      </div>
       <div className="px-6 pb-7 pt-4">
         <ConfidentialityStamp />
       </div>

@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
+import { track } from '../lib/analytics.js'
 
 // Audio files are added manually to /src/assets/sounds/.
 // We import them so Vite fingerprints + the service worker can cache them.
@@ -40,6 +41,10 @@ export function useMeditation() {
 
   const intervalRef = useRef(null)
   const audioRef = useRef(null)
+  // Snapshot of the run in progress, so finish/stop can report what was
+  // actually chosen when it began even if the sound is changed mid-session.
+  // A ref (not state) keeps `finish` stable for the interval closure.
+  const runRef = useRef(null)
 
   // Reset the clock whenever the chosen duration changes (while idle).
   useEffect(() => {
@@ -82,12 +87,22 @@ export function useMeditation() {
     stopAudio()
     setIsRunning(false)
     setIsComplete(true)
+    const run = runRef.current
+    if (run) {
+      track('meditation_completed', { duration_min: run.durationMin, sound: run.sound })
+      runRef.current = null
+    }
   }, [clearTick, stopAudio])
 
   const start = useCallback(() => {
     if (isComplete) {
       setRemaining(durationMin * 60)
       setIsComplete(false)
+    }
+    // Only a fresh run is an event; resuming after a pause is not.
+    if (!runRef.current) {
+      runRef.current = { durationMin, sound, startedAt: Date.now() }
+      track('meditation_started', { duration_min: durationMin, sound })
     }
     setIsRunning(true)
     playAudio()
@@ -101,7 +116,7 @@ export function useMeditation() {
         return prev - 1
       })
     }, 1000)
-  }, [isComplete, durationMin, playAudio, clearTick, finish])
+  }, [isComplete, durationMin, sound, playAudio, clearTick, finish])
 
   const pause = useCallback(() => {
     clearTick()
@@ -115,6 +130,17 @@ export function useMeditation() {
     setIsRunning(false)
     setIsComplete(false)
     setRemaining(durationMin * 60)
+    const run = runRef.current
+    if (run) {
+      // How far they got before giving up — the useful half of this event.
+      const elapsedSec = Math.round((Date.now() - run.startedAt) / 1000)
+      track('meditation_stopped', {
+        duration_min: run.durationMin,
+        sound: run.sound,
+        elapsed_sec: elapsedSec,
+      })
+      runRef.current = null
+    }
   }, [clearTick, stopAudio, durationMin])
 
   const dismissComplete = useCallback(() => {

@@ -10,6 +10,7 @@ import { CloseIcon } from '../components/Icons.jsx'
 import { computeResult } from '../lib/assessmentScoring.js'
 import { useAssessmentHistory, retakeInfo } from '../hooks/useAssessmentHistory.js'
 import { useContent } from '../hooks/useContent.js'
+import { flushNow, track } from '../lib/analytics.js'
 
 // Orchestrates a single assessment: intro -> one question at a time -> results.
 // Responses live in component state only (session/device, never persisted);
@@ -60,6 +61,19 @@ export default function AssessmentFlow() {
     if (step === 'results' && result && assessment && !savedRef.current) {
       savedRef.current = true
       saveResult(assessment.id, { score: result.total, band: result.band?.band ?? null })
+
+      // Same privacy rule as storage: score and band only, never the answers.
+      // safety_triggered is a bare boolean — it says a duty-of-care screen was
+      // shown, not which item was answered how.
+      track('assessment_completed', {
+        assessment: assessment.id,
+        title: assessment.title,
+        score: result.total,
+        band: result.band?.band ?? null,
+        safety_triggered: Boolean(result.safetyTriggered),
+      })
+      // A triggered safety screen matters immediately — don't sit in the queue.
+      if (result.safetyTriggered) flushNow()
     }
   }, [step, result, assessment, saveResult])
 
@@ -104,10 +118,30 @@ export default function AssessmentFlow() {
   }
 
   function startQuestions() {
+    const isRetake = step === 'results'
     setResponses({})
     setIndex(0)
     savedRef.current = false
     setStep('questions')
+    track('assessment_started', {
+      assessment: assessment.id,
+      title: assessment.title,
+      questions: questions.length,
+      retake: isRetake,
+    })
+  }
+
+  // Leaving part-way through is worth knowing about (a screener that loses
+  // people half-way may be too long). We record only how far they got.
+  function handleClose() {
+    if (step === 'questions') {
+      track('assessment_abandoned', {
+        assessment: assessment.id,
+        answered: Object.keys(responses).length,
+        questions: questions.length,
+      })
+    }
+    navigate('/assessments')
   }
 
   const record = getRecord(assessment.id)
@@ -115,11 +149,7 @@ export default function AssessmentFlow() {
 
   return (
     <div className="page-enter">
-      <FlowHeader
-        title={assessment.title}
-        color={color}
-        onClose={() => navigate('/assessments')}
-      />
+      <FlowHeader title={assessment.title} color={color} onClose={handleClose} />
 
       {/* Focused, readable column on desktop. */}
       <div className="px-5 pt-4 pb-8 lg:mx-auto lg:max-w-2xl">

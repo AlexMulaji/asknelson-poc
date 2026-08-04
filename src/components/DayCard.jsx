@@ -13,7 +13,7 @@ function titleCase(s) {
 }
 
 // status: 'completed' | 'current' | 'locked'
-export default function DayCard({ day, status, color, onMarkDone, prominent = false }) {
+export default function DayCard({ day, status, color, onMarkDone, onOpenResource, prominent = false }) {
   const isLocked = status === 'locked'
   const isCompleted = status === 'completed'
   const isCurrent = status === 'current'
@@ -75,6 +75,7 @@ export default function DayCard({ day, status, color, onMarkDone, prominent = fa
               href={day.source_url}
               target="_blank"
               rel="noopener noreferrer"
+              onClick={onOpenResource}
               // 44px min-height touch target
               className="mt-3 inline-flex min-h-[44px] items-center gap-1.5 text-[14px] font-medium"
               style={{ color: color || '#172B5C' }}

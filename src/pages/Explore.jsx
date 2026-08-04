@@ -6,6 +6,7 @@ import PageHeader from '../components/PageHeader.jsx'
 import ContentCard from '../components/ContentCard.jsx'
 import EmptyState from '../components/EmptyState.jsx'
 import { useContent } from '../hooks/useContent.js'
+import { track } from '../lib/analytics.js'
 
 function buildItems(themeList) {
   const items = []
@@ -71,7 +72,10 @@ export default function Explore() {
               <button
                 key={chip.id}
                 type="button"
-                onClick={() => setActiveTheme(chip.id)}
+                onClick={() => {
+                  setActiveTheme(chip.id)
+                  track('theme_filtered', { theme: chip.id, label: chip.title })
+                }}
                 // 36px height for chips (slightly smaller than full buttons — acceptable
                 // for a scrollable row where miss-taps can be corrected easily).
                 className={[

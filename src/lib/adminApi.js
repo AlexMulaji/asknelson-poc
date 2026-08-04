@@ -74,3 +74,61 @@ export async function resetDataset(key) {
   if (!res.ok) throw new Error(await parseError(res, `Failed to reset ${key}`))
   return res.json()
 }
+
+// --- analytics ---------------------------------------------------------------
+
+async function adminRequest(path, { method = 'GET', body } = {}) {
+  const res = await fetch(`/api/analytics${path}`, {
+    method,
+    headers: {
+      Authorization: `Bearer ${getAdminKey()}`,
+      ...(body ? { 'Content-Type': 'application/json' } : {}),
+    },
+    body: body ? JSON.stringify(body) : undefined,
+  })
+  if (res.status === 401) {
+    setAdminKey('')
+    throw new Error('Session expired — please log in again.')
+  }
+  if (res.status === 503) {
+    throw new Error(
+      'Analytics is not configured on the server. Set DATABASE_URL and restart to enable event tracking.'
+    )
+  }
+  if (!res.ok) throw new Error(await parseError(res, 'Request failed'))
+  return res.json()
+}
+
+export const fetchOverview = (days = 30) => adminRequest(`/admin/overview?days=${days}`)
+
+export const fetchSessions = (limit = 50) => adminRequest(`/admin/sessions?limit=${limit}`)
+
+export const fetchDevice = (id) => adminRequest(`/admin/devices/${id}`)
+
+export const fetchLinkTokens = () => adminRequest('/admin/link-tokens')
+
+export const createLinkToken = (payload) =>
+  adminRequest('/admin/link-tokens', { method: 'POST', body: payload })
+
+export const revokeLinkToken = (hash) =>
+  adminRequest(`/admin/link-tokens/${hash}/revoke`, { method: 'POST' })
+
+/**
+ * Download the CSV export. Fetched rather than linked so the Bearer token can
+ * be attached; the blob is then handed to the browser as a normal download.
+ */
+export async function downloadEventsCsv(days = 30) {
+  const res = await fetch(`/api/analytics/admin/events.csv?days=${days}`, {
+    headers: { Authorization: `Bearer ${getAdminKey()}` },
+  })
+  if (!res.ok) throw new Error(await parseError(res, 'Failed to export events'))
+  const blob = await res.blob()
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = `asknelson-events-${days}d.csv`
+  document.body.appendChild(a)
+  a.click()
+  a.remove()
+  URL.revokeObjectURL(url)
+}
