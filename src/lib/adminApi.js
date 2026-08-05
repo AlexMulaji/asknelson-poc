@@ -62,6 +62,55 @@ export async function saveDataset(key, data) {
   return res.json()
 }
 
+// --- media library ----------------------------------------------------------
+
+export async function listUploads() {
+  const res = await fetch('/api/admin/uploads', {
+    cache: 'no-store',
+    headers: { Authorization: `Bearer ${getAdminKey()}` },
+  })
+  if (res.status === 401) {
+    setAdminKey('')
+    throw new Error('Session expired — please log in again.')
+  }
+  if (!res.ok) throw new Error(await parseError(res, 'Failed to load uploads'))
+  const body = await res.json()
+  return body.uploads ?? []
+}
+
+// Posts the raw file bytes; the server sniffs the real format and ignores the
+// declared content type.
+export async function uploadImage(file) {
+  const res = await fetch(`/api/admin/uploads?name=${encodeURIComponent(file.name)}`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': file.type || 'application/octet-stream',
+      Authorization: `Bearer ${getAdminKey()}`,
+    },
+    body: file,
+  })
+  if (res.status === 401) {
+    setAdminKey('')
+    throw new Error('Session expired — please log in again.')
+  }
+  if (res.status === 413) throw new Error('That image is too large (8 MB max).')
+  if (!res.ok) throw new Error(await parseError(res, 'Upload failed'))
+  return res.json()
+}
+
+export async function deleteUpload(name) {
+  const res = await fetch(`/api/admin/uploads/${encodeURIComponent(name)}`, {
+    method: 'DELETE',
+    headers: { Authorization: `Bearer ${getAdminKey()}` },
+  })
+  if (res.status === 401) {
+    setAdminKey('')
+    throw new Error('Session expired — please log in again.')
+  }
+  if (!res.ok) throw new Error(await parseError(res, 'Failed to delete image'))
+  return res.json()
+}
+
 export async function resetDataset(key) {
   const res = await fetch(`/api/content/${key}/reset`, {
     method: 'POST',

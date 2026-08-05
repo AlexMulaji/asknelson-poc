@@ -1,47 +1,42 @@
 import { NavLink } from 'react-router-dom'
 import { navTabs } from './navTabs.js'
-import ConfidentialityStamp from './ConfidentialityStamp.jsx'
 import logoUrl from '../assets/logo-asknelson.png'
 
-// Desktop-only left navigation. Hidden below the `lg` breakpoint, where the
-// mobile BottomNav takes over instead. Sticks to the top so it stays visible
-// while the content column scrolls — the expected feel of a desktop web app.
+// Desktop-only left navigation. Hidden below `lg`, where BottomNav takes over.
+// Sticks to the top so it stays visible while the content column scrolls.
 export default function Sidebar() {
   return (
-    <aside className="hidden shrink-0 border-r border-gray-100 bg-white lg:sticky lg:top-0 lg:flex lg:h-screen lg:w-60 lg:flex-col">
-      {/* Logo */}
-      <div className="px-6 pt-7 pb-6">
-        <img src={logoUrl} alt="AskNelson" className="h-7 w-auto" />
+    <aside className="hidden shrink-0 border-r border-line bg-white lg:sticky lg:top-0 lg:flex lg:h-screen lg:w-[320px] lg:flex-col">
+      <div className="px-8 pt-10 pb-8">
+        <img src={logoUrl} alt="AskNelson" className="h-9 w-auto" />
       </div>
 
-      {/* Primary nav */}
-      <nav className="flex-1 px-3">
-        <ul className="space-y-1">
+      <nav className="flex-1 px-5">
+        <ul className="space-y-1.5">
           {navTabs.map(({ to, label, Icon }) => (
             <li key={to}>
               <NavLink
                 to={to}
                 className={({ isActive }) =>
                   [
-                    'flex items-center gap-3 rounded-btn px-3 py-2.5 text-[15px] font-semibold transition-colors duration-150',
+                    'flex items-center gap-3.5 rounded-btn px-4 py-3 text-[16px] transition-colors duration-150',
                     isActive
-                      ? 'bg-brand/5 text-brand'
-                      : 'text-gray-500 hover:bg-gray-50 hover:text-gray-800',
+                      ? 'bg-brand-tint font-extrabold text-brand'
+                      : 'font-semibold text-muted hover:bg-canvas hover:text-navy',
                   ].join(' ')
                 }
               >
-                <Icon className="h-[22px] w-[22px] shrink-0" />
-                {label}
+                {({ isActive }) => (
+                  <>
+                    <Icon className="h-[22px] w-[22px] shrink-0" strokeWidth={isActive ? 2.2 : 1.9} />
+                    {label}
+                  </>
+                )}
               </NavLink>
             </li>
           ))}
         </ul>
       </nav>
-
-      {/* Confidentiality stamp — always visible alongside the desktop nav */}
-      <div className="px-6 pb-7 pt-4">
-        <ConfidentialityStamp />
-      </div>
     </aside>
   )
 }

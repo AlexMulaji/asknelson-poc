@@ -36,9 +36,9 @@ body,
 body {
   margin: 0;
   /* Soft canvas so white cards lift off the background (see tailwind `canvas`). */
-  background-color: #f6f7fb;
-  color: #000000;
-  font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+  background-color: #f4f6f7;
+  color: #01243b;
+  font-family: 'Nunito', system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   /* Prevent pull-to-refresh bounce and iOS elastic overscroll. */
@@ -70,7 +70,7 @@ a {
 
 /* Focus ring: visible for keyboard navigation but hidden on touch/click. */
 :focus-visible {
-  outline: 2px solid #172b5c;
+  outline: 2px solid #89ba16;
   outline-offset: 2px;
 }
 :focus:not(:focus-visible) {
@@ -139,9 +139,15 @@ a {
 }
 
 /* ─── Display type ───────────────────────────────────────────────────────── */
-/* Headings use Plus Jakarta Sans with slightly tighter tracking for polish. */
+/* Headings sit tight and heavy, matching the mockups' display weight. */
 .font-display {
-  letter-spacing: -0.015em;
+  letter-spacing: -0.02em;
+}
+
+/* ─── Media ──────────────────────────────────────────────────────────────── */
+/* Placeholder tint behind photos so cards don't flash white while loading. */
+.media-bg {
+  background-color: #dfe6e9;
 }
 
 /* ─── Reduced motion ─────────────────────────────────────────────────────── */

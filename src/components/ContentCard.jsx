@@ -1,11 +1,13 @@
-import { ExternalLinkIcon } from './Icons.jsx'
+import CoverImage from './CoverImage.jsx'
+import Pill from './Pill.jsx'
+import { BookIcon, ClockIcon, ExternalLinkIcon, VideoIcon } from './Icons.jsx'
 
-// Renders one Explore item (article or video).
+// Renders one Explore item (article or video): a portrait thumbnail on the
+// left, the topic pill and copy on the right, and a meta row giving the time
+// cost and publisher.
 // Items are enriched in Explore.jsx with theme label/colour + a duration string.
 export default function ContentCard({ item }) {
-  const accent = item.themeColor || '#172B5C'
   const isVideo = (item.type || '').toLowerCase() === 'video'
-  const typeLabel = isVideo ? 'Video' : 'Article'
 
   return (
     <a
@@ -13,42 +15,41 @@ export default function ContentCard({ item }) {
       target="_blank"
       rel="noopener noreferrer"
       // card-press gives a physical scale-down on tap (defined in index.css).
-      className="card-press block overflow-hidden rounded-card bg-white shadow-card"
+      className="card-press flex overflow-hidden rounded-card bg-white shadow-card"
     >
-      <div className="flex">
-        {/* Left theme-colour accent bar */}
-        <span aria-hidden className="w-1.5 shrink-0" style={{ backgroundColor: accent }} />
-        <div className="flex-1 px-4 py-4">
-          <div className="flex items-center gap-2">
-            <span
-              className="rounded-full px-2.5 py-0.5 text-[11px] font-semibold text-white"
-              style={{ backgroundColor: isVideo ? '#172B5C' : '#4CB03F' }}
-            >
-              {typeLabel}
-            </span>
-            {item.theme ? (
-              <span className="text-[11px] font-medium" style={{ color: accent }}>
-                {item.theme}
-              </span>
-            ) : null}
-          </div>
+      <CoverImage src={item.image} alt="" className="w-[104px] shrink-0 self-stretch sm:w-[116px]" />
 
-          <h3 className="mt-2 font-display text-[16px] font-semibold leading-snug text-black">
-            {item.title}
-          </h3>
+      <div className="flex min-w-0 flex-1 flex-col px-4 py-4">
+        {item.theme ? <Pill label={item.theme} className="self-start" /> : null}
 
-          {item.description ? (
-            <p className="mt-1 text-[13px] leading-relaxed text-gray-500">{item.description}</p>
-          ) : null}
+        <h3 className="mt-2 font-display text-[17px] font-extrabold leading-snug text-navy">
+          {item.title}
+        </h3>
 
-          <div className="mt-2.5 flex items-center justify-between text-[12px] text-gray-400">
-            <span className="truncate">
-              {item.source}
-              {item.source && item.duration ? ' · ' : ''}
+        {item.description ? (
+          <p className="mt-1 line-clamp-3 text-[13px] leading-relaxed text-slate-500">
+            {item.description}
+          </p>
+        ) : null}
+
+        <div className="mt-3 flex items-center gap-4 text-[12px] font-bold text-slate-400">
+          {item.duration ? (
+            <span className="inline-flex items-center gap-1.5">
+              {isVideo ? (
+                <VideoIcon className="h-4 w-4" strokeWidth={2} />
+              ) : (
+                <ClockIcon className="h-4 w-4" strokeWidth={2} />
+              )}
               {item.duration}
             </span>
-            <ExternalLinkIcon className="h-4 w-4 shrink-0 text-gray-300" />
-          </div>
+          ) : null}
+          {item.source ? (
+            <span className="inline-flex min-w-0 items-center gap-1.5">
+              <BookIcon className="h-4 w-4 shrink-0" strokeWidth={2} />
+              <span className="truncate">{item.source}</span>
+            </span>
+          ) : null}
+          <ExternalLinkIcon className="ml-auto h-4 w-4 shrink-0 text-slate-300" />
         </div>
       </div>
     </a>

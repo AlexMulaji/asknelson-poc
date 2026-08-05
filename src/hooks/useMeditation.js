@@ -18,15 +18,20 @@ function soundUrl(name) {
   return match ? match[1] : null
 }
 
-export const DURATIONS = [5, 10, 15, 20] // minutes
+export const DURATIONS = [5, 10, 15, 20, 25] // minutes
 
+// `image` doubles as the picker thumbnail and the player's full-screen backdrop.
 export const SOUNDS = [
-  { id: 'none', label: 'None' },
-  { id: 'rain', label: 'Rain' },
-  { id: 'forest', label: 'Forest' },
-  { id: 'ocean', label: 'Ocean' },
-  { id: 'bowls', label: 'Singing Bowls' },
+  { id: 'none', label: 'Silence', image: '/media/sound-silence.jpg' },
+  { id: 'rain', label: 'Rain', image: '/media/sound-rain.jpg' },
+  { id: 'forest', label: 'Forest', image: '/media/sound-forest.jpg' },
+  { id: 'ocean', label: 'Ocean', image: '/media/sound-ocean.jpg' },
+  { id: 'bowls', label: 'Singing Bowls', image: '/media/sound-bowls.jpg' },
 ]
+
+export function soundById(id) {
+  return SOUNDS.find((s) => s.id === id) ?? SOUNDS[0]
+}
 
 /**
  * Meditation session timer with optional looping ambient sound.
@@ -37,9 +42,15 @@ export function useMeditation() {
   const [remaining, setRemaining] = useState(5 * 60) // seconds
   const [isRunning, setIsRunning] = useState(false)
   const [isComplete, setIsComplete] = useState(false)
+  const [volume, setVolume] = useState(0.6)
 
   const intervalRef = useRef(null)
   const audioRef = useRef(null)
+
+  // Keep a live element in sync with the slider without restarting playback.
+  useEffect(() => {
+    if (audioRef.current) audioRef.current.volume = volume
+  }, [volume])
 
   // Reset the clock whenever the chosen duration changes (while idle).
   useEffect(() => {
@@ -63,12 +74,12 @@ export function useMeditation() {
     stopAudio()
     const audio = new Audio(url)
     audio.loop = true
-    audio.volume = 0.6
+    audio.volume = volume
     audio.play().catch(() => {
       /* autoplay can be blocked until a user gesture — safe to ignore */
     })
     audioRef.current = audio
-  }, [sound, stopAudio])
+  }, [sound, stopAudio, volume])
 
   const clearTick = useCallback(() => {
     if (intervalRef.current) {
@@ -138,6 +149,8 @@ export function useMeditation() {
     setDurationMin,
     sound,
     setSound,
+    volume,
+    setVolume,
     remaining,
     total,
     progress,

@@ -15,53 +15,50 @@ export default function Assessments() {
   const navigate = useNavigate()
   const { getRecord } = useAssessmentHistory()
 
-  const hasData = assessments.length > 0
-
   return (
-    <div className="page-enter">
-      <PageHeader title="Assessments" subtitle="Quick, private check-ins on how you're doing" />
+    <div className="page-enter px-5 pb-8 lg:px-0">
+      <PageHeader title="Assessments" className="px-0" />
 
-      <div className="px-5 pt-4 pb-6">
-        {!hasData ? (
+      {assessments.length === 0 ? (
+        <div className="pt-6">
           <EmptyState
             title="Your check-ins are on their way"
             message="Assessments load from assessments.json. Once they're added, you'll find short, validated screens here to help you understand how you're really doing."
           />
-        ) : (
-          <>
-            <p className="mb-4 text-[14px] leading-relaxed text-gray-600">
-              Each one is short, confidential, and stays on your device. They're a way to check in
-              — not a diagnosis.
+        </div>
+      ) : (
+        <>
+          <div className="mt-7">
+            <h2 className="font-display text-[22px] font-extrabold text-navy lg:text-[26px]">
+              Wellbeing Check-in
+            </h2>
+            <p className="mt-1 max-w-lg text-[14px] leading-relaxed text-slate-500">
+              Choose a short self-assessment to better understand your mental wellbeing.
             </p>
-            <motion.div
-              variants={listContainer}
-              initial="hidden"
-              animate="show"
-              className="grid grid-cols-1 gap-4 lg:grid-cols-2"
-            >
-              {assessments.map((a, i) => {
-                const record = getRecord(a.id)
-                const retake = retakeInfo(record, a.retake_after_days)
-                return (
-                  <motion.div
-                    key={a.id}
-                    variants={listItem}
-                    // Bento: feature the first check-in as a full-width tile on desktop.
-                    className={i === 0 ? 'lg:col-span-2' : undefined}
-                  >
-                    <AssessmentCard
-                      assessment={a}
-                      record={record}
-                      retake={retake}
-                      onOpen={(id) => navigate(`/assessments/${id}`)}
-                    />
-                  </motion.div>
-                )
-              })}
-            </motion.div>
-          </>
-        )}
-      </div>
+          </div>
+
+          <motion.div
+            variants={listContainer}
+            initial="hidden"
+            animate="show"
+            className="mt-5 grid grid-cols-1 gap-4 lg:grid-cols-2 lg:gap-5"
+          >
+            {assessments.map((a) => {
+              const record = getRecord(a.id)
+              return (
+                <motion.div key={a.id} variants={listItem}>
+                  <AssessmentCard
+                    assessment={a}
+                    record={record}
+                    retake={retakeInfo(record, a.retake_after_days)}
+                    onOpen={(id) => navigate(`/assessments/${id}`)}
+                  />
+                </motion.div>
+              )
+            })}
+          </motion.div>
+        </>
+      )}
     </div>
   )
 }

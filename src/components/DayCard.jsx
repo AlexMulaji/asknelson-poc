@@ -1,83 +1,76 @@
-import { LockIcon, CheckIcon, ExternalLinkIcon } from './Icons.jsx'
-
-const TYPE_COLORS = {
-  read: '#172B5C',
-  watch: '#4CB03F',
-  reflect: '#7C5CBF',
-  practice: '#E08A2B',
-}
+import Pill from './Pill.jsx'
+import { CheckCircleIcon, ChevronRightIcon, ExternalLinkIcon, LockIcon } from './Icons.jsx'
 
 function titleCase(s) {
   if (!s) return ''
   return s.charAt(0).toUpperCase() + s.slice(1)
 }
 
-// status: 'completed' | 'current' | 'locked'
-export default function DayCard({ day, status, color, onMarkDone, prominent = false }) {
+// A row in the 30-day list. `status` is 'completed' | 'current' | 'locked'.
+// The current day is highlighted with a green border and wash; completed days
+// carry a check; locked days show a padlock and dim back.
+export default function DayCard({ day, status, onOpen, onMarkDone, expanded = false }) {
   const isLocked = status === 'locked'
   const isCompleted = status === 'completed'
   const isCurrent = status === 'current'
-  const typeKey = (day.type || '').toLowerCase()
-  const badgeColor = TYPE_COLORS[typeKey] || color || '#172B5C'
+  const interactive = !isLocked && (onOpen || onMarkDone)
 
   return (
     <div
       className={[
-        'rounded-card bg-white',
-        prominent ? 'p-5 shadow-card' : 'border px-4 py-3.5',
-        isCurrent ? 'border-2 shadow-card' : 'border border-gray-100',
-        isLocked ? 'opacity-55' : '',
-        isCompleted && !prominent ? 'bg-gray-50' : '',
+        'rounded-card border transition',
+        isCurrent ? 'border-brand bg-brand-wash' : 'border-line bg-white',
+        isLocked ? 'opacity-60' : '',
       ].join(' ')}
-      style={isCurrent ? { borderColor: color || '#172B5C' } : undefined}
     >
-      <div className="flex items-start justify-between gap-3">
-        <div className="min-w-0">
+      <div
+        className={['flex items-start gap-3 px-4 py-4', interactive ? 'cursor-pointer' : ''].join(' ')}
+        onClick={interactive ? () => onOpen?.(day) : undefined}
+        role={interactive ? 'button' : undefined}
+        tabIndex={interactive ? 0 : undefined}
+        onKeyDown={
+          interactive
+            ? (e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault()
+                  onOpen?.(day)
+                }
+              }
+            : undefined
+        }
+      >
+        <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2">
-            <span className="text-[11px] font-semibold text-gray-400">Day {day.day}</span>
-            <span
-              className="rounded-full px-2 py-0.5 text-[10px] font-semibold text-white"
-              style={{ backgroundColor: badgeColor }}
-            >
-              {titleCase(day.type)}
-            </span>
+            <span className="text-[13px] font-extrabold text-brand">Day {day.day}</span>
+            {day.type ? <Pill label={titleCase(day.type)} /> : null}
           </div>
-          <h3
-            className={[
-              'mt-1.5 font-semibold leading-snug text-black',
-              prominent ? 'font-display text-[18px]' : 'text-[13px]',
-            ].join(' ')}
-          >
+          <h3 className="mt-1.5 font-display text-[17px] font-extrabold leading-snug text-navy">
             {day.title}
           </h3>
+          {day.task ? (
+            <p className="mt-1 text-[13px] leading-relaxed text-slate-500">{day.task}</p>
+          ) : null}
         </div>
 
-        {isCompleted ? (
-          <span
-            className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-white"
-            style={{ backgroundColor: color || '#4CB03F' }}
-          >
-            <CheckIcon className="h-4 w-4" />
-          </span>
-        ) : isLocked ? (
-          <LockIcon className="h-4 w-4 shrink-0 text-gray-300" />
-        ) : null}
+        <span className="shrink-0 pt-1">
+          {isCompleted ? (
+            <CheckCircleIcon className="h-6 w-6 text-brand" />
+          ) : isLocked ? (
+            <LockIcon className="h-[18px] w-[18px] text-slate-300" />
+          ) : (
+            <ChevronRightIcon className="h-5 w-5 text-brand" />
+          )}
+        </span>
       </div>
 
-      {prominent ? (
-        <>
-          {day.task ? (
-            <p className="mt-3 text-[14px] leading-relaxed text-gray-600">{day.task}</p>
-          ) : null}
-
+      {expanded && !isLocked ? (
+        <div className="border-t border-brand/25 px-4 py-4">
           {day.source_url ? (
             <a
               href={day.source_url}
               target="_blank"
               rel="noopener noreferrer"
-              // 44px min-height touch target
-              className="mt-3 inline-flex min-h-[44px] items-center gap-1.5 text-[14px] font-medium"
-              style={{ color: color || '#172B5C' }}
+              className="inline-flex min-h-[44px] items-center gap-1.5 text-[14px] font-extrabold text-brand"
             >
               {day.source_title || 'Open resource'}
               <ExternalLinkIcon className="h-4 w-4" />
@@ -85,23 +78,21 @@ export default function DayCard({ day, status, color, onMarkDone, prominent = fa
           ) : null}
 
           {day.reflection ? (
-            <p className="mt-3 rounded-btn bg-gray-50 px-3 py-2.5 text-[13px] italic leading-relaxed text-gray-500">
+            <p className="mt-2 rounded-btn bg-white px-3.5 py-3 text-[13px] italic leading-relaxed text-slate-500">
               {day.reflection}
             </p>
           ) : null}
 
-          {isCurrent && onMarkDone ? (
+          {onMarkDone && !isCompleted ? (
             <button
               type="button"
               onClick={() => onMarkDone(day.day)}
-              className="mt-4 min-h-[48px] w-full rounded-btn text-[14px] font-semibold text-white
-                         transition-transform duration-100 active:scale-[0.97]"
-              style={{ backgroundColor: color || '#172B5C' }}
+              className="mt-4 min-h-[48px] w-full rounded-btn bg-brand text-[15px] font-extrabold text-white transition hover:bg-brand-dark active:scale-[0.98]"
             >
               Mark as done
             </button>
           ) : null}
-        </>
+        </div>
       ) : null}
     </div>
   )

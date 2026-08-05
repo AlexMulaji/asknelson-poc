@@ -44,9 +44,21 @@ export default defineConfig({
         // large (multiple MB each) and would bloat the install. They're cached
         // on first play instead, via the CacheFirst runtimeCaching rule below.
         globPatterns: ['**/*.{js,css,html,svg,png,ico,json,woff,woff2}'],
-        // Never serve index.html for API calls or the admin console shell.
-        navigateFallbackDenylist: [/^\/api\//],
+        // Never serve index.html for API calls or admin-uploaded media.
+        navigateFallbackDenylist: [/^\/api\//, /^\/uploads\//],
         runtimeCaching: [
+          {
+            // Editorial imagery: the seed photography in /media plus anything
+            // uploaded through /admin. Both are content-addressed or stable, so
+            // cache-first keeps covers available offline.
+            urlPattern: /\/(uploads|media)\/.*/i,
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'asknelson-media',
+              expiration: { maxEntries: 120, maxAgeSeconds: 60 * 60 * 24 * 90 },
+              cacheableResponse: { statuses: [0, 200] },
+            },
+          },
           {
             // Editable content from the backend: prefer the network so admin
             // edits show up immediately, fall back to cache when offline.

@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import ImageField from './ImageField.jsx'
 
 // Generic structured editor driven by a schema from schemas.js: a list of
 // items (themes / journeys / assessments) with editable fields and an optional
@@ -10,6 +11,9 @@ const inputClass =
   'placeholder:text-gray-300 focus:border-brand focus:outline-none'
 
 function Field({ field, value, onChange }) {
+  // Images bring their own label, preview and library browser.
+  if (field.type === 'image') return <ImageField field={field} value={value} onChange={onChange} />
+
   const common = {
     id: undefined,
     value: value ?? '',
@@ -91,7 +95,12 @@ function FieldGrid({ fields, item, onPatch }) {
   return (
     <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
       {fields.map((field) => (
-        <div key={field.key} className={field.type === 'textarea' ? 'sm:col-span-2' : undefined}>
+        <div
+          key={field.key}
+          className={
+            field.type === 'textarea' || field.type === 'image' ? 'sm:col-span-2' : undefined
+          }
+        >
           <Field
             field={field}
             value={item?.[field.key]}

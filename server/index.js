@@ -13,6 +13,12 @@ const SEED_DIR = process.env.SEED_DIR || path.join(ROOT, 'src', 'data')
 const DIST_DIR = process.env.DIST_DIR || path.join(ROOT, 'dist')
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'admin'
 
+// Uploaded imagery (journey covers, theme art) lives inside DATA_DIR so it sits
+// on the same persistent volume as the JSON that references it — back one up
+// and you have backed up the other.
+const UPLOAD_DIR = path.join(DATA_DIR, 'uploads')
+const MAX_UPLOAD_BYTES = 8 * 1024 * 1024
+
 if (!process.env.ADMIN_PASSWORD) {
   console.warn(
     '[asknelson] WARNING: ADMIN_PASSWORD is not set — using the default "admin". ' +
@@ -37,6 +43,7 @@ function dataPath(key) {
 
 function seedIfMissing() {
   fs.mkdirSync(DATA_DIR, { recursive: true })
+  fs.mkdirSync(UPLOAD_DIR, { recursive: true })
   for (const key of Object.keys(DATASETS)) {
     const target = dataPath(key)
     if (fs.existsSync(target)) continue
@@ -61,6 +68,65 @@ function writeDataset(key, value) {
   const tmp = `${target}.${crypto.randomBytes(6).toString('hex')}.tmp`
   fs.writeFileSync(tmp, JSON.stringify(value, null, 2))
   fs.renameSync(tmp, target)
+}
+
+// --- uploads ------------------------------------------------------------------
+
+// Raster formats only. SVG is deliberately excluded: it can carry script, and
+// these files are served from the app's own origin.
+const IMAGE_TYPES = [
+  { ext: 'png', mime: 'image/png', match: (b) => b.length > 8 && b.subarray(0, 8).equals(Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a])) },
+  { ext: 'jpg', mime: 'image/jpeg', match: (b) => b.length > 3 && b[0] === 0xff && b[1] === 0xd8 && b[2] === 0xff },
+  { ext: 'gif', mime: 'image/gif', match: (b) => b.length > 6 && b.subarray(0, 4).toString('latin1') === 'GIF8' },
+  {
+    ext: 'webp',
+    mime: 'image/webp',
+    match: (b) =>
+      b.length > 12 &&
+      b.subarray(0, 4).toString('latin1') === 'RIFF' &&
+      b.subarray(8, 12).toString('latin1') === 'WEBP',
+  },
+]
+
+// Trust the bytes, not the Content-Type header a client claims.
+function sniffImage(buf) {
+  return IMAGE_TYPES.find((t) => t.match(buf)) || null
+}
+
+// Keep a readable slug of the original filename so the media library is
+// browsable, and suffix a content hash so re-uploading the same file is a
+// no-op rather than a duplicate.
+function uploadFilename(originalName, buf, ext) {
+  const base =
+    path
+      .basename(String(originalName || 'image'), path.extname(String(originalName || '')))
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-+|-+$/g, '')
+      .slice(0, 40) || 'image'
+  const hash = crypto.createHash('sha256').update(buf).digest('hex').slice(0, 8)
+  return `${base}-${hash}.${ext}`
+}
+
+// Guard against `..` and nested paths in user-supplied names.
+function resolveUpload(name) {
+  const safe = path.basename(String(name || ''))
+  if (!safe || safe.startsWith('.')) return null
+  const full = path.join(UPLOAD_DIR, safe)
+  if (path.dirname(full) !== UPLOAD_DIR) return null
+  return { name: safe, full }
+}
+
+function listUploads() {
+  if (!fs.existsSync(UPLOAD_DIR)) return []
+  return fs
+    .readdirSync(UPLOAD_DIR)
+    .filter((name) => IMAGE_TYPES.some((t) => name.toLowerCase().endsWith(`.${t.ext}`)))
+    .map((name) => {
+      const stat = fs.statSync(path.join(UPLOAD_DIR, name))
+      return { name, url: `/uploads/${name}`, size: stat.size, modified: stat.mtimeMs }
+    })
+    .sort((a, b) => b.modified - a.modified)
 }
 
 // --- auth ---------------------------------------------------------------------
@@ -153,6 +219,79 @@ app.post('/api/content/:key/reset', requireAdmin, (req, res) => {
   }
 })
 
+// --- uploaded media -----------------------------------------------------------
+
+// Public read: the PWA renders these straight from <img src>. Filenames carry a
+// content hash, so a long immutable cache is safe.
+app.use(
+  '/uploads',
+  express.static(UPLOAD_DIR, {
+    maxAge: '30d',
+    immutable: true,
+    index: false,
+    setHeaders: (res) => res.set('X-Content-Type-Options', 'nosniff'),
+  })
+)
+
+app.get('/api/admin/uploads', requireAdmin, (_req, res) => {
+  try {
+    res.set('Cache-Control', 'no-store')
+    res.json({ uploads: listUploads() })
+  } catch (err) {
+    console.error('[asknelson] failed to list uploads:', err)
+    res.status(500).json({ error: 'Failed to list uploads' })
+  }
+})
+
+// The image arrives as a raw body rather than multipart, which keeps the
+// server dependency-free; the original filename rides along as ?name=.
+app.post(
+  '/api/admin/uploads',
+  requireAdmin,
+  express.raw({ type: () => true, limit: MAX_UPLOAD_BYTES }),
+  (req, res) => {
+    const buf = req.body
+    if (!Buffer.isBuffer(buf) || buf.length === 0) {
+      return res.status(400).json({ error: 'Empty upload' })
+    }
+    const kind = sniffImage(buf)
+    if (!kind) {
+      return res
+        .status(415)
+        .json({ error: 'Unsupported file — use a PNG, JPG, WEBP or GIF image.' })
+    }
+
+    const name = uploadFilename(req.query.name, buf, kind.ext)
+    const target = path.join(UPLOAD_DIR, name)
+    try {
+      // Same bytes, same name — an existing file is already correct, so skip
+      // the rewrite and just hand back the URL.
+      if (!fs.existsSync(target)) {
+        const tmp = `${target}.${crypto.randomBytes(6).toString('hex')}.tmp`
+        fs.writeFileSync(tmp, buf)
+        fs.renameSync(tmp, target)
+      }
+      res.json({ ok: true, name, url: `/uploads/${name}`, size: buf.length })
+    } catch (err) {
+      console.error('[asknelson] failed to save upload:', err)
+      res.status(500).json({ error: 'Failed to save upload' })
+    }
+  }
+)
+
+app.delete('/api/admin/uploads/:name', requireAdmin, (req, res) => {
+  const resolved = resolveUpload(req.params.name)
+  if (!resolved) return res.status(400).json({ error: 'Invalid filename' })
+  try {
+    if (!fs.existsSync(resolved.full)) return res.status(404).json({ error: 'Not found' })
+    fs.unlinkSync(resolved.full)
+    res.json({ ok: true })
+  } catch (err) {
+    console.error('[asknelson] failed to delete upload:', err)
+    res.status(500).json({ error: 'Failed to delete upload' })
+  }
+})
+
 app.get('/api/health', (_req, res) => res.json({ ok: true }))
 
 // --- static frontend ------------------------------------------------------------
@@ -160,9 +299,11 @@ app.get('/api/health', (_req, res) => res.json({ ok: true }))
 if (fs.existsSync(DIST_DIR)) {
   app.use(express.static(DIST_DIR))
   // SPA fallback: any non-API GET serves index.html so client-side routes
-  // (/explore, /admin, ...) work on hard refresh.
+  // (/explore, /admin, ...) work on hard refresh. /uploads is excluded so a
+  // deleted or mistyped image 404s honestly instead of returning HTML with a
+  // 200, which would defeat the <img> onError fallback on the cards.
   app.get('*', (req, res, next) => {
-    if (req.path.startsWith('/api/')) return next()
+    if (req.path.startsWith('/api/') || req.path.startsWith('/uploads/')) return next()
     res.sendFile(path.join(DIST_DIR, 'index.html'))
   })
 } else {

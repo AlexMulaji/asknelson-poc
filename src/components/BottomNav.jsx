@@ -1,12 +1,12 @@
 import { NavLink } from 'react-router-dom'
 import { navTabs as tabs } from './navTabs.js'
 
+// Mobile tab bar. In the V1 design the active tab is simply navy-on-white with
+// a heavier label — no dot or pill indicator. Hidden on desktop (lg+), where
+// the Sidebar takes over.
 export default function BottomNav() {
   return (
-    // backdrop-blur gives a frosted-glass effect on iOS/Android when content
-    // scrolls under the nav. The border stays crisp on non-blur devices.
-    // Hidden on desktop (lg+), where the Sidebar takes over.
-    <nav className="fixed bottom-0 inset-x-0 z-40 border-t border-gray-100 bg-white/90 backdrop-blur-md safe-bottom lg:hidden">
+    <nav className="fixed bottom-0 inset-x-0 z-40 border-t border-line bg-white safe-bottom lg:hidden">
       <ul className="mx-auto flex max-w-md items-stretch justify-around">
         {tabs.map(({ to, label, Icon }) => (
           <li key={to} className="flex-1">
@@ -14,25 +14,22 @@ export default function BottomNav() {
               to={to}
               className={({ isActive }) =>
                 [
-                  // min-h ensures 44px touch target (Apple HIG / WCAG 2.5.5).
-                  'relative flex min-h-[44px] flex-col items-center justify-center gap-0.5 py-2',
+                  // min-h ensures a 44px touch target (Apple HIG / WCAG 2.5.5).
+                  'flex min-h-[44px] flex-col items-center justify-center gap-1 px-1 py-2.5',
                   'transition-colors duration-150',
-                  isActive ? 'text-brand' : 'text-muted',
+                  isActive ? 'text-navy' : 'text-muted',
                 ].join(' ')
               }
             >
               {({ isActive }) => (
                 <>
-                  {/* Active dot indicator above icon */}
+                  <Icon className="h-[22px] w-[22px]" strokeWidth={isActive ? 2.4 : 1.9} />
                   <span
                     className={[
-                      'mb-0.5 h-1 w-1 rounded-full transition-all duration-200',
-                      isActive ? 'bg-brand scale-100' : 'scale-0 bg-transparent',
+                      'text-[10px] leading-none tracking-tight',
+                      isActive ? 'font-extrabold' : 'font-semibold',
                     ].join(' ')}
-                    aria-hidden
-                  />
-                  <Icon className="h-[22px] w-[22px]" />
-                  <span className="text-[10px] font-semibold leading-none tracking-wide">
+                  >
                     {label}
                   </span>
                 </>
