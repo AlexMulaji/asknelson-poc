@@ -7,6 +7,8 @@
         "description": "Understand and manage anxiety in everyday life.",
         "color": "#7F77DD",
         "bg": "#EEEDFE",
+        "pill_bg": "#EEEDFE",
+        "pill_fg": "#7F77DD",
         "icon": "ti-heart-rate-monitor",
         "content": [
           {
@@ -107,6 +109,8 @@
         "description": "Rest better, recover faster, and understand what sleep actually does for you.",
         "color": "#185FA5",
         "bg": "#E6F1FB",
+        "pill_bg": "#E6F1FB",
+        "pill_fg": "#185FA5",
         "icon": "ti-moon",
         "content": [
           {
@@ -197,6 +201,8 @@
         "description": "Build stronger connections with the people who matter most.",
         "color": "#D4537E",
         "bg": "#FBEAF0",
+        "pill_bg": "#FBEAF0",
+        "pill_fg": "#D4537E",
         "icon": "ti-users",
         "content": [
           {
@@ -287,6 +293,8 @@
         "description": "Practical mindfulness for people who think they're bad at it.",
         "color": "#1D9E75",
         "bg": "#E1F5EE",
+        "pill_bg": "#E1F5EE",
+        "pill_fg": "#1D9E75",
         "icon": "ti-leaf",
         "content": [
           {
@@ -377,6 +385,8 @@
         "description": "Handle financial pressure with clarity — and know where to get help.",
         "color": "#BA7517",
         "bg": "#FAEEDA",
+        "pill_bg": "#FAEEDA",
+        "pill_fg": "#BA7517",
         "icon": "ti-coin",
         "content": [
           {
@@ -467,6 +477,8 @@
         "description": "Navigate work stress, find meaning, and build a career that doesn't cost your health.",
         "color": "#533489",
         "bg": "#EEEDFE",
+        "pill_bg": "#EEEDFE",
+        "pill_fg": "#533489",
         "icon": "ti-briefcase",
         "content": [
           {
@@ -567,6 +579,8 @@
         "description": "Build a stronger, more honest relationship with yourself.",
         "color": "#993556",
         "bg": "#FBEAF0",
+        "pill_bg": "#FBEAF0",
+        "pill_fg": "#993556",
         "icon": "ti-user",
         "content": [
           {
@@ -637,6 +651,8 @@
         "description": "Your body and mind are one system. Take care of both.",
         "color": "#3B6D11",
         "bg": "#EAF3DE",
+        "pill_bg": "#EAF3DE",
+        "pill_fg": "#3B6D11",
         "icon": "ti-run",
         "content": [
           {

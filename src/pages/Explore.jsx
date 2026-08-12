@@ -20,6 +20,10 @@ function buildItems(themeList) {
         themeId: theme.id,
         theme: theme.title,
         themeColor: theme.color,
+        // Per-topic pill colours, set in /admin. Themes saved before those
+        // fields existed fall back to their own background/accent pair.
+        themePillBg: theme.pill_bg || theme.bg,
+        themePillFg: theme.pill_fg || theme.color,
         duration,
       })
     }

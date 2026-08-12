@@ -37,8 +37,12 @@ export function toneFor(label, fallback = 'neutral') {
   return TOPIC_TONES[String(label).trim().toLowerCase()] ?? fallback
 }
 
-export default function Pill({ children, tone, label, className = '' }) {
+// `bg` / `fg` are optional hex overrides — Explore themes carry their own pair,
+// set per topic in /admin. Either can be given on its own; whatever is missing
+// keeps the tone class underneath.
+export default function Pill({ children, tone, label, bg, fg, className = '' }) {
   const resolved = tone ?? toneFor(label ?? children)
+  const style = bg || fg ? { backgroundColor: bg || undefined, color: fg || undefined } : undefined
   return (
     <span
       className={[
@@ -46,6 +50,7 @@ export default function Pill({ children, tone, label, className = '' }) {
         TONES[resolved] ?? TONES.neutral,
         className,
       ].join(' ')}
+      style={style}
     >
       {children ?? label}
     </span>

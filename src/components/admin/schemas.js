@@ -20,6 +20,8 @@ export const DATASET_SCHEMAS = {
       description: '',
       color: '#7F77DD',
       bg: '#EEEDFE',
+      pill_bg: '#EEEDFE',
+      pill_fg: '#7F77DD',
       icon: 'ti-heart',
       content: [],
     }),
@@ -29,6 +31,18 @@ export const DATASET_SCHEMAS = {
       { key: 'description', label: 'Description', type: 'textarea' },
       { key: 'color', label: 'Accent colour', type: 'color' },
       { key: 'bg', label: 'Background colour', type: 'color' },
+      {
+        key: 'pill_bg',
+        label: 'Pill background',
+        type: 'color',
+        hint: 'Topic pill on the Explore cards. Blank falls back to Background colour.',
+      },
+      {
+        key: 'pill_fg',
+        label: 'Pill text colour',
+        type: 'color',
+        hint: 'Keep it dark enough to read. Blank falls back to Accent colour.',
+      },
       { key: 'icon', label: 'Icon', type: 'text', hint: 'Tabler icon name, e.g. ti-moon' },
     ],
     children: {

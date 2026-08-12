@@ -1,10 +1,15 @@
 import { motion } from 'framer-motion'
 import { listContainer, listItem } from '../lib/motion.js'
 import ServiceCard from '../components/ServiceCard.jsx'
-import { AlertIcon, ChatIcon, CoinIcon, IdCardIcon, ScaleIcon } from '../components/Icons.jsx'
+import { BookIcon, CallIcon, ChatIcon, CoinIcon, ScaleIcon } from '../components/Icons.jsx'
 import logoUrl from '../assets/logo-asknelson.png'
 
-const KAELO_URL = 'https://www.kaelo.co.za/kaelo-lifestyle/'
+const KAELO_URL = 'https://www.kaelo.co.za/request-a-session/'
+
+// The AskNelson helpline. `tel:` needs the digits unspaced; the spaced form is
+// what we show on the button.
+const HELPLINE = '0800 635 766'
+const HELPLINE_TEL = 'tel:0800635766'
 
 const services = [
   {
@@ -15,7 +20,7 @@ const services = [
   {
     title: 'Connect with a Life Coach',
     description: 'Work through your goals, decisions, or life direction',
-    Icon: IdCardIcon,
+    Icon: BookIcon,
   },
   {
     title: 'Need Financial Advice?',
@@ -63,17 +68,19 @@ export default function AskNelson() {
         ))}
       </motion.div>
 
-      {/* SOS — deliberately large and urgent, and the only red in the app. */}
+      {/* SOS — deliberately large and urgent, and the only red in the app.
+          Tapping it dials the AskNelson helpline. */}
       <a
-        href={KAELO_URL}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="mt-6 flex min-h-[60px] w-full items-center justify-center gap-2.5 rounded-btn
-                   bg-danger px-5 text-[16px] font-extrabold text-white
+        href={HELPLINE_TEL}
+        className="mt-6 flex min-h-[68px] w-full items-center justify-center gap-2.5 rounded-btn
+                   bg-danger px-5 text-white
                    transition active:scale-[0.99]"
       >
-        <AlertIcon className="h-5 w-5 shrink-0" />
-        Get Help Now
+        <CallIcon className="h-5 w-5 shrink-0" />
+        <span className="flex flex-col items-start leading-tight">
+          <span className="text-[16px] font-extrabold">Get Help Now</span>
+          <span className="text-[13px] font-bold text-white/85">{HELPLINE}</span>
+        </span>
       </a>
 
       <p className="mt-6 text-center text-[12px] leading-relaxed text-slate-400">

@@ -1,7 +1,6 @@
 import { useMemo } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link } from 'react-router-dom'
 import CoverImage from '../components/CoverImage.jsx'
-import OverflowMenu from '../components/OverflowMenu.jsx'
 import PrivacyBand from '../components/PrivacyBand.jsx'
 import ConfidentialityStamp from '../components/ConfidentialityStamp.jsx'
 import {
@@ -9,12 +8,9 @@ import {
   ChevronRightIcon,
   ClipboardCheckIcon,
   GridIcon,
-  LogoutIcon,
-  SettingsIcon,
   WellnessIcon,
 } from '../components/Icons.jsx'
 import { iconFor } from '../lib/iconFor.js'
-import { greetingFor, getMemberName } from '../lib/profile.js'
 import { useContent } from '../hooks/useContent.js'
 import { useJourneyProgress } from '../hooks/useJourneyProgress.js'
 
@@ -58,10 +54,6 @@ const ACTIONS = [
 ]
 
 export default function Home() {
-  const navigate = useNavigate()
-  const name = getMemberName()
-  const greeting = greetingFor()
-
   const journeysFile = useContent('journeys')
   const journeys = useMemo(() => journeysFile?.journeys ?? [], [journeysFile])
   const { activeJourneyId, currentDay } = useJourneyProgress()
@@ -70,11 +62,6 @@ export default function Home() {
   const days = Array.isArray(activeJourney?.days) ? activeJourney.days : []
   const todaysDay = days.find((d) => d.day === currentDay) || days[0] || null
   const JourneyIcon = iconFor(activeJourney?.icon)
-
-  const menu = [
-    { label: 'Settings', Icon: SettingsIcon, onSelect: () => navigate('/my-wellness') },
-    { label: 'Logout', Icon: LogoutIcon, onSelect: () => navigate('/home'), danger: false },
-  ]
 
   return (
     <div className="page-enter lg:-mx-10 lg:-mt-8">
@@ -91,19 +78,15 @@ export default function Home() {
                 'linear-gradient(100deg, rgba(1,36,59,0.92) 0%, rgba(1,36,59,0.72) 45%, rgba(1,36,59,0.55) 100%)',
             }}
           />
-          <div className="absolute inset-x-0 top-0 flex items-start justify-between gap-3 px-5 pt-[calc(1.75rem+env(safe-area-inset-top,0px))] lg:px-10 lg:pt-12">
+          <div className="absolute inset-x-0 top-0 px-5 pt-[calc(1.75rem+env(safe-area-inset-top,0px))] lg:px-10 lg:pt-12">
             <div className="min-w-0">
               <h1 className="font-display text-[28px] font-extrabold leading-tight text-white lg:text-[38px]">
-                {greeting},{' '}
-                <span className="text-brand lg:inline">
-                  {name}
-                </span>
+                Welcome
               </h1>
               <p className="mt-2 hidden max-w-sm text-[15px] leading-relaxed text-white/85 lg:block">
                 Start your journey to better wellbeing and build healthier habits.
               </p>
             </div>
-            <OverflowMenu items={menu} tone="white" label="Account menu" />
           </div>
         </div>
 

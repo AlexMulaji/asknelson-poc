@@ -20,7 +20,14 @@ export default function ContentCard({ item }) {
       <CoverImage src={item.image} alt="" className="w-[104px] shrink-0 self-stretch sm:w-[116px]" />
 
       <div className="flex min-w-0 flex-1 flex-col px-4 py-4">
-        {item.theme ? <Pill label={item.theme} className="self-start" /> : null}
+        {item.theme ? (
+          <Pill
+            label={item.theme}
+            bg={item.themePillBg}
+            fg={item.themePillFg}
+            className="self-start"
+          />
+        ) : null}
 
         <h3 className="mt-2 font-display text-[17px] font-extrabold leading-snug text-navy">
           {item.title}
