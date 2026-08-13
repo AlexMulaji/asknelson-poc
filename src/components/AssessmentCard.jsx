@@ -28,7 +28,7 @@ export default function AssessmentCard({ assessment, record, retake, onOpen }) {
           {assessment.title}
         </h3>
         <p className="mt-1 text-[13px] leading-relaxed text-slate-500">
-          {assessment.description || assessment.subtitle}
+          {assessment.subtitle || assessment.description}
         </p>
         <p className="mt-2.5 text-[12px] font-bold" style={{ color }}>
           {assessment.time_mins} min · {questionCount} Questions
