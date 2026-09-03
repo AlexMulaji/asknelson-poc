@@ -80,7 +80,7 @@ export default function AssessmentFlow() {
   // --- Assessment not found -------------------------------------------------
   if (!assessment) {
     return (
-      <div className="page-enter">
+      <div className="page-enter min-h-screen bg-white">
         <FlowHeader title="Assessment" onClose={() => navigate('/assessments')} />
         <div className="px-5 pt-4">
           <EmptyState
@@ -94,7 +94,6 @@ export default function AssessmentFlow() {
 
   const questions = assessment.questions ?? []
   const currentQuestion = questions[index]
-  const color = assessment.color || '#172B5C'
 
   function handleSelect(value) {
     const qId = currentQuestion.id
@@ -148,11 +147,22 @@ export default function AssessmentFlow() {
   const retake = retakeInfo(record, assessment.retake_after_days)
 
   return (
-    <div className="page-enter">
-      <FlowHeader title={assessment.title} color={color} onClose={handleClose} />
+    <div className="page-enter relative min-h-screen bg-white">
+      {/* The intro leads with a full-bleed photo, so it carries its own floating
+          close button instead of the titled header the other steps use. */}
+      {step === 'intro' ? (
+        <FloatingClose onClose={handleClose} />
+      ) : (
+        <FlowHeader title={assessment.title} onClose={handleClose} />
+      )}
 
       {/* Focused, readable column on desktop. */}
-      <div className="px-5 pt-4 pb-8 lg:mx-auto lg:max-w-2xl">
+      <div
+        className={[
+          'px-5 pb-10 lg:mx-auto lg:max-w-2xl lg:px-8',
+          step === 'intro' ? 'pt-0' : 'pt-4',
+        ].join(' ')}
+      >
         {step === 'intro' ? (
           <AssessmentIntro assessment={assessment} retake={retake} onStart={startQuestions} />
         ) : null}
@@ -193,26 +203,44 @@ export default function AssessmentFlow() {
   )
 }
 
-// Sticky frosted header with a close affordance — mirrors PageHeader styling.
+// Titled header used once the questionnaire is under way: the assessment name
+// on the left, close on the right.
 function FlowHeader({ title, onClose }) {
   return (
     <header
       className={[
-        'sticky top-0 z-30 flex items-center gap-2 px-3 pb-3',
+        'sticky top-0 z-30 flex items-center justify-between gap-2 bg-white px-5 pb-3',
         'pt-[calc(1.5rem+env(safe-area-inset-top,0px))]',
-        'bg-white/92 backdrop-blur-md',
-        '[box-shadow:0_1px_0_0_rgb(0_0_0/0.06)]',
+        'lg:mx-auto lg:max-w-2xl lg:px-8',
       ].join(' ')}
     >
+      <h1 className="truncate font-display text-[26px] font-extrabold leading-tight text-navy">
+        {title}
+      </h1>
       <button
         type="button"
         onClick={onClose}
         aria-label="Close assessment"
-        className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-gray-500 active:bg-gray-100"
+        className="grid h-10 w-10 shrink-0 place-items-center rounded-full text-slate-400 transition hover:bg-canvas"
       >
-        <CloseIcon className="h-5 w-5" />
+        <CloseIcon className="h-6 w-6" />
       </button>
-      <h1 className="truncate text-[17px] font-bold leading-tight text-black">{title}</h1>
     </header>
+  )
+}
+
+// Close control that floats over the intro's photographic banner.
+function FloatingClose({ onClose }) {
+  return (
+    <div className="absolute right-4 z-30 lg:right-8" style={{ top: 'calc(1rem + env(safe-area-inset-top, 0px))' }}>
+      <button
+        type="button"
+        onClick={onClose}
+        aria-label="Close assessment"
+        className="grid h-11 w-11 place-items-center rounded-full text-white transition hover:bg-white/20"
+      >
+        <CloseIcon className="h-6 w-6" />
+      </button>
+    </div>
   )
 }

@@ -3,12 +3,12 @@ import { Routes, Route, Navigate, useLocation } from 'react-router-dom'
 import { MotionConfig } from 'framer-motion'
 import BottomNav from './components/BottomNav.jsx'
 import Sidebar from './components/Sidebar.jsx'
-import ConfidentialityStamp from './components/ConfidentialityStamp.jsx'
+import PrivacyBand from './components/PrivacyBand.jsx'
+import Home from './pages/Home.jsx'
+import MyWellness from './pages/MyWellness.jsx'
 import Explore from './pages/Explore.jsx'
-import Journeys from './pages/Journeys.jsx'
 import Assessments from './pages/Assessments.jsx'
 import AssessmentFlow from './pages/AssessmentFlow.jsx'
-import Meditate from './pages/Meditate.jsx'
 import AskNelson from './pages/AskNelson.jsx'
 import Admin from './pages/Admin.jsx'
 import Login from './pages/Login.jsx'
@@ -28,6 +28,18 @@ function ScrollToTop() {
   return null
 }
 
+// Redirect that keeps the original query string, so deep links built before the
+// V1 route rename (/journeys?journey=grief, /meditate) still land correctly.
+function RedirectWithQuery({ to, addQuery }) {
+  const { search } = useLocation()
+  const params = new URLSearchParams(search)
+  if (addQuery) {
+    for (const [k, v] of Object.entries(addQuery)) if (!params.has(k)) params.set(k, v)
+  }
+  const qs = params.toString()
+  return <Navigate to={qs ? `${to}?${qs}` : to} replace />
+}
+
 // One page_view per client-side navigation, including the first render.
 function RouteTracker() {
   const { pathname } = useLocation()
@@ -38,10 +50,12 @@ function RouteTracker() {
 }
 
 export default function App() {
-  // The admin console lives outside the member-facing shell — no sidebar,
-  // bottom nav, or phone-width column.
   const { pathname } = useLocation()
+  // The admin console lives outside the member-facing shell.
   const isAdmin = pathname.startsWith('/admin')
+  // Taking an assessment is a full-screen task: the mockups drop the nav so the
+  // member isn't invited to wander off mid-questionnaire.
+  const isImmersive = /^\/assessments\/[^/]+$/.test(pathname)
   // Sign-in and registration are full-screen too: a nav bar during sign-up
   // invites people to wander off mid-flow.
   const isAuth = pathname === '/login' || pathname.startsWith('/register')
@@ -67,6 +81,17 @@ export default function App() {
     )
   }
 
+  if (isImmersive) {
+    return (
+      <MotionConfig reducedMotion="user">
+        <ScrollToTop />
+        <Routes>
+          <Route path="/assessments/:id" element={<AssessmentFlow />} />
+        </Routes>
+      </MotionConfig>
+    )
+  }
+
   if (isAuth) {
     return (
       <MotionConfig reducedMotion="user">
@@ -84,7 +109,7 @@ export default function App() {
     // Mobile: a single column. Desktop (lg+): a flex row with a fixed sidebar
     // on the left and a wide, centered content column on the right.
     <MotionConfig reducedMotion="user">
-    <div className="min-h-screen bg-canvas lg:flex">
+    <div className="min-h-screen bg-canvas lg:flex lg:bg-white">
       <ScrollToTop />
       <RouteTracker />
       <Sidebar />
@@ -99,24 +124,32 @@ export default function App() {
           style={{ paddingBottom: 'var(--bottom-clearance)' }}
         >
           {/* Phone-width column on mobile; widens to a roomy desktop column. */}
-          <div className="mx-auto w-full max-w-md lg:max-w-5xl">
+          <div className="mx-auto w-full max-w-md lg:max-w-content lg:px-10 lg:pt-8">
             <Routes>
-              <Route path="/" element={<Navigate to="/explore" replace />} />
+              <Route path="/" element={<Navigate to="/home" replace />} />
+              <Route path="/home" element={<Home />} />
+              <Route path="/my-wellness" element={<MyWellness />} />
+              <Route path="/assessments" element={<Assessments />} />
               <Route path="/explore" element={<Explore />} />
               <Route path="/journeys" element={<Journeys />} />
               <Route path="/assessments" element={<Assessments />} />
               <Route path="/assessments/:id" element={<AssessmentFlow />} />
               <Route path="/meditate" element={<Meditate />} />
               <Route path="/asknelson" element={<AskNelson />} />
-              <Route path="*" element={<Navigate to="/explore" replace />} />
-            </Routes>
-          </div>
+              {/* Pre-V1 routes, kept working. */}
+              <Route path="/journeys" element={<RedirectWithQuery to="/my-wellness" />} />
+              <Route
+                path="/meditate"
+                element={<RedirectWithQuery to="/my-wellness" addQuery={{ tab: 'meditation' }} />}
+              />
 
-          {/* Persistent confidentiality stamp — shown on every route. On desktop
-              it lives in the sidebar instead, so this footer is mobile/tablet only. */}
-          <footer className="mx-auto flex max-w-md justify-center px-5 pt-2 pb-6 lg:hidden">
-            <ConfidentialityStamp imgClassName="max-w-[150px] opacity-90" />
-          </footer>
+              <Route path="*" element={<Navigate to="/home" replace />} />
+            </Routes>
+            {/* Desktop-only reassurance band, shown on every member screen. */}
+            <div className="hidden px-0 pb-10 pt-4 lg:block">
+              <PrivacyBand />
+            </div>
+          </div>
         </main>
       </div>
       <BottomNav />

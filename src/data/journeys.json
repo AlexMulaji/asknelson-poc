@@ -5,7 +5,7 @@
       "title": "Understanding Your Anxiety",
       "description": "A 30-day guided journey to understand, manage, and reduce anxiety in everyday life.",
       "duration_days": 30,
-      "color": "#7F77DD",
+      "color": "#746bd6",
       "icon": "ti-heart-rate-monitor",
       "days": [
         {
@@ -58,8 +58,8 @@
           "type": "read",
           "title": "Anxiety vs. worry — what's the difference?",
           "task": "Read this article on the difference between normal worry and anxiety disorder.",
-          "source_title": "Worry vs. Anxiety — Verywell Mind",
-          "source_url": "https://www.verywellmind.com/worry-vs-anxiety-5176875",
+          "source_title": "Worry vs. Anxiety - Intermountain healthcare",
+          "source_url": "https://intermountainhealthcare.org/blogs/article/whats-the-difference-between-worry-and-anxiety",
           "reflection": null
         },
         {
@@ -110,7 +110,7 @@
         {
           "day": 12,
           "type": "practice",
-          "title": "The 5-4-3-2-1 grounding technique",
+          "title": "The 5-4-3-2-1 grounding techniques",
           "task": "When you next feel anxious, stop and name: 5 things you can see, 4 you can touch, 3 you can hear, 2 you can smell, 1 you can taste. Try it now as practice.",
           "source_title": null,
           "source_url": null,
@@ -148,17 +148,17 @@
           "type": "read",
           "title": "How anxiety affects relationships",
           "task": "Read about how anxiety can show up in how we relate to others — and what to do about it.",
-          "source_title": "Anxiety in relationships — Verywell Mind",
-          "source_url": "https://www.verywellmind.com/how-anxiety-affects-relationships-5214441",
+          "source_title": "Anxiety in relationships — Psychology Today",
+          "source_url": "https://www.psychologytoday.com/us/blog/anxiety-attack/202311/navigating-anxiety-in-relationships",
           "reflection": null
         },
         {
           "day": 17,
-          "type": "watch",
+          "type": "read",
           "title": "The anxiety spiral — and how to break it",
           "task": "Watch this short explainer on how anxious thoughts spiral and the exact moment to interrupt them.",
           "source_title": "Breaking the anxiety spiral — Therapy in a Nutshell",
-          "source_url": "https://www.youtube.com/watch?v=bEBNMsQH_LU",
+          "source_url": "https://www.simplypsychology.org/anxiety-spirals.html",
           "reflection": null
         },
         {
@@ -277,8 +277,19 @@
           "source_title": null,
           "source_url": null,
           "reflection": "You showed up for 30 days. That matters."
+        },
+        {
+          "day": 31,
+          "type": "read",
+          "title": "Day 31 what is the benefits of communicating your stress and anxiety",
+          "task": "Carpe diem",
+          "source_title": null,
+          "source_url": null,
+          "reflection": null
         }
-      ]
+      ],
+      "cover": "/media/journey-anxiety.jpg",
+      "category": "Anxiety & Stress"
     },
     {
       "id": "loneliness",
@@ -293,8 +304,8 @@
           "type": "read",
           "title": "Loneliness is not the same as being alone",
           "task": "Read this short piece on the difference between solitude and loneliness — and why the distinction matters.",
-          "source_title": "Loneliness vs. solitude — Psychology Today",
-          "source_url": "https://www.psychologytoday.com/us/blog/living-single/201907/the-difference-between-being-alone-and-being-lonely",
+          "source_title": "Are you Alone or Are you Lonely — Psychology Today",
+          "source_url": "https://www.psychologytoday.com/us/blog/platonic-love/202601/are-you-alone-or-are-you-lonely",
           "reflection": "Which one describes how you feel most often right now?"
         },
         {
@@ -318,10 +329,10 @@
         {
           "day": 4,
           "type": "read",
-          "title": "What loneliness does to the body",
+          "title": "What community does for our health",
           "task": "Read the science of how chronic loneliness affects physical health — not to scare you, but to show it's real.",
-          "source_title": "The health effects of loneliness — Harvard Health",
-          "source_url": "https://www.health.harvard.edu/mental-health/can-relationships-boost-longevity-and-well-being",
+          "source_title": "What community does for our health — Harvard Edu",
+          "source_url": "https://news.harvard.edu/gazette/story/2017/04/over-nearly-80-years-harvard-study-has-been-showing-how-to-live-a-healthy-and-happy-life/",
           "reflection": null
         },
         {
@@ -336,10 +347,10 @@
         {
           "day": 6,
           "type": "read",
-          "title": "Why connection feels hard",
+          "title": "How to make the lasting friendships you want",
           "task": "Read about the barriers that stop people from reaching out — fear of rejection, pride, shame — and how common they are.",
-          "source_title": "Why making friends as an adult is hard — Greater Good Magazine",
-          "source_url": "https://greatergood.berkeley.edu/article/item/how_to_keep_your_friendships_strong",
+          "source_title": "How to Make the Lasting Friendships You Want — Greater Good Magazine",
+          "source_url": "https://greatergood.berkeley.edu/article/item/how_to_make_the_lasting_friendships_you_want",
           "reflection": null
         },
         {
@@ -365,8 +376,8 @@
           "type": "read",
           "title": "How to have a real conversation",
           "task": "Read this practical guide to deeper conversations — the kind that actually create connection.",
-          "source_title": "How to have deeper conversations — Greater Good Magazine",
-          "source_url": "https://greatergood.berkeley.edu/article/item/how_to_have_a_conversation_that_matters",
+          "source_title": "Seven Tips for Better Relationship Conversations — Greater Good Magazine",
+          "source_url": "https://greatergood.berkeley.edu/article/item/seven_tips_for_better_relationship_conversations",
           "reflection": null
         },
         {
@@ -383,8 +394,8 @@
           "type": "read",
           "title": "The role of community in wellbeing",
           "task": "Read about how belonging to a community — any community — acts as a buffer against loneliness.",
-          "source_title": "The importance of belonging — APA",
-          "source_url": "https://www.apa.org/monitor/2019/03/nurtured-nature",
+          "source_title": "The importance of community - Mental Health Foundation",
+          "source_url": "https://www.mentalhealth.org.uk/our-work/public-engagement/mental-health-awareness-week/how-community-benefits-your-mental-health",
           "reflection": null
         },
         {
@@ -411,7 +422,7 @@
           "title": "Small acts, big connection",
           "task": "Read about micro-moments of connection — how brief positive interactions with strangers and colleagues accumulate into genuine wellbeing.",
           "source_title": "Micro-moments of love — Greater Good Magazine",
-          "source_url": "https://greatergood.berkeley.edu/article/item/micro_moments_of_love",
+          "source_url": "https://greatergood.berkeley.edu/article/item/why_loving_moments_with_strangers_carry_lasting_benefits",
           "reflection": "Today, make eye contact and genuinely smile at three people. That's the whole task."
         },
         {
@@ -428,8 +439,8 @@
           "type": "read",
           "title": "Loneliness and social media",
           "task": "Read the nuanced take on how social media can both deepen loneliness and — when used intentionally — help.",
-          "source_title": "Social media and loneliness — Verywell Mind",
-          "source_url": "https://www.verywellmind.com/is-social-media-making-you-lonely-4790497",
+          "source_title": "Social media and loneliness — The Public Health Post",
+          "source_url": "https://publichealthpost.org/mental-behavioral-health/the-social-media-paradox-more-friends-less-connection/",
           "reflection": null
         },
         {
@@ -455,8 +466,8 @@
           "type": "read",
           "title": "Being a good friend",
           "task": "Read about what the research says makes someone a good friend — it's simpler than we think.",
-          "source_title": "What makes a good friend — Greater Good Magazine",
-          "source_url": "https://greatergood.berkeley.edu/article/item/what_makes_a_good_friend_according_to_science",
+          "source_title": "Why friends are more important than you think — Greater Good Magazine",
+          "source_url": "https://greatergood.berkeley.edu/article/item/why_your_friends_are_more_important_than_you_think",
           "reflection": "Who in your life could use you showing up as a better friend right now?"
         },
         {
@@ -480,10 +491,10 @@
         {
           "day": 22,
           "type": "read",
-          "title": "Helping others as a path out of loneliness",
+          "title": "Random Acts of Kindness",
           "task": "Read about why acts of service — volunteering, helping a neighbour — are one of the most evidence-backed ways to reduce loneliness.",
-          "source_title": "Giving and wellbeing — Action for Happiness",
-          "source_url": "https://actionforhappiness.org/take-action/do-good-things",
+          "source_title": "Random Acts of Kindness -GGA",
+          "source_url": "https://ggia.berkeley.edu/practice/random_acts_of_kindness",
           "reflection": null
         },
         {
@@ -527,8 +538,8 @@
           "type": "read",
           "title": "The science of belonging",
           "task": "Read the research on what makes humans feel they belong — and the small, surprising things that create it.",
-          "source_title": "The science of belonging — Greater Good Magazine",
-          "source_url": "https://greatergood.berkeley.edu/article/item/how_to_foster_belonging",
+          "source_title": "The science of belonging — UCnet",
+          "source_url": "https://ucnet.universityofcalifornia.edu/employee-news/how-to-create-more-belonging-for-yourself-and-others/",
           "reflection": null
         },
         {
@@ -558,7 +569,9 @@
           "source_url": null,
           "reflection": "Showing up for 30 days takes courage. You did it."
         }
-      ]
+      ],
+      "cover": "/media/journey-connection.jpg",
+      "category": "Connection"
     },
     {
       "id": "burnout",
@@ -600,8 +613,8 @@
           "type": "read",
           "title": "The six causes of burnout",
           "task": "Read the research-backed framework of the six workplace factors that cause burnout. Not all of them are your fault.",
-          "source_title": "Six causes of burnout — Christina Maslach / Mind Tools",
-          "source_url": "https://www.mindtools.com/pages/article/burnout-causes.htm",
+          "source_title": "Six causes of burnout — Greater Good Magazine",
+          "source_url": "https://greatergood.berkeley.edu/article/item/six_causes_of_burnout_at_work",
           "reflection": "Circle the 1–2 causes that apply most to you."
         },
         {
@@ -616,10 +629,10 @@
         {
           "day": 6,
           "type": "read",
-          "title": "Why rest doesn't fix burnout",
+          "title": "Resilience is about how you recharge",
           "task": "Read about why a holiday or weekend off doesn't cure burnout — and what actually does.",
-          "source_title": "Why rest doesn't cure burnout — Harvard Business Review",
-          "source_url": "https://hbr.org/2021/02/resilience-is-about-how-you-recharge-not-how-you-endure",
+          "source_title": "Resilience is about how you recharge  — Harvard Business Review",
+          "source_url": "https://hbr.org/2016/06/resilience-is-about-how-you-recharge-not-how-you-endure",
           "reflection": null
         },
         {
@@ -661,9 +674,9 @@
         {
           "day": 11,
           "type": "read",
-          "title": "Setting limits at work",
-          "task": "Read this practical guide to setting limits — not walls — with work demands.",
-          "source_title": "How to set boundaries at work — Mind",
+          "title": "5 ways to wellbeing ",
+          "task": "Improving your mental health with 5 simple steps.",
+          "source_title": "5 ways to wellbeing  — Mind",
           "source_url": "https://www.mind.org.uk/workplace/mental-health-at-work/taking-care-of-yourself/five-ways-to-wellbeing/",
           "reflection": "What is one boundary you need to set this week? Be specific."
         },
@@ -690,8 +703,8 @@
           "type": "read",
           "title": "Burnout and identity",
           "task": "Read about how burnout often hits people whose identity is tightly wrapped up in their work.",
-          "source_title": "Burnout and identity — Harvard Business Review",
-          "source_url": "https://hbr.org/2019/03/burnout-is-about-your-workplace-not-your-people",
+          "source_title": "Burnout and identity — Jennifer Moss",
+          "source_url": "https://www.jennifer-moss.com/writing/burnout-is-about-your-workplace-not-your-people",
           "reflection": null
         },
         {
@@ -706,11 +719,11 @@
         {
           "day": 16,
           "type": "read",
-          "title": "Sleep and burnout recovery",
-          "task": "Read about the specific sleep changes that accelerate burnout recovery.",
-          "source_title": "Sleep and burnout — Sleep Foundation",
-          "source_url": "https://www.sleepfoundation.org/mental-health/burnout-and-sleep",
-          "reflection": "Choose one sleep habit to implement tonight: consistent bedtime, no screens 30 minutes before bed, or a wind-down routine. Pick one."
+          "title": "Sleep and Job Peformance",
+          "task": "Read about the specific sleep changes that accelerate job performance.",
+          "source_title": "Sleep and job performance — Sleep Foundation",
+          "source_url": "https://www.sleepfoundation.org/sleep-hygiene/good-sleep-and-job-performance",
+          "reflection": ""
         },
         {
           "day": 17,
@@ -736,7 +749,7 @@
           "title": "How to ask for help at work",
           "task": "Read this guide to raising workload concerns with a manager — practically and professionally.",
           "source_title": "How to talk to your boss about burnout — Harvard Business Review",
-          "source_url": "https://hbr.org/2021/02/are-you-experiencing-burnout-heres-how-to-tell-your-boss",
+          "source_url": "https://hbr.org/2021/01/how-to-tell-your-boss-youre-burned-out",
           "reflection": null
         },
         {
@@ -754,7 +767,7 @@
           "title": "The joy audit",
           "task": "Read about how reconnecting with enjoyment — not productivity — is a clinical burnout recovery tool.",
           "source_title": "Reclaiming joy — Greater Good Magazine",
-          "source_url": "https://greatergood.berkeley.edu/article/item/the_art_of_savoring",
+          "source_url": "https://greatergood.berkeley.edu/article/item/10_steps_to_savoring_the_good_things_in_life",
           "reflection": "Write down three activities that used to bring you joy. When did you last do any of them?"
         },
         {
@@ -778,10 +791,10 @@
         {
           "day": 24,
           "type": "read",
-          "title": "When to get professional support",
-          "task": "Read about the signs that burnout has crossed into something that needs a professional — a counsellor, coach, or doctor.",
+          "title": "Strategies to Help you Reset",
+          "task": "Read about the signs that burnout and how can you reset. ",
           "source_title": "When burnout needs professional help — Mind UK",
-          "source_url": "https://www.mind.org.uk/information-support/types-of-mental-health-problems/stress/",
+          "source_url": "https://www.healthline.com/health/mental-health/burnout-recovery",
           "reflection": "If any of this matches your experience, the AskNelson tab can connect you with a counsellor or coach today."
         },
         {
@@ -808,7 +821,7 @@
           "title": "Recovery is not linear",
           "task": "Read about why burnout recovery takes longer than people expect — and how to be compassionate with yourself on hard days.",
           "source_title": "Burnout recovery timeline — Psychology Today",
-          "source_url": "https://www.psychologytoday.com/us/blog/urban-survival/202005/7-strategies-help-you-recover-burnout",
+          "source_url": "https://www.psychologytoday.com/us/blog/how-to-be-yourself/202105/7-ways-to-recover-from-burnout",
           "reflection": null
         },
         {
@@ -838,7 +851,9 @@
           "source_url": null,
           "reflection": "Recovery takes time. But you started. That's not nothing."
         }
-      ]
+      ],
+      "cover": "/media/journey-burnout.jpg",
+      "category": "Work & Purpose"
     },
     {
       "id": "grief",
@@ -880,8 +895,8 @@
           "type": "read",
           "title": "How grief lives in the body",
           "task": "Read about the physical experience of grief — why you feel it in your chest, your stomach, your sleep.",
-          "source_title": "The body in grief — Verywell Mind",
-          "source_url": "https://www.verywellmind.com/physical-symptoms-of-grief-4065428",
+          "source_title": "The body in grief — UCLA",
+          "source_url": "https://www.uclahealth.org/news/article/how-does-grief-affect-your-body",
           "reflection": null
         },
         {
@@ -899,7 +914,7 @@
           "title": "Grief and isolation",
           "task": "Read about why people pull away from others when grieving — and the cost of doing so alone.",
           "source_title": "Grief and loneliness — Psychology Today",
-          "source_url": "https://www.psychologytoday.com/us/blog/understanding-grief/201611/grief-and-loneliness",
+          "source_url": "https://www.psychologytoday.com/us/blog/good-mourning/201906/the-loneliness-grief",
           "reflection": null
         },
         {
@@ -926,7 +941,7 @@
           "title": "Continuing bonds — staying connected to who you've lost",
           "task": "Read about the theory of continuing bonds — that healthy grief doesn't mean moving on, it means finding a new relationship with what you've lost.",
           "source_title": "Continuing bonds theory — What's Your Grief",
-          "source_url": "https://whatsyourgrief.com/continuing-bonds-in-grief/",
+          "source_url": "https://whatsyourgrief.com/continuing-bonds-shifting-the-grief-paradigm/",
           "reflection": null
         },
         {
@@ -971,7 +986,7 @@
           "title": "How to support yourself when you're grieving",
           "task": "Read this practical guide to self-care during grief — especially when getting through the day is already hard enough.",
           "source_title": "Self-care in grief — What's Your Grief",
-          "source_url": "https://whatsyourgrief.com/grief-self-care-ideas/",
+          "source_url": "https://whatsyourgrief.com/self-care-ideas-for-grievers/",
           "reflection": null
         },
         {
@@ -1015,8 +1030,8 @@
           "type": "read",
           "title": "How other cultures grieve",
           "task": "Read about how different cultures and traditions approach grief — some have a lot to teach us.",
-          "source_title": "How different cultures grieve — HuffPost",
-          "source_url": "https://www.huffpost.com/entry/grief-around-the-world_n_5799872",
+          "source_title": "How different cultures grieve — The Conversation",
+          "source_url": "https://theconversation.com/death-and-dying-how-different-cultures-deal-with-grief-and-mourning-197299",
           "reflection": null
         },
         {
@@ -1033,9 +1048,9 @@
           "type": "read",
           "title": "Post-traumatic growth",
           "task": "Read about post-traumatic growth — the genuine, evidence-based phenomenon of people finding meaning after profound loss.",
-          "source_title": "Post-traumatic growth — Greater Good Magazine",
-          "source_url": "https://greatergood.berkeley.edu/article/item/what_is_posttraumatic_growth",
-          "reflection": "This is not 'everything happens for a reason'. It's about what we build from what happens."
+          "source_title": "Post-traumatic growth — The American Institute of Stress",
+          "source_url": "https://www.stress.org/news/post-traumatic-growth-finding-hope-in-adversity/",
+          "reflection": ""
         },
         {
           "day": 22,
@@ -1087,8 +1102,8 @@
           "type": "read",
           "title": "Life after loss",
           "task": "Read about how people rebuild — not to the same life, but a different one that makes room for what happened.",
-          "source_title": "Rebuilding after loss — What's Your Grief",
-          "source_url": "https://whatsyourgrief.com/rebuilding-your-life-after-loss/",
+          "source_title": "Rebuilding after loss — Supportive Grief",
+          "source_url": "https://www.thesupportivecare.com/blog/how-to-move-forward-after-the-loss-of-a-loved-one",
           "reflection": null
         },
         {
@@ -1118,7 +1133,10 @@
           "source_url": null,
           "reflection": "You showed up every day. That takes real strength."
         }
-      ]
+      ],
+      "cover": "/media/journey-grief.jpg",
+      "category": "Grief & Loss",
+      "cover_hero": "/media/journey-grief-hero.jpg"
     }
   ]
 }

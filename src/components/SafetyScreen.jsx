@@ -16,23 +16,23 @@ export default function SafetyScreen({ safety, onExit }) {
 
   return (
     <div className="space-y-5">
-      <div className="flex h-14 w-14 items-center justify-center rounded-full bg-red-50 text-red-600">
+      <div className="grid h-14 w-14 place-items-center rounded-full bg-pill-red text-danger">
         <AlertIcon className="h-7 w-7" />
       </div>
 
       <div>
-        <h2 className="font-display text-[26px] font-semibold leading-tight text-black">
+        <h2 className="font-display text-[26px] font-extrabold leading-tight text-navy">
           {safety.headline}
         </h2>
-        <p className="mt-3 text-[15px] leading-relaxed text-gray-700">{safety.body}</p>
+        <p className="mt-3 text-[15px] leading-relaxed text-slate-600">{safety.body}</p>
       </div>
 
       {/* Primary action — reach out now */}
       <button
         type="button"
         onClick={() => runCta(safety.cta, { navigate, switchJourney })}
-        className="flex min-h-[56px] w-full items-center justify-center rounded-card bg-red-600 px-5
-                   text-[15px] font-bold text-white shadow-sm transition-transform duration-100 active:scale-[0.98]"
+        className="flex min-h-[56px] w-full items-center justify-center rounded-btn bg-danger px-5
+                   text-[15px] font-extrabold text-white transition active:scale-[0.98]"
       >
         {safety.cta?.label || 'Talk to someone now'}
       </button>
@@ -41,7 +41,7 @@ export default function SafetyScreen({ safety, onExit }) {
       <button
         type="button"
         onClick={onExit}
-        className="min-h-[44px] w-full text-[14px] font-medium text-gray-400 active:text-gray-600"
+        className="min-h-[44px] w-full text-[14px] font-bold text-slate-400 hover:text-slate-600"
       >
         Back to assessments
       </button>

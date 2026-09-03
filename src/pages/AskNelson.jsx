@@ -1,12 +1,16 @@
 import { motion } from 'framer-motion'
 import { listContainer, listItem } from '../lib/motion.js'
-import PageHeader from '../components/PageHeader.jsx'
 import ServiceCard from '../components/ServiceCard.jsx'
-import { AlertIcon, ChatIcon, CompassIcon, CoinIcon, ScaleIcon } from '../components/Icons.jsx'
+import { BookIcon, CallIcon, ChatIcon, CoinIcon, ScaleIcon } from '../components/Icons.jsx'
 import logoUrl from '../assets/logo-asknelson.png'
 import { flushNow, track } from '../lib/analytics.js'
 
-const KAELO_URL = 'https://www.kaelo.co.za/kaelo-lifestyle/'
+const KAELO_URL = 'https://www.kaelo.co.za/request-a-session/'
+
+// The AskNelson helpline. `tel:` needs the digits unspaced; the spaced form is
+// what we show on the button.
+const HELPLINE = '0800 635 766'
+const HELPLINE_TEL = 'tel:0800635766'
 
 const services = [
   {
@@ -15,34 +19,39 @@ const services = [
     Icon: ChatIcon,
   },
   {
-    title: 'Life Coach',
-    description: 'Work through goals, decisions, or direction',
-    Icon: CompassIcon,
+    title: 'Connect with a Life Coach',
+    description: 'Work through your goals, decisions, or life direction',
+    Icon: BookIcon,
   },
   {
-    title: 'Financial Advisor',
+    title: 'Need Financial Advice?',
     description: 'Practical guidance on money and financial stress',
     Icon: CoinIcon,
   },
   {
-    title: 'Legal Advisor',
-    description: 'Advice on legal questions in plain language',
+    title: 'Need a Legal Advisor?',
+    description: 'Get clear, practical advice on legal matters or questions',
     Icon: ScaleIcon,
   },
 ]
 
 export default function AskNelson() {
   return (
-    <div className="page-enter">
-      <PageHeader logo={logoUrl} title="AskNelson" subtitle="Real support from real people" />
+    <div className="page-enter px-5 pb-8 lg:px-0">
+      <div className="pt-[calc(1.5rem+env(safe-area-inset-top,0px))] lg:pt-0">
+        <img src={logoUrl} alt="AskNelson" className="h-9 w-auto" />
+      </div>
 
-      <div className="px-5 pt-4 pb-6 lg:mx-auto lg:max-w-2xl">
-        <p className="text-[14px] leading-relaxed text-gray-600">
-          Whatever you're going through, we have someone who can help.
+      <div className="mt-7">
+        <h1 className="font-display text-[30px] font-extrabold leading-tight text-navy lg:text-[38px]">
+          We're Here to Help
+        </h1>
+        <p className="mt-2 max-w-lg text-[15px] leading-relaxed text-slate-500">
+          Access trusted support from qualified professionals. Real support from real people.
         </p>
-
-        {/* SOS — deliberately large and urgent */}
-        <a
+      </div>
+      {/* SOS — deliberately large and urgent */}
+        {/* <a
           href={KAELO_URL}
           target="_blank"
           rel="noopener noreferrer"
@@ -58,33 +67,45 @@ export default function AskNelson() {
         >
           <AlertIcon className="h-5 w-5 shrink-0" />
           I need help right now
-        </a>
+        </a> */}
 
-        {/* Service grid */}
-        <motion.div
-          variants={listContainer}
-          initial="hidden"
-          animate="show"
-          className="mt-4 grid grid-cols-2 gap-3"
-        >
-          {services.map((s) => (
-            <motion.div key={s.title} variants={listItem}>
-              <ServiceCard
-                title={s.title}
-                description={s.description}
-                Icon={s.Icon}
-                href={KAELO_URL}
-                onOpen={() => track('booking_clicked', { service: s.title })}
-              />
-            </motion.div>
-          ))}
-        </motion.div>
+      <motion.div
+        variants={listContainer}
+        initial="hidden"
+        animate="show"
+        className="mt-6 grid grid-cols-2 gap-4 lg:gap-5"
+      >
+        {services.map((s) => (
+          <motion.div key={s.title} variants={listItem}>
+            <ServiceCard
+              title={s.title}
+              description={s.description}
+              Icon={s.Icon}
+              href={KAELO_URL}
+             // onOpen={() => track('booking_clicked', { service: s.title })}
+            />
+          </motion.div>
+        ))}
+      </motion.div>
 
-        {/* Footer note */}
-        <p className="mt-6 text-center text-[12px] leading-relaxed text-gray-400">
-          All consultations are confidential and covered by your employer.
-        </p>
-      </div>
+      {/* SOS — deliberately large and urgent, and the only red in the app.
+          Tapping it dials the AskNelson helpline. */}
+      <a
+        href={HELPLINE_TEL}
+        className="mt-6 flex min-h-[68px] w-full items-center justify-center gap-2.5 rounded-btn
+                   bg-danger px-5 text-white
+                   transition active:scale-[0.99]"
+      >
+        <CallIcon className="h-5 w-5 shrink-0" />
+        <span className="flex flex-col items-start leading-tight">
+          <span className="text-[16px] font-extrabold">Get Help Now</span>
+          <span className="text-[13px] font-bold text-white/85">{HELPLINE}</span>
+        </span>
+      </a>
+
+      <p className="mt-6 text-center text-[12px] leading-relaxed text-slate-400">
+        All consultations are confidential and covered by your employer.
+      </p>
     </div>
   )
 }

@@ -18,7 +18,7 @@ import { listContainer, listItem } from '../lib/motion.js'
 export default function AssessmentResult({ assessment, result, history, onRetake, onExit }) {
   const navigate = useNavigate()
   const { switchJourney } = useJourneyProgress()
-  const color = assessment.color || '#172B5C'
+  const color = assessment.color || '#FF751C'
   const scoreMax = assessment.scoring?.max
 
   // --- 1. HARD SAFETY GATE --------------------------------------------------
@@ -40,24 +40,21 @@ export default function AssessmentResult({ assessment, result, history, onRetake
         style={{ background: meshGradient(color) }}
       >
         <ScoreRing value={result.total} max={scoreMax} color={color} />
-        <p
-          className="mt-4 text-[11px] font-semibold uppercase tracking-wide"
-          style={{ color }}
-        >
+        <p className="mt-4 text-[11px] font-extrabold uppercase tracking-wide" style={{ color }}>
           {band?.band ?? 'Your result'}
         </p>
-        <h2 className="mt-1 font-display text-[24px] font-semibold leading-tight text-black">
+        <h2 className="mt-1 font-display text-[24px] font-extrabold leading-tight text-navy">
           {band?.headline ?? 'Thanks for checking in'}
         </h2>
         {band?.body ? (
-          <p className="mx-auto mt-2 max-w-prose text-[15px] leading-relaxed text-gray-700">
+          <p className="mx-auto mt-2 max-w-prose text-[15px] leading-relaxed text-slate-600">
             {band.body}
           </p>
         ) : null}
       </motion.div>
 
       {/* Screening reminder — never a diagnosis */}
-      <motion.p variants={listItem} className="text-[12px] leading-relaxed text-gray-400">
+      <motion.p variants={listItem} className="text-[12px] leading-relaxed text-slate-400">
         This is a screening tool to help you reflect, not a diagnosis. Your answers stay on this
         device.
       </motion.p>
@@ -66,10 +63,10 @@ export default function AssessmentResult({ assessment, result, history, onRetake
       {showTrend ? (
         <motion.div variants={listItem} className="rounded-card bg-white p-5 shadow-card">
           <div className="flex items-center justify-between">
-            <p className="text-[11px] font-semibold uppercase tracking-wide text-gray-400">
+            <p className="text-[11px] font-extrabold uppercase tracking-wide text-slate-400">
               Your trend
             </p>
-            <span className="text-[12px] text-gray-400">{trendValues.length} check-ins</span>
+            <span className="text-[12px] text-slate-400">{trendValues.length} check-ins</span>
           </div>
           <div className="mt-3">
             <Sparkline values={trendValues} max={scoreMax} color={color} />
@@ -80,7 +77,7 @@ export default function AssessmentResult({ assessment, result, history, onRetake
       {/* Dimension breakdown (e.g. burnout) + flags */}
       {hasDimensions ? (
         <motion.div variants={listItem} className="rounded-card bg-white p-5 shadow-card">
-          <p className="text-[11px] font-semibold uppercase tracking-wide text-gray-400">
+          <p className="text-[11px] font-extrabold uppercase tracking-wide text-slate-400">
             What's driving it
           </p>
           <div className="mt-3 space-y-4">
@@ -89,8 +86,8 @@ export default function AssessmentResult({ assessment, result, history, onRetake
               return (
                 <div key={dim.id}>
                   <div className="flex items-center justify-between text-[13px]">
-                    <span className="font-semibold text-black">{dim.label}</span>
-                    <span className="text-gray-400">
+                    <span className="font-semibold text-navy">{dim.label}</span>
+                    <span className="text-slate-400">
                       {dim.subtotal}/{dim.max}
                       {dim.flagged ? (
                         <span className="ml-2 font-semibold" style={{ color }}>
@@ -99,7 +96,7 @@ export default function AssessmentResult({ assessment, result, history, onRetake
                       ) : null}
                     </span>
                   </div>
-                  <div className="mt-1.5 h-1.5 w-full overflow-hidden rounded-full bg-gray-100">
+                  <div className="mt-1.5 h-1.5 w-full overflow-hidden rounded-full bg-line">
                     <motion.span
                       className="block h-full rounded-full"
                       style={{ backgroundColor: color }}
@@ -109,7 +106,7 @@ export default function AssessmentResult({ assessment, result, history, onRetake
                     />
                   </div>
                   {dim.flagged && dim.note ? (
-                    <p className="mt-1.5 text-[13px] leading-relaxed text-gray-600">{dim.note}</p>
+                    <p className="mt-1.5 text-[13px] leading-relaxed text-slate-500">{dim.note}</p>
                   ) : null}
                 </div>
               )
@@ -144,16 +141,16 @@ export default function AssessmentResult({ assessment, result, history, onRetake
         <button
           type="button"
           onClick={onRetake}
-          className="min-h-[48px] flex-1 rounded-btn border border-gray-200 text-[14px] font-semibold
-                     text-gray-600 active:bg-gray-50"
+          className="min-h-[48px] flex-1 rounded-btn border border-line text-[14px] font-semibold
+                     text-slate-500 hover:bg-canvas"
         >
           Retake
         </button>
         <button
           type="button"
           onClick={onExit}
-          className="min-h-[48px] flex-1 rounded-btn border border-gray-200 text-[14px] font-semibold
-                     text-gray-600 active:bg-gray-50"
+          className="min-h-[48px] flex-1 rounded-btn border border-line text-[14px] font-semibold
+                     text-slate-500 hover:bg-canvas"
         >
           Done
         </button>

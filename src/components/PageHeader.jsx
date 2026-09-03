@@ -1,43 +1,32 @@
-import AccountBadge from './AccountBadge.jsx'
-
-// Sticky page header — stays visible as the user scrolls, with a frosted
-// background so content doesn't collide with the title.
-// Pass `logo` (an image src) to render the brand logo in place of the text title.
-export default function PageHeader({ title, subtitle, logo }) {
+// Screen title row. In the V1 design this is a large navy display heading with
+// an optional subtitle and an optional trailing control (usually the ⋮ menu).
+// Pass `logo` (an image src) to render the brand mark in place of the text.
+export default function PageHeader({ title, subtitle, logo, action, className = '' }) {
   return (
-    <header
+    <div
       className={[
-        'sticky top-0 z-30 px-5 pb-3',
+        'flex items-start justify-between gap-3',
         // Extra top padding on iOS where the status bar sits inside the webview.
-        'pt-[calc(1.5rem+env(safe-area-inset-top,0px))]',
-        // Frosted-glass feel that matches the bottom nav.
-        'bg-white/92 backdrop-blur-md',
-        // Hairline separator that appears once content scrolls under the header.
-        'border-b border-transparent',
-        // JS-free trick: the border becomes visible when the header is stuck.
-        // We achieve this with a box-shadow instead — softer than a hard border.
-        '[box-shadow:0_1px_0_0_rgb(0_0_0/0.06)]',
+        'px-5 pt-[calc(1.5rem+env(safe-area-inset-top,0px))]',
+        'lg:px-0 lg:pt-0',
+        className,
       ].join(' ')}
     >
-      {/* Title on the left, account control on the right. The badge is hidden
-          on desktop, where the sidebar carries the account panel instead. */}
-      <div className="flex items-start justify-between gap-3">
-        <div className="min-w-0">
-          {logo ? (
-            <h1 className="leading-none">
-              <img src={logo} alt={title} className="h-8 w-auto" />
-            </h1>
-          ) : (
-            <h1 className="font-display text-[26px] font-semibold leading-tight text-black">
-              {title}
-            </h1>
-          )}
-          {subtitle ? (
-            <p className="mt-0.5 text-[13px] leading-snug text-gray-500">{subtitle}</p>
-          ) : null}
-        </div>
-        <AccountBadge className="mt-1 shrink-0 lg:hidden" />
+      <div className="min-w-0">
+        {logo ? (
+          <h1 className="leading-none">
+            <img src={logo} alt={title} className="h-8 w-auto" />
+          </h1>
+        ) : (
+          <h1 className="font-display text-[30px] font-extrabold leading-tight text-navy lg:text-[38px]">
+            {title}
+          </h1>
+        )}
+        {subtitle ? (
+          <p className="mt-1 text-[14px] leading-relaxed text-slate-500">{subtitle}</p>
+        ) : null}
       </div>
-    </header>
+      {action ? <div className="shrink-0 pt-1">{action}</div> : null}
+    </div>
   )
 }

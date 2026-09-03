@@ -8,7 +8,8 @@
     "build": "vite build",
     "preview": "vite preview",
     "serve": "node server/index.js",
-    "start": "npm run build && node server/index.js"
+    "start": "npm run build && node server/index.js",
+    "content:pull": "node scripts/pull-content.mjs"
   },
   "dependencies": {
     "express": "^4.21.2",

@@ -12,6 +12,7 @@ import {
   saveDataset,
   setAdminKey,
 } from '../lib/adminApi.js'
+import { downloadJson } from '../lib/downloadJson.js'
 
 const DATASET_KEYS = Object.keys(DATASET_SCHEMAS)
 
@@ -257,6 +258,21 @@ export default function Admin() {
               ))}
             </div>
 
+            {/* Export the dataset so it can be committed to the repo. Saves
+                what's on screen, so unsaved edits can be rescued too. */}
+            <button
+              type="button"
+              onClick={() => downloadJson(`${active}.json`, entry.draft)}
+              disabled={!entry}
+              title={
+                dirty
+                  ? 'Downloads the unsaved version currently on screen'
+                  : `Download ${active}.json to commit into src/data/`
+              }
+              className="rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-xs font-semibold text-gray-600 hover:bg-gray-50 disabled:opacity-40"
+            >
+              Download JSON{dirty ? ' *' : ''}
+            </button>
             <button
               type="button"
               onClick={reset}

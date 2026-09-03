@@ -65,7 +65,8 @@ for everything the member-facing app displays:
 
 - **Explore** — themes and their article/video tiles: titles, descriptions,
   sources, URLs, colours, icons, read/watch times. Add, remove, reorder.
-- **Journeys** — programme details and every day's task, source link and
+- **Journeys** — programme details, a **cover image**, an optional wide **hero
+  image**, a **category** pill, and every day's task, source link and
   reflection prompt.
 - **Assessments** — card details, instructions and questions. Clinical logic
   (response scales, scoring bands, result copy, safety screens) is edited in
@@ -78,6 +79,65 @@ for everything the member-facing app displays:
 Saves go live immediately: the app fetches content from `/api/content/<key>`
 (network-first, falling back to the bundled JSON when offline).
 
+### Images
+
+Journeys carry `cover` (card thumbnail) and optional `cover_hero` (the wide
+banner on the active journey); Explore tiles carry `image`; assessments carry
+`cover` (the intro banner). All four use the same picker, which uploads a file,
+browses previously uploaded images, or takes an external URL pasted by hand.
+Uploads land in `<DATA_DIR>/uploads/` — the same persistent volume as the JSON
+that references them — and are served publicly from `/uploads/<file>`.
+
+- PNG, JPG, WEBP and GIF only, 8 MB max. The server identifies the format from
+  the file's magic bytes, not its extension or `Content-Type`. SVG is rejected
+  on purpose: it can carry script and these files are served same-origin.
+- Filenames get a content-hash suffix (`anxiety-cover-acb20e4d.png`), so
+  re-uploading identical bytes reuses the existing file and a replaced image is
+  always a new URL — safe to cache immutably, in the browser and the service
+  worker alike.
+- A journey with no cover, or one whose image has been deleted from the
+  library, falls back to the original colour-stripe card.
+
+To offer an image on another field, add one line to its schema in
+`src/components/admin/schemas.js` — the picker is generic:
+
+```js
+{ key: 'cover', label: 'Cover image', type: 'image' }
+```
+
+### Getting content edits back into the repo
+
+Admin edits are written to `<DATA_DIR>/<key>.json`, which lives outside git. The
+repo's `src/data/*.json` is **seed only** — the server never writes to it. So
+content edited in `/admin` is invisible to git, doesn't travel between branches,
+and is lost if the data volume is removed. Two ways to close that gap:
+
+**Download JSON** (per dataset, in the admin toolbar) saves the dataset you're
+looking at to your machine. Drop it into `src/data/` and commit. It exports
+what's currently on screen, so it also rescues unsaved edits. A `*` on the
+button means you're exporting unsaved changes.
+
+**`npm run content:pull`** fetches all three datasets from a running instance
+straight into `src/data/` — handy for lifting production content into a branch:
+
+```bash
+npm run content:pull                             # localhost:8080
+npm run content:pull -- https://prod.example.com # any instance
+git diff src/data                                # review, then commit
+```
+
+`GET /api/content/:key` is unauthenticated, so no admin password is needed.
+
+> The pull **overwrites** the seed files. If the instance is running older
+> content than your branch, that silently reverts work — so the script refuses
+> to run when `src/data` has uncommitted changes. Commit or stash first, or pass
+> `--force` if you really mean to discard them. To undo a bad pull:
+> `git checkout -- src/data`.
+>
+> The first pull from a long-running instance will also reformat the files
+> (the server round-trips JSON with a 2-space indent, losing the hand-written
+> compact arrays). That's a one-off; later diffs are clean and content-only.
+
 ### Content API
 
 | Method | Route                      | Auth   | Purpose                          |
@@ -86,6 +146,10 @@ Saves go live immediately: the app fetches content from `/api/content/<key>`
 | PUT    | `/api/content/:key`        | Bearer `ADMIN_PASSWORD` | Replace a dataset |
 | POST   | `/api/content/:key/reset`  | Bearer `ADMIN_PASSWORD` | Restore the shipped JSON |
 | POST   | `/api/admin/login`         | body `{ password }` | Validate the admin password |
+| GET    | `/uploads/:file`           | none   | Serve an uploaded image |
+| GET    | `/api/admin/uploads`       | Bearer `ADMIN_PASSWORD` | List the media library |
+| POST   | `/api/admin/uploads?name=` | Bearer `ADMIN_PASSWORD` | Upload an image (raw body) |
+| DELETE | `/api/admin/uploads/:file` | Bearer `ADMIN_PASSWORD` | Remove an image |
 | GET    | `/api/health`              | none   | Liveness check |
 
 ## Event tracking
@@ -406,14 +470,59 @@ you want it.
 | ---------- | ------------ | ---------------------------------------------------- |
 | Sign in    | `/login`     | Username, email or cell + password                   |
 | Register   | `/register`  | Anonymous or identified sign-up, OTP-verified        |
-| Explore    | `/explore`   | Browse articles/videos, filter by theme chips        |
+| Home        | `/home`        | Greeting hero, "Continue Your Journey", quick actions |
+| My Wellness | `/my-wellness` | Journey programmes and meditation, behind a segmented control (`?tab=meditation`) |
+| Explore    | `/explore`   | Search, topic chips, articles/videos        |
 | Journeys   | `/journeys`  | Pick & follow a 30-day programme, progress in storage |
 | Assessments| `/assessments` · `/assessments/:id` | Self-check screeners: intro → one question at a time → scored result |
 | Meditate   | `/meditate`  | Timer (5/10/15/20 min) with optional ambient sound    |
-| AskNelson  | `/asknelson` | SOS button + booking links to Kaelo Lifestyle         |
+| AskNelson  | `/asknelson` | Booking cards + "Get Help Now"          |
 
 On desktop (≥1024px) the bottom tab bar becomes a left sidebar and content
 widens into multi-column grids; mobile keeps the bottom nav + single column.
+Taking an assessment (`/assessments/:id`) drops the nav entirely — it's a
+full-screen task in the V1 design.
+
+### Route changes in V1
+
+The V1 design merges the old Journeys and Meditate tabs into **My Wellness** and
+adds **Home**. The previous routes still work and redirect, query string intact:
+
+| Old | Now |
+| --- | --- |
+| `/journeys`, `/journeys?journey=grief` | `/my-wellness`, `/my-wellness?journey=grief` |
+| `/meditate` | `/my-wellness?tab=meditation` |
+| `/` | `/home` |
+
+## Design tokens
+
+Sampled directly from the V1 Figma mockups and defined in `tailwind.config.js`:
+
+| Token | Hex | Used for |
+| ----- | --- | -------- |
+| `brand` | `#89BA16` | Primary CTAs, active nav, accents |
+| `brand-tint` / `brand-wash` | `#EDF4DC` / `#F9FBF4` | Icon chips, active nav pill, active day card |
+| `navy` | `#01243B` | Headings, dark hero cards, active filter chip |
+| `accent` | `#FF751C` | Assessments (default; each carries its own `color`) |
+| `danger` | `#E1231F` | "Get Help Now" and the safety gate only |
+| `muted` / `line` / `canvas` | `#93A1AA` / `#E6EBED` / `#F4F6F7` | Inactive labels, hairlines, page background |
+
+Category and activity pills (`src/components/Pill.jsx`) map a label such as
+"Anxiety & Stress" or "Reflect" onto a fixed tint, so a topic reads the same
+colour everywhere.
+
+**Typeface:** the mockup PDFs ship their text as outlines, so the brand family
+name isn't recoverable from them. **Nunito** stands in as the closest available
+match. To swap it, change the Google Fonts link in `index.html` and
+`fontFamily` in `tailwind.config.js`.
+
+## Imagery
+
+Seed photography lives in `public/media/` and is referenced from the content
+JSON by path (`/media/journey-anxiety.jpg`). It was extracted from the Figma
+source file and resized to 1400px wide. Anything uploaded through `/admin`
+lands in `<DATA_DIR>/uploads/` instead — see **Images** below. Both are cached
+by the service worker for offline use.
 
 ## Data files
 
