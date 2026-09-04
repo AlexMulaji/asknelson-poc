@@ -13,6 +13,8 @@ import AskNelson from './pages/AskNelson.jsx'
 import Admin from './pages/Admin.jsx'
 import Login from './pages/Login.jsx'
 import Register from './pages/Register.jsx'
+import Meditate from './pages/Meditate.jsx'
+import Journeys from './pages/Journeys.jsx'
 import {
   getNotificationPreference,
   requestNotificationPermission,
