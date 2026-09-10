@@ -52,6 +52,8 @@ export default function Login() {
     }
   }
 
+  //Need to clean this up on next commit
+
   const ICON = {
   chevron:<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M10 17L15 12L10 7" stroke="#637885" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>,
   hidden:<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M10.73 5.073C11.1516 5.024 11.5756 5 12 5c4.664 0 8.4 2.903 10 7-.387.997-.911 1.935-1.555 2.788M6.52 6.519C4.48 7.764 2.9 9.693 2 12c1.6 4.097 5.336 7 10 7 1.932.01 3.829-.516 5.48-1.52M9.88 9.88a3 3 0 104.24 4.24M4 4l16 16" stroke="#637885" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>,
@@ -107,6 +109,11 @@ export default function Login() {
           type="tel"
           inputMode="tel"
           autoComplete="tel"
+          value={identifier}
+          onChange={(e) => {
+              setIdentifier(e.target.value)
+              setError(null)
+            }}
         />
 
         <Field
@@ -114,14 +121,20 @@ export default function Login() {
           label="Password"
           hint="Enter your password"
           type="password"
-          password
+          password = {true}
           autoComplete="current-password"
+          value={password}
+          onChange={(e) => {
+              setPassword(e.target.value)
+              setError(null)
+            }}
         />
       </div>
 
       <div className="meta-row">
         <label className="check">
-          <input type="checkbox" id="remember" />
+          <input type="checkbox" id="remember" checked={remember}
+                onChange={(e) => setRemember(e.target.checked)} />
 
           <span
             className="check__box">{ICON.tick }</span>
@@ -135,6 +148,7 @@ export default function Login() {
           className="link-sm"
           href="#"
           data-go="forgotOptionsCell"
+          onClick={() => navigate('/forgot')}
         >
           Forgot Password?
         </a>
@@ -152,6 +166,7 @@ export default function Login() {
           label="Create Account"
           variant="ghost"
           go="createStep1"
+          onClick={() => navigate('/register')}
         />
       </div>
     </div>

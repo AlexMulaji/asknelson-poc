@@ -2,6 +2,47 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ─── Font Declarations ──────────────────────────────────────────────────── */
+@font-face {
+  font-family: 'Hurme Geometric Sans 4';
+  src: url('./assets/fonts/HurmeGeometricSans4-Light.woff2') format('woff2');
+  font-weight: 300;
+  font-style:normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Hurme Geometric Sans 4';
+  src: url('./assets/fonts/HurmeGeometricSans4-LightObl.woff2') format('woff2');
+  font-weight: 300;
+  font-style:italic;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Hurme Geometric Sans 4';
+  src: url('./assets/fonts/HurmeGeometricSans4-Regular.woff2') format('woff2');
+  font-weight: 400;
+  font-style:normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Hurme Geometric Sans 4';
+  src: url('./assets/fonts/HurmeGeometricSans4-SemiBold.woff2') format('woff2');
+  font-weight: 600;
+  font-style:normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Hurme Geometric Sans 4';
+  src: url('./assets/fonts/HurmeGeometricSans4-Bold.woff2') format('woff2');
+  font-weight: 700;
+  font-style:normal;
+  font-display: swap;
+}
+
 /* ─── Safe-area / nav clearance ─────────────────────────────────────────── */
 :root {
   color-scheme: light;
@@ -38,7 +79,7 @@ body {
   /* Soft canvas so white cards lift off the background (see tailwind `canvas`). */
   background-color: #f4f6f7;
   color: #01243b;
-  font-family: 'Nunito', system-ui, sans-serif;
+  font-family: 'Hurme Geometric Sans 4', system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   /* Prevent pull-to-refresh bounce and iOS elastic overscroll. */

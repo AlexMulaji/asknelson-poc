@@ -15,6 +15,8 @@ import Login from './pages/Login.jsx'
 import Register from './pages/Register.jsx'
 import Meditate from './pages/Meditate.jsx'
 import Journeys from './pages/Journeys.jsx'
+import Reset from './pages/ResetPassword.jsx'
+import Forgot from './pages/ForgotPassword.jsx'
 import {
   getNotificationPreference,
   requestNotificationPermission,
@@ -60,7 +62,7 @@ export default function App() {
   const isImmersive = /^\/assessments\/[^/]+$/.test(pathname)
   // Sign-in and registration are full-screen too: a nav bar during sign-up
   // invites people to wander off mid-flow.
-  const isAuth = pathname === '/login' || pathname.startsWith('/register')
+  const isAuth = pathname === '/login' || pathname === '/reset' || pathname === '/forgot' || pathname.startsWith('/register')
 
   // After first load, gently ask for notification permission once (after 5s).
   useEffect(() => {
@@ -102,6 +104,8 @@ export default function App() {
         <Routes>
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
+          <Route path="/reset" element={<Reset />} />
+          <Route path="/forgot" element={<Forgot />} />
         </Routes>
       </MotionConfig>
     )

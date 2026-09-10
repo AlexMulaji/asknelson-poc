@@ -39,8 +39,8 @@ export default {
         },
       },
       fontFamily: {
-        sans: ['Nunito', 'system-ui', 'sans-serif'],
-        display: ['Nunito', 'system-ui', 'sans-serif'],
+        sans: ['Hurme Geometric Sans 4', 'system-ui', 'sans-serif'],
+        display: ['Hurme Geometric Sans 4', 'system-ui', 'sans-serif'],
       },
       borderRadius: {
         card: '16px',
