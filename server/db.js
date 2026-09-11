@@ -177,16 +177,12 @@ const MIGRATIONS = [
       --                structurally, not merely by convention.
       CREATE TABLE IF NOT EXISTS auth_users (
         id              uuid PRIMARY KEY,
-        is_anonymous    boolean NOT NULL,
-        username        text UNIQUE,
         password_hash   text NOT NULL,
 
         -- Retained for identified accounts only; nulled for anonymous accounts
         -- the moment verification succeeds.
         email           text,
         phone           text,
-        first_name      text,
-        last_name       text,
 
         -- HMAC-SHA256 keyed with AUTH_PEPPER. Lets us spot a repeat sign-up
         -- without storing the value, and is what anonymous accounts are
@@ -196,7 +192,6 @@ const MIGRATIONS = [
         id_number_hash  text,
 
         employer        text,
-        employee_no     text,
 
         status          text NOT NULL DEFAULT 'pending',
         created_at      timestamptz NOT NULL DEFAULT now(),
@@ -209,16 +204,10 @@ const MIGRATIONS = [
         -- Forced NULL for anonymous accounts by the constraint below.
         member_id       uuid REFERENCES analytics_members(id) ON DELETE SET NULL,
 
-        CONSTRAINT auth_users_status_chk CHECK (status IN ('pending','active','disabled')),
+        CONSTRAINT auth_users_status_chk CHECK (status IN ('pending','active','disabled'))
         -- The anonymity guarantee, enforced by the database rather than trusted
         -- to application code: an anonymous row can never carry a member link
         -- or a retained real-world identity.
-        CONSTRAINT auth_users_anon_unlinked_chk CHECK (
-          NOT is_anonymous OR (
-            member_id IS NULL AND first_name IS NULL AND last_name IS NULL
-            AND id_number_hash IS NULL
-          )
-        )
       );
       CREATE UNIQUE INDEX IF NOT EXISTS auth_users_email_hash_idx
         ON auth_users (email_hash) WHERE email_hash IS NOT NULL;

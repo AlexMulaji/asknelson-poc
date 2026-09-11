@@ -3,6 +3,7 @@
 // and the token stays unreachable from JavaScript.
 
 async function request(path, { method = 'GET', body } = {}) {
+  console.log(`authApi.request(${path})`, { method, body })
   const res = await fetch(`/api/auth${path}`, {
     method,
     credentials: 'same-origin',
@@ -13,13 +14,16 @@ async function request(path, { method = 'GET', body } = {}) {
   let data = null
   try {
     data = await res.json()
+    console.log('authApi.request() response', data)
   } catch {
     /* empty or non-JSON body */
+    console.error('authApi.request() error: failed to parse JSON response')
   }
 
   if (!res.ok) {
     const err = new Error(data?.error || `Request failed (${res.status})`)
     err.status = res.status
+    console.error('authApi.request() error', err)
     throw err
   }
   return data

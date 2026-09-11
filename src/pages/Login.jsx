@@ -37,18 +37,20 @@ export default function Login() {
   const [error, setError] = useState(null)
   const [busy, setBusy] = useState(false)
 
-  const submit = async (e) => {
-    e.preventDefault()
+  const submit = async () => {
     if (!identifier.trim() || !password) return
     setBusy(true)
     setError(null)
     try {
       await signIn(identifier.trim(), password)
-      navigate('/explore')
+      navigate('/home')
     } catch (err) {
       setError(err.message)
+      setPassword('')
+      setIdentifier('')
     } finally {
       setBusy(false)
+      
     }
   }
 
@@ -66,30 +68,6 @@ export default function Login() {
   loader:<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 21.25a9.25 9.25 0 100-18.5A9.25 9.25 0 002.75 12" stroke="#637885" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
 };
 
-//   const login = () => ({
-//   cls:"screen--login on-dark",
-//   html:`
-//     ${Logo("white")}
-//     ${Hgroup("Welcome","Please enter your details below to sign in.")}
-//     <div class="fields">
-//       ${Field({id:"login-mobile",label:"Mobile Number",hint:"e.g. 012 345 6789",type:"tel",inputmode:"tel",autocomplete:"tel"})}
-//       ${Field({id:"login-password",label:"Password",hint:"Enter your password",type:"password",password:true,autocomplete:"current-password"})}
-//     </div>
-//     <div class="meta-row">
-//       <label class="check">
-//         <input type="checkbox" id="remember">
-//         <span class="check__box">${ICON.tick}</span>
-//         <span class="check__label">Remember Me</span>
-//       </label>
-//       <a class="link-sm" href="#" data-go="forgotOptionsCell">Forgot Password?</a>
-//     </div>
-//     <div class="actions">
-//       <!-- TODO: point "Sign in" at the app home screen once auth is wired -->
-//       ${Btn("Sign in",{act:"signin"})}
-//       <div class="or"><span>OR</span></div>
-//       ${Btn("Create Account",{variant:"ghost",go:"createStep1"})}
-//     </div>`
-// });
 
   return (
     <main className="screen screen--login on-dark">
@@ -156,7 +134,7 @@ export default function Login() {
 
       <div className="actions">
         {/* TODO: point "Sign in" at the app home screen once auth is wired */}
-        <Btn label="Sign in" act="signin" />
+        <Btn label="Sign in" act="signin" onClick={submit}/>
 
         <div className="or">
           <span>OR</span>

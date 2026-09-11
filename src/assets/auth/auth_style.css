@@ -137,6 +137,9 @@ h1{
   border-radius:var(--r-field);
   transition:border-color .15s ease, box-shadow .15s ease;
 }
+.field__box--error{
+  border:1px solid var(--error);
+}
 .field__box:focus-within{border-color:var(--green);box-shadow:0 0 0 3px var(--green-15)}
 .on-dark .field__box{background:transparent;border-color:var(--border-dark)}
 

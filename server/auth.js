@@ -165,14 +165,9 @@ async function createSession(req, res, userId) {
 function publicUser(row) {
   return {
     id: row.id,
-    isAnonymous: row.is_anonymous,
-    username: row.username,
-    firstName: row.first_name,
-    lastName: row.last_name,
-    email: row.email,
     phone: row.phone,
+    email: row.email,
     employer: row.employer,
-    employeeNo: row.employee_no,
     status: row.status,
     createdAt: row.created_at,
   }
@@ -294,12 +289,10 @@ export function createAuthRouter() {
   router.post('/register/start', registerLimit, async (req, res) => {
     try {
       const b = req.body || {}
-      const anonymous = Boolean(b.anonymous)
       const password = String(b.password || '')
       const email = b.email ? normEmail(b.email) : null
       const phone = b.phone ? normPhone(b.phone) : null
       const employer = str(b.employer, 160)
-      const employeeNo = str(b.employeeNo, 64)
 
       if (password.length < MIN_PASSWORD) {
         return res.status(400).json({ error: `Password must be at least ${MIN_PASSWORD} characters.` })
@@ -308,40 +301,18 @@ export function createAuthRouter() {
       if (email && !isEmail(email)) return res.status(400).json({ error: 'That email address looks wrong.' })
       if (phone && !isPhone(phone)) return res.status(400).json({ error: 'That cell number looks wrong.' })
 
-      // Anonymous needs at least one channel; identified needs both, matching
-      // the flow's own copy.
-      if (anonymous && !email && !phone) {
-        return res.status(400).json({ error: 'Give us an email or a cell number so we can verify you.' })
-      }
-      if (!anonymous && (!email || !phone)) {
-        return res.status(400).json({ error: 'Both an email address and a cell number are required.' })
-      }
-
-      let username = null
-      let firstName = null
-      let lastName = null
-      let idHash = null
-
-      if (anonymous) {
-        username = str(b.username, 64)
-        if (!username || username.length < 3) {
-          return res.status(400).json({ error: 'Choose a username of at least 3 characters.' })
-        }
-        const { rows } = await query('SELECT 1 FROM auth_users WHERE lower(username) = lower($1)', [username])
-        if (rows.length) return res.status(409).json({ error: 'That username is taken.' })
-      } else {
-        firstName = str(b.firstName, 80)
-        lastName = str(b.lastName, 80)
-        const idNumber = String(b.idNumber || '').replace(/\D/g, '')
-        if (!firstName || !lastName) return res.status(400).json({ error: 'First and last name are required.' })
-        if (idNumber.length !== 13) return res.status(400).json({ error: 'Enter a valid 13-digit ID number.' })
+      
+      const idNumber = String(b.idNumber || '').replace(/\D/g, '')
+      if (idNumber.length !== 13) return res.status(400).json({ error: 'Enter a valid 13-digit ID number.' })
         // Only the hash is kept: it identifies a duplicate sign-up without the
         // service ever holding a national ID number.
-        idHash = peppered(idNumber)
-      }
+      const idHash = peppered(idNumber)
+
+      
 
       const emailHash = email ? peppered(email) : null
       const phoneHash = phone ? peppered(phone) : null
+
 
       // Reuse a still-pending row for the same contact so a user who abandoned
       // at the PIN screen can start over instead of hitting "already registered".
@@ -362,23 +333,18 @@ export function createAuthRouter() {
       const userId = crypto.randomUUID()
       await query(
         `INSERT INTO auth_users
-           (id, is_anonymous, username, password_hash, email, phone, first_name, last_name,
-            email_hash, phone_hash, id_number_hash, employer, employee_no, status)
-         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,'pending')`,
+           (id, password_hash, email, phone,
+            email_hash, phone_hash, id_number_hash, employer, status)
+         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,'pending')`,
         [
           userId,
-          anonymous,
-          username,
           await hashPassword(password),
           email,
           phone,
-          firstName,
-          lastName,
           emailHash,
           phoneHash,
           idHash,
           employer,
-          employeeNo,
         ]
       )
 
@@ -397,7 +363,7 @@ export function createAuthRouter() {
         ...(sent.echo ? { devCode: sent.echo } : {}),
       })
     } catch (err) {
-      console.error('[asknelson][auth] register start failed:', err.message)
+      console.error('[asknelson][auth] register start failed:', err.stack)
       res.status(500).json({ error: 'Could not start registration.' })
     }
   })
@@ -440,6 +406,8 @@ export function createAuthRouter() {
    */
   router.post('/register/verify', otpLimit, async (req, res) => {
     try {
+      console.log('starting verify', req.body)
+      
       const userId = str(req.body?.userId, 64)
       const code = String(req.body?.code || '').replace(/\D/g, '')
       if (!userId || code.length !== 6) return res.status(400).json({ error: 'Enter the 6-digit PIN.' })
@@ -454,36 +422,25 @@ export function createAuthRouter() {
       const result = await consumeOtp(userId, code)
       if (!result.ok) return res.status(400).json({ error: result.reason })
 
-      if (user.is_anonymous) {
-        // The promise made at sign-up, executed: the address that received the
-        // PIN is erased here. Only the peppered hash survives, which is what
-        // they will log in against.
-        await query(
-          `UPDATE auth_users
-              SET status = 'active', verified_at = now(), email = NULL, phone = NULL
-            WHERE id = $1`,
-          [userId]
-        )
-        await query('UPDATE auth_otp_codes SET destination = NULL WHERE user_id = $1', [userId])
-      } else {
-        // external_ref prefers the employer's own staff number; otherwise the
-        // account id, so reporting still has a stable handle.
-        const externalRef = user.employee_no || `user:${userId}`
-        const member = await query(
-          `INSERT INTO analytics_members (id, external_ref, label)
-           VALUES ($1, $2, $3)
-           ON CONFLICT (external_ref) DO UPDATE SET label = COALESCE(EXCLUDED.label, analytics_members.label)
-           RETURNING id`,
-          [crypto.randomUUID(), externalRef, `${user.first_name} ${user.last_name}`.trim()]
-        )
-        const memberId = member.rows[0].id
-        await query(
-          "UPDATE auth_users SET status = 'active', verified_at = now(), member_id = $2 WHERE id = $1",
-          [userId, memberId]
-        )
-        // Attribute this browser's past and future events to the new member.
-        await linkDeviceFromRequest(req, memberId)
-      }
+      
+      // external_ref prefers the employer's own staff number; otherwise the
+      // account id, so reporting still has a stable handle.
+      const externalRef = `user:${userId}`
+      const member = await query(
+        `INSERT INTO analytics_members (id, external_ref, label)
+          VALUES ($1, $2, $3)
+          ON CONFLICT (external_ref) DO UPDATE SET label = COALESCE(EXCLUDED.label, analytics_members.label)
+          RETURNING id`,
+        [crypto.randomUUID(), externalRef, `${user.phone}`.trim()]
+      )
+      const memberId = member.rows[0].id
+      await query(
+        "UPDATE auth_users SET status = 'active', verified_at = now(), member_id = $2 WHERE id = $1",
+        [userId, memberId]
+      )
+      // Attribute this browser's past and future events to the new member.
+      await linkDeviceFromRequest(req, memberId)
+      
 
       await createSession(req, res, userId)
       const fresh = await query('SELECT * FROM auth_users WHERE id = $1', [userId])
@@ -509,11 +466,9 @@ export function createAuthRouter() {
 
       const { rows } = await query(
         `SELECT * FROM auth_users
-          WHERE lower(username) = lower($1)
-             OR email_hash = $2
-             OR phone_hash = $3
+          WHERE phone_hash = $1
           LIMIT 1`,
-        [identifier, peppered(normEmail(identifier)), peppered(normPhone(identifier))]
+        [peppered(normPhone(identifier))]
       )
       const user = rows[0]
 

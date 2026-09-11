@@ -53,6 +53,7 @@ export const Field = ({
   hint,
   type = "text",
   value,
+  error = false,
   optional = false,
   password = false,
   autocomplete,
@@ -72,7 +73,7 @@ export const Field = ({
         {optional && <em> (Optional)</em>}
       </label>
 
-      <div className="field__box">
+      <div className={error ? "field__box--error" : "field__box"}>
         <input
           id={id}
           name={id}
