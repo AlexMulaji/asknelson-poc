@@ -50,3 +50,9 @@ export const logout = () => request('/logout', { method: 'POST' })
 
 export const checkUsername = (username) =>
   request(`/username-available?username=${encodeURIComponent(username)}`)
+
+export const checkContact = (contact, method) =>
+  request('/check-contact', { method: 'POST', body: { contact, method } })
+
+export const updatePassword = (contact, method, newPassword) =>
+  request('/update-password', { method: 'POST', body: { contact, method, newPassword } })

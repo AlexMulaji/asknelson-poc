@@ -11,7 +11,7 @@ import {
   Resend,
   HelpFoot
 } from '../components/auth/authPrims.jsx'
-
+import { checkContact } from '../lib/authApi.js'
 
 import '../assets/auth/auth_style.css'
 
@@ -74,6 +74,17 @@ const COPY = {
     const [step, setStep] = useState(1); // 1: choose method, 2: enter details,
     const [contact, setContact] = useState(""); // user input for email or phone number
     const navigate = useNavigate()
+
+   const submit = async () => {
+    try {
+      await checkContact(contact, method)
+      console.log("Contact exists, navigating to reset page")
+      navigate('/reset', { state: { contact, method } })
+    } catch (err) {
+      setContact('')
+      setState('fail')
+    }
+    }
 
     switch (step) {
       case 1:
@@ -154,7 +165,6 @@ const COPY = {
               value={contact}
               onChange={(e) => {
               setContact(e.target.value)
-              setError(null)
               }}
             />
           </div>
@@ -191,7 +201,7 @@ const COPY = {
             <Btn
               label="Send Reset Link"
               act={`send:${method}`}
-              onClick = {() => setState("fail")}
+              onClick = {submit}
             />
           )}
 
@@ -205,13 +215,6 @@ const COPY = {
       default:
         return null;
     }
-
-
-  function ForgotEntry ({ method, state, setContact }) {
-  const c = COPY[method];
-  const filled = state !== "idle";
-
-};
 
 };
 

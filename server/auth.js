@@ -554,6 +554,85 @@ export function createAuthRouter() {
     }
   })
 
+  router.post('/check-contact', async (req, res) => {
+    try {
+      let contact = str(req.body.contact, 200)
+      let method = str(req.body.method, 200)
+
+      if (method !== 'email' && method !== 'cell') return res.status(400).json({ error: 'Invalid method.' })
+      
+        if (method === 'email') {
+          contact = normEmail(contact)
+          if (!isEmail(contact)) return res.status(400).json({ error: 'That email address looks wrong.' })
+          const { rows } = await query('SELECT * FROM auth_users WHERE email_hash = $1', [
+        peppered(contact),])
+
+        if (rows.length > 0){
+          return res.json({valid: true })
+        }else {
+          return res.status(400).json({ error: 'That email address is not registered.' })
+        }
+        }
+        if (method === 'cell' ) {
+          contact = normPhone(contact)
+          if (!isPhone(contact)) return res.status(400).json({ error: 'That cell number looks wrong.' })
+          const { rows } = await query('SELECT * FROM auth_users WHERE phone_hash = $1', [
+        peppered(contact),])
+
+        if (rows.length > 0){
+          return res.json({valid: true })
+        }else {
+          return res.status(400).json({ error: 'That cell number is not registered.' })
+        }
+        }
+    } catch {
+      res.status(400).json({ error: 'An error occurred while checking the contact.' })
+    }
+  })
+
+  router.post('/update-password', async (req, res) => {
+    try {
+      let contact = str(req.body.contact, 200)
+      let method = str(req.body.method, 200)
+      let newPassword = String(req.body.newPassword || '')
+
+      if (method !== 'email' && method !== 'cell') return res.status(400).json({ error: 'Invalid method.' })
+      if (newPassword.length < MIN_PASSWORD) {
+        return res.status(400).json({ error: `Password must be at least ${MIN_PASSWORD} characters.` })
+      }
+
+      if (method === 'email') {
+          contact = normEmail(contact)
+          if (!isEmail(contact)) return res.status(400).json({ error: 'That email address looks wrong.' })
+          
+            contact = peppered(contact)
+
+          await query(
+        "UPDATE auth_users SET password_hash = $1 WHERE email_hash = $2",
+        [await hashPassword(newPassword), contact]
+      )
+
+          return res.json({message: 'Password updated successfully.' })
+        }
+
+        if (method === 'cell' ) {
+          contact = normPhone(contact)
+          if (!isPhone(contact)) return res.status(400).json({ error: 'That cell number looks wrong.' })
+          
+            contact = peppered(contact)
+
+          await query(
+        "UPDATE auth_users SET password_hash = $1 WHERE phone_hash = $2",
+        [await hashPassword(newPassword), contact]
+      )
+
+          return res.json({message: 'Password updated successfully.' })
+        }
+    } catch {
+      res.status(400).json({ error: 'An error occurred while updating the password.' })
+    }
+  })
+
   return router
 }
 

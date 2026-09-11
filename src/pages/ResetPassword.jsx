@@ -1,4 +1,5 @@
 import { React, useState } from 'react'
+import { useLocation, useNavigate } from "react-router-dom"
 import { 
   Logo, 
   Hgroup, 
@@ -6,13 +7,25 @@ import {
   Btn,
   HelpFoot
 } from '../components/auth/authPrims.jsx'
-
+import { updatePassword } from '../lib/authApi.js'
 
 import '../assets/auth/auth_style.css'
 
 export default function ResetPassword(){
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
+  const location = useLocation()
+  const navigate = useNavigate()
+
+  const submit = async () => {
+      try {
+        await updatePassword(location.state.contact, location.state.method, password)
+        navigate('/login')
+      } catch (err) {
+        setPassword('')
+        setConfirmPassword('')
+      }
+      }
 
   return (
     <main className="screen screen--reset">
@@ -36,7 +49,6 @@ export default function ResetPassword(){
             value={password}
             onChange={(e) => {
               setPassword(e.target.value)
-              setError(null)
             }}
           />
 
@@ -50,7 +62,6 @@ export default function ResetPassword(){
             value={confirmPassword}
             onChange={(e) => {
               setConfirmPassword(e.target.value)
-              setError(null)
             }}
           />
         </div>
@@ -62,6 +73,7 @@ export default function ResetPassword(){
           <Btn
             label="Reset Password"
             go="login"
+            onClick = {submit}
           />
 
           <HelpFoot />
