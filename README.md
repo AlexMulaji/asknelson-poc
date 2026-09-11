@@ -2,7 +2,8 @@
 
 A mobile-first Progressive Web App for an Employee Assistance Programme (EAP):
 a content and wellness portal. User progress (journeys, assessment history)
-stays in the browser's `localStorage`; the content itself (Explore tiles,
+lives in the browser's `localStorage` and, for signed-in members, is synced
+to their account so they can continue on any device; the content itself (Explore tiles,
 journeys, assessments) is served by a small Express backend and can be edited
 live from the **`/admin`** console. Usage events are recorded in Postgres and
 tied to the device — and, for members who arrive on a WhatsApp link, to the
@@ -197,6 +198,17 @@ Explicit: `content_opened`, `theme_filtered`, `journey_started`,
 `assessment_abandoned`, `meditation_started`, `meditation_completed`,
 `meditation_stopped`, `sos_pressed`, `booking_clicked`.
 
+Sign-in and sign-up: `registration_started`, `registration_step_completed`,
+`registration_otp_sent`, `registration_otp_resent`,
+`registration_verification_failed`, `registered`, `signed_in`,
+`sign_in_failed`, `signed_out`, `password_reset_requested`,
+`password_reset_completed`, `progress_restored`.
+
+In-app viewer: `external_opened` (host, and whether it was embedded, played as
+a video or blocked by the publisher), `external_closed` (seconds spent),
+`external_opened_outside`. The full catalogue with props is in
+[docs/DATABASE.md](docs/DATABASE.md#event-catalogue).
+
 Add a new one with `track('name', { ...props })` from
 `src/lib/analytics.js` — no server change is needed. Unknown names are accepted
 and filed under the `custom` category.
@@ -226,7 +238,11 @@ open forever.
 | Variable | Default | Purpose |
 | -------- | ------- | ------- |
 | `DATABASE_URL` | *(unset)* | Postgres connection string. **Unset disables tracking entirely** — the endpoints return 204 and the app is unchanged. |
-| `DATABASE_SSL` | *(auto)* | `require` for managed Postgres with a self-signed chain, `disable` for a local/compose database. |
+| `DATA_ENCRYPTION_KEYS` | *(unset)* | **Required with a database.** AES-256-GCM key(s) sealing personal information at rest, `<id>:<base64>`, newest first. `npm run keys:generate` prints one. The server won't start without it. |
+| `DATABASE_SSL` | *(auto)* | `verify-full` in production (TLS + certificate check, CA from `DATABASE_SSL_CA_FILE`); `require` encrypts without verifying; `disable` only for the compose network. |
+| `ANALYTICS_RETENTION_DAYS` | `730` | Raw events, sessions and idle devices older than this are deleted daily. De-identified daily counts are kept. `0` keeps forever. |
+| `AUDIT_RETENTION_DAYS` | `1825` | Audit-log retention. |
+| `FORCE_HTTPS` | `false` | Redirect HTTP to HTTPS (set once TLS terminates in front of the app). |
 | `DATABASE_POOL_MAX` | `10` | Connection pool size. |
 | `PUBLIC_BASE_URL` | request host | Base for the minted WhatsApp links. |
 | `TRUST_PROXY_HOPS` | `1` | Proxy hops to trust for client IP and HTTPS detection. |
@@ -252,17 +268,27 @@ All admin routes take `Authorization: Bearer <ADMIN_PASSWORD>`.
 
 ### Schema
 
+The full design — every table, the ERD, what is encrypted and why, and the
+POPIA mapping — is in **[docs/DATABASE.md](docs/DATABASE.md)**; the DDL is in
+[docs/schema.sql](docs/schema.sql).
+
 | Table | One row per |
 | ----- | ----------- |
-| `analytics_members` | A person, keyed by *your* `external_ref` |
+| `analytics_members` | A person, keyed by a hash of *your* `external_ref` |
 | `analytics_link_tokens` | A minted WhatsApp link (hash only) |
 | `analytics_devices` | A browser profile, linked to a member once a token is used |
 | `analytics_sessions` | A visit |
 | `analytics_events` | A single tracked action |
+| `analytics_daily_counts` | De-identified count per day, event and dimension — no ids |
 
-Migrations live in `server/db.js` and run automatically at boot, tracked in
-`_analytics_migrations`. **Never edit a shipped migration** — add a new entry to
-the `MIGRATIONS` array, or existing databases will drift from new ones.
+Event names, ids and timestamps are stored in the clear so reporting can count
+them; props, paths, referrers, user agents and member refs are sealed with
+AES-256-GCM (`server/crypto.js`) and decrypted only by the admin API.
+
+Migrations live in `server/db.js` (and `server/migrations/`) and run
+automatically at boot, tracked in `_analytics_migrations`. **Never edit a
+shipped migration** — add a new entry to the `MIGRATIONS` array, or existing
+databases will drift from new ones.
 
 `device_id` and `member_id` are denormalised onto every event row, so the common
 "everything this person did" query needs no join through sessions.
@@ -295,47 +321,37 @@ to close it entirely.
 
 #### Useful queries
 
+Personal columns are `bytea` ciphertext in `psql` — read them through the admin
+console or its CSV export, which decrypt (and audit the access). Counts and
+timelines need no key:
+
 ```sql
--- The raw stream, newest first.
-SELECT e.occurred_at, COALESCE(m.external_ref, '(anonymous)') AS member,
-       e.name, e.props
+-- The raw stream, newest first (props are sealed; names and times are not).
+SELECT e.occurred_at, e.name, e.category, e.member_id IS NOT NULL AS identified
   FROM analytics_events e
-  LEFT JOIN analytics_members m ON m.id = e.member_id
  ORDER BY e.occurred_at DESC
  LIMIT 100;
 
--- Everything one member has ever done, across all their devices.
-SELECT e.occurred_at, e.name, e.props
-  FROM analytics_events e
-  JOIN analytics_members m ON m.id = e.member_id
- WHERE m.external_ref = 'EMP-10432'
- ORDER BY e.occurred_at;
-
 -- One session, in order — what a single visit actually looked like.
-SELECT e.client_seq, e.name, e.path, e.props
+SELECT e.client_seq, e.name, e.occurred_at
   FROM analytics_events e
  WHERE e.session_id = '<session-uuid>'
  ORDER BY e.client_seq;
 
--- Devices and whether a WhatsApp link has identified them.
-SELECT substr(d.id::text, 1, 8) AS device,
-       COALESCE(m.external_ref, '(anonymous)') AS member,
-       d.is_whatsapp, d.session_count, d.event_count, d.last_seen_at
-  FROM analytics_devices d
-  LEFT JOIN analytics_members m ON m.id = d.member_id
- ORDER BY d.last_seen_at DESC;
+-- Most-opened content, from the de-identified daily counts.
+SELECT dims->>'title' AS title, sum(count) AS opens
+  FROM analytics_daily_counts
+ WHERE event_name = 'content_opened' AND dims ? 'title'
+ GROUP BY 1 ORDER BY 2 DESC LIMIT 10;
 
--- Who pressed the SOS button, and when.
-SELECT e.occurred_at, COALESCE(m.external_ref, '(anonymous)') AS member
-  FROM analytics_events e
-  LEFT JOIN analytics_members m ON m.id = e.member_id
- WHERE e.name = 'sos_pressed'
- ORDER BY e.occurred_at DESC;
+-- SOS presses per day.
+SELECT day, count FROM analytics_daily_counts
+ WHERE event_name = 'sos_pressed' AND dims = '{}'
+ ORDER BY day DESC;
 
 -- Which links have been opened, and which are still sitting unused.
-SELECT m.external_ref, t.created_at, t.first_used_at, t.use_count
+SELECT t.created_at, t.first_used_at, t.use_count
   FROM analytics_link_tokens t
-  JOIN analytics_members m ON m.id = t.member_id
  WHERE t.revoked_at IS NULL
  ORDER BY t.created_at DESC;
 ```
@@ -346,27 +362,40 @@ An account is **optional**: a WhatsApp tap lands straight in the content and
 every feature works signed-out. Sign-in is a quiet control in the header (and
 the desktop sidebar), never a wall.
 
-### The registration flow
+### The registration flow (Figma)
 
 ```
-intro ─┬─ anonymous  → disclaimer → username + password ─┐
-       └─ identified → disclaimer → name + ID + password ─┴→ employer → contact → [choose channel] → PIN → done
+Create Account: mobile, email (optional), SA ID number, company
+  → Password + confirmation + privacy consent
+  → Verify Account: 6-digit code sent by SMS to the mobile number
+  → signed in, pre-sign-up progress saved to the account → /home
 ```
 
-Nothing is written until the contact step: the account and its first PIN are
+Nothing is written until the password step: the account and its first code are
 created in one call, so an abandoned sign-up leaves no half-built row. Pending
 registrations older than 24 hours are deleted by a sweeper, because they still
-hold contact details.
+hold contact details. Any 13-digit ID number is accepted for now
+(`AUTH_STRICT_SA_ID=true` also checks the date and check digit), and only a
+keyed hash of it is kept, for duplicate detection.
+
+Sign in (`/login`) takes the mobile number (email also works) and honours
+**Remember Me**: ticked is a 30-day rolling session; unticked is a
+browser-session cookie capped at 12 hours. Members land where they left off.
+**Forgot Password** (`/forgot` → `/reset?token=…`) sends a single-use,
+30-minute link by SMS or email; using it signs the account out everywhere.
 
 ### The two account kinds
 
+The Figma flow creates **identified** accounts. The API still supports
+**anonymous** ones (`anonymous: true`), which no screen currently offers.
+
 |  | Anonymous | Identified |
 | -- | --------- | ---------- |
-| Stored | Username, password | Name, employer, email, phone |
-| ID number | — | Peppered hash only, never the number |
-| Contact details | **Erased at verification**, hash kept for login | Retained |
+| Stored | Username, password | Mobile, email, company — encrypted |
+| ID number | — | Keyed hash only, never the number |
+| Contact details | **Erased at verification**, hash kept for login | Retained, encrypted |
 | Analytics member | **Never linked** | Linked; past events backfilled |
-| Signs in with | Username, or the erased email/phone via its hash | Email, phone or username |
+| Signs in with | Username, or the erased email/phone via its hash | Mobile, email or username |
 
 The anonymous promise — *"even we can't link your activity back to you"* — is
 enforced by a database `CHECK` constraint, not by application code:
@@ -374,7 +403,7 @@ enforced by a database `CHECK` constraint, not by application code:
 ```sql
 CONSTRAINT auth_users_anon_unlinked_chk CHECK (
   NOT is_anonymous OR (
-    member_id IS NULL AND first_name IS NULL AND last_name IS NULL
+    member_id IS NULL AND first_name_enc IS NULL AND last_name_enc IS NULL
     AND id_number_hash IS NULL
   )
 )
@@ -401,7 +430,19 @@ longer holds it.
 - **Lockout** — 8 failed logins locks an account for 15 minutes. Login failures
   return an identical message whether or not the account exists, and a missing
   account still burns hashing time so it cannot be detected by timing.
-- **Rate limits** — per IP on registration, login and OTP endpoints.
+- **Rate limits** — per IP on registration, login and OTP endpoints; reset
+  links also per destination number, so the form can't flood one phone.
+- **Encryption at rest** — contact details, names, progress and event details
+  are sealed with AES-256-GCM before they reach Postgres, bound to their row
+  so a copied ciphertext won't decrypt elsewhere. See
+  [docs/DATABASE.md](docs/DATABASE.md#encryption-at-rest).
+- **Encryption in transit** — `DATABASE_SSL=verify-full`, HSTS, optional
+  `FORCE_HTTPS`, `Secure` cookies, `no-store` on personal responses.
+- **No account enumeration on reset** — Forgot Password answers the same way
+  whether or not the number is registered (the design's "Account not found"
+  state needs `AUTH_REVEAL_UNKNOWN_ACCOUNTS=true`).
+- **Audit log** — sign-ins, resets, exports, deletions and admin access to
+  personal data, with hashed IPs.
 
 ### OTP delivery
 
@@ -442,7 +483,12 @@ on the screen.
 | Variable | Default | Purpose |
 | -------- | ------- | ------- |
 | `AUTH_PEPPER` | *(unset)* | **Set this.** Keys the email/phone/ID hashes; without it they are brute-forceable, since the space of phone numbers is tiny. Rotating it invalidates every anonymous login, so treat it as permanent. |
-| `AUTH_SESSION_DAYS` | `30` | Session lifetime. |
+| `AUTH_SESSION_DAYS` | `30` | Session lifetime with Remember Me. |
+| `AUTH_SHORT_SESSION_HOURS` | `12` | Session lifetime without Remember Me. |
+| `PRIVACY_NOTICE_VERSION` | `2026-09` | Recorded with each consent; bump when the notice changes. |
+| `AUTH_REVEAL_UNKNOWN_ACCOUNTS` | `false` | Show the design's "Account not found" on Forgot Password (reveals whether a number is registered). |
+| `AUTH_STRICT_SA_ID` | `false` | Only accept real SA ID numbers (valid date + check digit). Off: any 13 digits. |
+| `SMS_TRANSPORT` / `EMAIL_TRANSPORT` | `OTP_TRANSPORT` | Per-channel provider — reset links can go by SMS or email. |
 | `OTP_TRANSPORT` | `console` | See above. |
 | `OTP_ECHO` | `false` (compose sets `true`) | Demo mode — shows the PIN on screen. Turn off before real users. |
 
@@ -453,23 +499,42 @@ on the screen.
 | POST | `/api/auth/register/start` | Create a pending account, send the first PIN |
 | POST | `/api/auth/register/resend` | Reissue a PIN |
 | POST | `/api/auth/register/verify` | Verify, activate, sign in |
-| POST | `/api/auth/login` | Sign in with username, email or cell |
+| POST | `/api/auth/login` | Sign in with mobile, email or username (`remember`) |
 | POST | `/api/auth/logout` | Revoke the session |
 | GET | `/api/auth/me` | Current user, or `{ user: null }` |
 | GET | `/api/auth/username-available` | Live username check |
+| POST | `/api/auth/password/forgot` | Send a reset link by SMS or email |
+| GET | `/api/auth/password/reset/validate` | Is this reset link still usable? |
+| POST | `/api/auth/password/reset` | Set a new password from a reset link |
+| GET | `/api/auth/me/export` | POPIA access request: all data held, decrypted |
+| POST | `/api/auth/me/delete` | POPIA deletion: account, progress, analytics (needs password) |
+
+Progress endpoints (`/api/progress/*`) are listed in
+[docs/DATABASE.md](docs/DATABASE.md#progress-continue-where-you-left-off).
 
 ### Not built yet
 
-Password reset. "Forgot password?" currently points at registration. The OTP
-machinery already supports a `purpose` column, so reset is a small addition when
-you want it.
+Screens for the POPIA export and delete endpoints, and a profile page to
+correct details — none are in the Figma designs yet.
+
+## External links in-app
+
+Articles, videos and the Kaelo booking form open in an in-app viewer
+(`src/components/InAppBrowser.jsx`) instead of leaving the app. YouTube and TED
+videos play through their embed players. Other pages are framed only if the
+publisher allows it — about half of the linked sites refuse (X-Frame-Options /
+CSP), and the viewer then offers "Open in browser". `GET /api/embed/check`
+decides, and only for hosts the content links to. Details and the host survey:
+[docs/DATABASE.md](docs/DATABASE.md#external-content-in-app).
 
 ## Pages
 
 | Tab        | Route        | What it does                                         |
 | ---------- | ------------ | ---------------------------------------------------- |
-| Sign in    | `/login`     | Username, email or cell + password                   |
-| Register   | `/register`  | Anonymous or identified sign-up, OTP-verified        |
+| Sign in    | `/login`     | Mobile number + password, Remember Me                |
+| Register   | `/register`  | Details → password + consent → SMS code (Figma flow) |
+| Forgot     | `/forgot`    | Reset link by SMS or email                           |
+| Reset      | `/reset`     | New password from the reset link                     |
 | Home        | `/home`        | Greeting hero, "Continue Your Journey", quick actions |
 | My Wellness | `/my-wellness` | Journey programmes and meditation, behind a segmented control (`?tab=meditation`) |
 | Explore    | `/explore`   | Search, topic chips, articles/videos        |

@@ -1,10 +1,12 @@
 // A booking service tile (Counsellor, Life Coach, etc.) for AskNelson.
-export default function ServiceCard({ title, description, href, Icon, className = '' }) {
+// `onClick` lets the page open the booking form in the in-app viewer.
+export default function ServiceCard({ title, description, href, Icon, onClick, className = '' }) {
   return (
     <a
       href={href}
       target="_blank"
       rel="noopener noreferrer"
+      onClick={onClick}
       className={[
         'card-press flex h-full w-full flex-col rounded-card border border-line bg-white p-5',
         className,

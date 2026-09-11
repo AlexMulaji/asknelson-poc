@@ -17,11 +17,13 @@ import Meditate from './pages/Meditate.jsx'
 import Journeys from './pages/Journeys.jsx'
 import Reset from './pages/ResetPassword.jsx'
 import Forgot from './pages/ForgotPassword.jsx'
+import InAppBrowser from './components/InAppBrowser.jsx'
 import {
   getNotificationPreference,
   requestNotificationPermission,
 } from './services/NotificationService.js'
 import { track } from './lib/analytics.js'
+import { pushLastRoute } from './lib/progressSync.js'
 
 // Scroll the page back to the top whenever the user switches tabs.
 function ScrollToTop() {
@@ -44,12 +46,17 @@ function RedirectWithQuery({ to, addQuery }) {
   return <Navigate to={qs ? `${to}?${qs}` : to} replace />
 }
 
-// One page_view per client-side navigation, including the first render.
+// One page_view per client-side navigation, including the first render. When
+// signed in, the route is also saved as where the member left off, so signing
+// in on another device resumes there (sign-in screens are never saved).
 function RouteTracker() {
-  const { pathname } = useLocation()
+  const { pathname, search } = useLocation()
   useEffect(() => {
     track('page_view', { path: pathname })
   }, [pathname])
+  useEffect(() => {
+    pushLastRoute(pathname + search)
+  }, [pathname, search])
   return null
 }
 
@@ -159,6 +166,8 @@ export default function App() {
         </main>
       </div>
       <BottomNav />
+      {/* External articles, videos and booking open over the current page. */}
+      <InAppBrowser />
     </div>
     </MotionConfig>
   )

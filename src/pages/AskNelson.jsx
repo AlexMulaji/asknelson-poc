@@ -1,9 +1,10 @@
 import { motion } from 'framer-motion'
 import { listContainer, listItem } from '../lib/motion.js'
 import ServiceCard from '../components/ServiceCard.jsx'
+import { isPlainClick, useOpenExternal } from '../components/InAppBrowser.jsx'
 import { BookIcon, CallIcon, ChatIcon, CoinIcon, ScaleIcon } from '../components/Icons.jsx'
 import logoUrl from '../assets/logo-asknelson.png'
-import { flushNow, track } from '../lib/analytics.js'
+import { track } from '../lib/analytics.js'
 
 const KAELO_URL = 'https://www.kaelo.co.za/request-a-session/'
 
@@ -36,6 +37,16 @@ const services = [
 ]
 
 export default function AskNelson() {
+  const openExternal = useOpenExternal()
+
+  // The Kaelo form allows framing, so booking happens without leaving the app.
+  const book = (service) => (e) => {
+    track('booking_clicked', { service })
+    if (!isPlainClick(e)) return
+    e.preventDefault()
+    openExternal(KAELO_URL, { title: 'Book a session', type: 'booking', record: false })
+  }
+
   return (
     <div className="page-enter px-5 pb-8 lg:px-0">
       <div className="pt-[calc(1.5rem+env(safe-area-inset-top,0px))] lg:pt-0">
@@ -82,7 +93,7 @@ export default function AskNelson() {
               description={s.description}
               Icon={s.Icon}
               href={KAELO_URL}
-             // onOpen={() => track('booking_clicked', { service: s.title })}
+              onClick={book(s.title)}
             />
           </motion.div>
         ))}

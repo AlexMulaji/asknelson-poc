@@ -9,7 +9,8 @@
     "preview": "vite preview",
     "serve": "node server/index.js",
     "start": "npm run build && node server/index.js",
-    "content:pull": "node scripts/pull-content.mjs"
+    "content:pull": "node scripts/pull-content.mjs",
+    "keys:generate": "node scripts/gen-keys.mjs"
   },
   "dependencies": {
     "express": "^4.21.2",

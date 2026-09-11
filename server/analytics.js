@@ -1,15 +1,27 @@
 import express from 'express'
 import crypto from 'node:crypto'
 import { isEnabled, query, sweepStaleSessions } from './db.js'
+import { aad, blindIndex, open, openJson, seal, sealJson } from './crypto.js'
+import { audit } from './audit.js'
+import { baseUrl, isSecure, rateLimiter, readCookie } from './http.js'
+import { rollupDims } from './rollups.js'
 
 // Event tracking: ingest from the PWA, plus the admin read/export API.
 //
 // The chain is device -> session -> event. The device id is minted in the
 // browser and mirrored to a first-party cookie; a WhatsApp link token (?t=…)
-// binds that device to a member, so every event can be traced back to a person
-// without ever putting an identifier in the URL beyond the opaque token.
+// or an identified sign-in binds that device to a member, so every event can be
+// traced back to a person without ever putting an identifier in the URL beyond
+// the opaque token.
+//
+// At rest (POPIA s19): ids, event names and timestamps are stored in the clear
+// so reporting can count and order them; everything descriptive — event props,
+// paths, referrers, user agents, member refs and labels — is sealed with
+// AES-256-GCM (crypto.js) and only opened here, for an admin or the member.
+// Reporting that needs prop values reads analytics_daily_counts instead, which
+// holds no ids at all.
 
-const DEVICE_COOKIE = 'an_did'
+export const DEVICE_COOKIE = 'an_did'
 const COOKIE_MAX_AGE_DAYS = 400 // browsers cap first-party cookies here anyway
 
 const MAX_EVENTS_PER_BATCH = 50
@@ -29,6 +41,9 @@ const EVENT_CATEGORIES = {
   connectivity_change: 'lifecycle',
   content_opened: 'content',
   theme_filtered: 'content',
+  external_opened: 'content',
+  external_closed: 'content',
+  external_opened_outside: 'content',
   journey_started: 'journey',
   journey_switched: 'journey',
   journey_day_completed: 'journey',
@@ -42,6 +57,18 @@ const EVENT_CATEGORIES = {
   meditation_stopped: 'meditation',
   sos_pressed: 'support',
   booking_clicked: 'support',
+  registration_started: 'auth',
+  registration_step_completed: 'auth',
+  registration_otp_sent: 'auth',
+  registration_otp_resent: 'auth',
+  registration_verification_failed: 'auth',
+  registered: 'auth',
+  signed_in: 'auth',
+  sign_in_failed: 'auth',
+  signed_out: 'auth',
+  password_reset_requested: 'auth',
+  password_reset_completed: 'auth',
+  progress_restored: 'progress',
 }
 
 // --- helpers ------------------------------------------------------------------
@@ -50,6 +77,13 @@ const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-
 
 function isUuid(value) {
   return typeof value === 'string' && UUID_RE.test(value)
+}
+
+// Client ids are sealed into encryption contexts and used as map keys, then
+// compared with what Postgres returns — which is always lower-case. Normalise
+// on the way in, or an upper-case id would write values that never decrypt.
+function clientUuid(value) {
+  return isUuid(value) ? value.toLowerCase() : null
 }
 
 function str(value, max = MAX_TEXT_LEN) {
@@ -66,23 +100,6 @@ function int(value) {
 
 function hashToken(token) {
   return crypto.createHash('sha256').update(String(token)).digest('hex')
-}
-
-function readCookie(req, name) {
-  const header = req.headers.cookie
-  if (!header) return null
-  for (const part of header.split(';')) {
-    const eq = part.indexOf('=')
-    if (eq === -1) continue
-    if (part.slice(0, eq).trim() === name) {
-      try {
-        return decodeURIComponent(part.slice(eq + 1).trim())
-      } catch {
-        return null
-      }
-    }
-  }
-  return null
 }
 
 // Clamp client timestamps into a sane window. Phone clocks drift and can be
@@ -114,35 +131,51 @@ function sanitiseProps(props) {
   return JSON.stringify(out).length > MAX_PROPS_BYTES ? {} : out
 }
 
-function baseUrl(req) {
-  if (process.env.PUBLIC_BASE_URL) return process.env.PUBLIC_BASE_URL.replace(/\/+$/, '')
-  const proto = req.get('x-forwarded-proto')?.split(',')[0]?.trim() || req.protocol
-  return `${proto}://${req.get('host')}`
-}
+// --- encrypted columns --------------------------------------------------------
 
-// Small fixed-window limiter, per IP. Enough to stop an accidental retry storm
-// or a bored user hammering the endpoint; it is not a defence against a
-// distributed flood — put a real proxy in front for that.
-function rateLimiter({ windowMs, max }) {
-  const hits = new Map()
-  return (req, res, next) => {
-    const now = Date.now()
-    const key = req.ip || 'unknown'
-    const entry = hits.get(key)
-    if (!entry || now > entry.resetAt) {
-      hits.set(key, { count: 1, resetAt: now + windowMs })
-    } else if (++entry.count > max) {
-      return res.status(429).json({ error: 'Too many requests' })
-    }
-    // Opportunistic cleanup so the map cannot grow without bound.
-    if (hits.size > 5000) {
-      for (const [k, v] of hits) if (now > v.resetAt) hits.delete(k)
-    }
-    next()
+const deviceCtx = (column, id) => aad('analytics_devices', column, id)
+const sessionCtx = (column, id) => aad('analytics_sessions', column, id)
+const eventCtx = (column, uid) => aad('analytics_events', column, uid)
+// Members are keyed by the ref's blind index rather than their row id, so an
+// upsert that keeps an existing row still seals against a matching context.
+const memberCtx = (column, refHash) => aad('analytics_members', column, refHash)
+const tokenLabelCtx = (tokenHash) => aad('analytics_link_tokens', 'label', tokenHash)
+
+const memberRef = (row) =>
+  row.external_ref_hash ? open(row.external_ref_enc, memberCtx('external_ref', row.external_ref_hash)) : null
+const memberLabel = (row) =>
+  row.external_ref_hash ? open(row.label_enc, memberCtx('label', row.external_ref_hash)) : null
+
+function decryptEvent(row) {
+  return {
+    path: open(row.path_enc, eventCtx('path', row.event_uid)),
+    props: openJson(row.props_enc, eventCtx('props', row.event_uid)) ?? {},
   }
 }
 
-// --- token / member linking ---------------------------------------------------
+// --- member linking -----------------------------------------------------------
+
+/**
+ * Find or create the member for one of *your* identifiers (a staff number, a
+ * CRM id). Returns the member id.
+ */
+export async function upsertMember(externalRef, label = null) {
+  const refHash = blindIndex(externalRef, 'member')
+  const { rows } = await query(
+    `INSERT INTO analytics_members (id, external_ref_hash, external_ref_enc, label_enc)
+     VALUES ($1, $2, $3, $4)
+     ON CONFLICT (external_ref_hash)
+       DO UPDATE SET label_enc = COALESCE(EXCLUDED.label_enc, analytics_members.label_enc)
+     RETURNING id`,
+    [
+      crypto.randomUUID(),
+      refHash,
+      seal(externalRef, memberCtx('external_ref', refHash)),
+      seal(label, memberCtx('label', refHash)),
+    ]
+  )
+  return rows[0].id
+}
 
 // Resolve a WhatsApp link token to a member. Returns null for unknown, expired
 // or revoked tokens — an invalid token is never an error the user has to see,
@@ -207,6 +240,49 @@ export async function linkDeviceFromRequest(req, memberId) {
   return true
 }
 
+/** Every event attributed to a member, decrypted — for their POPIA data export. */
+export async function memberActivity(memberId, limit = 10000) {
+  const { rows } = await query(
+    `SELECT event_uid, name, category, path_enc, props_enc, occurred_at
+       FROM analytics_events WHERE member_id = $1
+      ORDER BY occurred_at LIMIT $2`,
+    [memberId, limit]
+  )
+  return rows.map((r) => ({ name: r.name, category: r.category, occurredAt: r.occurred_at, ...decryptEvent(r) }))
+}
+
+// Add accepted events to the de-identified daily counts. One upsert for the
+// whole batch; the day is the UTC date of the (clamped) event time.
+async function rollUp(events) {
+  const counts = new Map()
+  const bump = (day, name, dims) => {
+    const key = `${day}|${name}|${JSON.stringify(dims)}`
+    const entry = counts.get(key)
+    if (entry) entry.count += 1
+    else counts.set(key, { day, name, dims, count: 1 })
+  }
+  for (const e of events) {
+    const day = e.occurredAt.toISOString().slice(0, 10)
+    bump(day, e.name, {})
+    const dims = rollupDims(e.name, e.props)
+    if (dims) bump(day, e.name, dims)
+  }
+  const rows = [...counts.values()]
+  if (rows.length === 0) return
+  await query(
+    `INSERT INTO analytics_daily_counts (day, event_name, dims, count)
+     SELECT * FROM unnest($1::date[], $2::text[], $3::jsonb[], $4::int[])
+     ON CONFLICT (day, event_name, dims)
+       DO UPDATE SET count = analytics_daily_counts.count + EXCLUDED.count`,
+    [
+      rows.map((r) => r.day),
+      rows.map((r) => r.name),
+      rows.map((r) => JSON.stringify(r.dims)),
+      rows.map((r) => r.count),
+    ]
+  )
+}
+
 // --- router -------------------------------------------------------------------
 
 export function createAnalyticsRouter({ requireAdmin }) {
@@ -247,40 +323,38 @@ export function createAnalyticsRouter({ requireAdmin }) {
 
       // Device id precedence: what the client sent, else the cookie (localStorage
       // was cleared, or the WhatsApp browser sandboxed it), else a new one.
-      const cookieId = readCookie(req, DEVICE_COOKIE)
-      const deviceId = isUuid(body.deviceId)
-        ? body.deviceId
-        : isUuid(cookieId)
-          ? cookieId
-          : crypto.randomUUID()
-
-      const sessionId = isUuid(body.sessionId) ? body.sessionId : crypto.randomUUID()
+      const deviceId =
+        clientUuid(body.deviceId) ?? clientUuid(readCookie(req, DEVICE_COOKIE)) ?? crypto.randomUUID()
+      const sessionId = clientUuid(body.sessionId) ?? crypto.randomUUID()
       const userAgent = str(req.get('user-agent'), MAX_TEXT_LEN)
       const isWhatsapp = Boolean(ctx.isWhatsapp) || /WhatsApp/i.test(userAgent || '')
       const utm = sanitiseProps(ctx.utm)
+      const hasUtm = Object.keys(utm).length > 0
+      const referrer = str(ctx.referrer, MAX_PATH_LEN)
+      const path = str(ctx.path, MAX_PATH_LEN)
 
       await query(
         `INSERT INTO analytics_devices
-           (id, user_agent, platform, language, timezone, screen_w, screen_h,
-            display_mode, is_whatsapp, first_referrer, first_landing_path, first_utm)
+           (id, user_agent_enc, platform, language, timezone, screen_w, screen_h,
+            display_mode, is_whatsapp, first_referrer_enc, first_landing_path_enc, first_utm_enc)
          VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12)
          ON CONFLICT (id) DO UPDATE SET
-           last_seen_at       = now(),
-           user_agent         = EXCLUDED.user_agent,
-           platform           = EXCLUDED.platform,
-           language           = EXCLUDED.language,
-           timezone           = EXCLUDED.timezone,
-           screen_w           = EXCLUDED.screen_w,
-           screen_h           = EXCLUDED.screen_h,
-           display_mode       = EXCLUDED.display_mode,
-           is_whatsapp        = analytics_devices.is_whatsapp OR EXCLUDED.is_whatsapp,
+           last_seen_at           = now(),
+           user_agent_enc         = EXCLUDED.user_agent_enc,
+           platform               = EXCLUDED.platform,
+           language               = EXCLUDED.language,
+           timezone               = EXCLUDED.timezone,
+           screen_w               = EXCLUDED.screen_w,
+           screen_h               = EXCLUDED.screen_h,
+           display_mode           = EXCLUDED.display_mode,
+           is_whatsapp            = analytics_devices.is_whatsapp OR EXCLUDED.is_whatsapp,
            -- "first_*" columns record acquisition and must never be overwritten.
-           first_referrer     = COALESCE(analytics_devices.first_referrer, EXCLUDED.first_referrer),
-           first_landing_path = COALESCE(analytics_devices.first_landing_path, EXCLUDED.first_landing_path),
-           first_utm          = COALESCE(analytics_devices.first_utm, EXCLUDED.first_utm)`,
+           first_referrer_enc     = COALESCE(analytics_devices.first_referrer_enc, EXCLUDED.first_referrer_enc),
+           first_landing_path_enc = COALESCE(analytics_devices.first_landing_path_enc, EXCLUDED.first_landing_path_enc),
+           first_utm_enc          = COALESCE(analytics_devices.first_utm_enc, EXCLUDED.first_utm_enc)`,
         [
           deviceId,
-          userAgent,
+          seal(userAgent, deviceCtx('user_agent', deviceId)),
           str(ctx.platform, 128),
           str(ctx.language, 32),
           str(ctx.timezone, 64),
@@ -288,9 +362,9 @@ export function createAnalyticsRouter({ requireAdmin }) {
           int(ctx.screenH),
           str(ctx.displayMode, 32),
           isWhatsapp,
-          str(ctx.referrer, MAX_PATH_LEN),
-          str(ctx.path, MAX_PATH_LEN),
-          Object.keys(utm).length ? JSON.stringify(utm) : null,
+          seal(referrer, deviceCtx('first_referrer', deviceId)),
+          seal(path, deviceCtx('first_landing_path', deviceId)),
+          hasUtm ? sealJson(utm, deviceCtx('first_utm', deviceId)) : null,
         ]
       )
 
@@ -309,8 +383,8 @@ export function createAnalyticsRouter({ requireAdmin }) {
 
       const { rows: sessionRows } = await query(
         `INSERT INTO analytics_sessions
-           (id, device_id, member_id, source, entry_path, referrer, utm,
-            display_mode, user_agent, is_whatsapp)
+           (id, device_id, member_id, source, entry_path_enc, referrer_enc, utm_enc,
+            display_mode, user_agent_enc, is_whatsapp)
          VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)
          ON CONFLICT (id) DO UPDATE SET
            last_seen_at = now(),
@@ -321,11 +395,11 @@ export function createAnalyticsRouter({ requireAdmin }) {
           deviceId,
           memberId,
           str(ctx.source, 32) || (isWhatsapp ? 'whatsapp' : 'direct'),
-          str(ctx.path, MAX_PATH_LEN),
-          str(ctx.referrer, MAX_PATH_LEN),
-          Object.keys(utm).length ? JSON.stringify(utm) : null,
+          seal(path, sessionCtx('entry_path', sessionId)),
+          seal(referrer, sessionCtx('referrer', sessionId)),
+          hasUtm ? sealJson(utm, sessionCtx('utm', sessionId)) : null,
           str(ctx.displayMode, 32),
-          userAgent,
+          seal(userAgent, sessionCtx('user_agent', sessionId)),
           isWhatsapp,
         ]
       )
@@ -343,7 +417,7 @@ export function createAnalyticsRouter({ requireAdmin }) {
       res.cookie(DEVICE_COOKIE, deviceId, {
         maxAge: COOKIE_MAX_AGE_DAYS * 24 * 60 * 60 * 1000,
         sameSite: 'lax',
-        secure: req.secure || req.get('x-forwarded-proto') === 'https',
+        secure: isSecure(req),
         path: '/',
       })
 
@@ -361,8 +435,8 @@ export function createAnalyticsRouter({ requireAdmin }) {
   router.post('/events', ingestLimiter, parseBody, async (req, res) => {
     try {
       const body = req.body || {}
-      const deviceId = isUuid(body.deviceId) ? body.deviceId : null
-      const sessionId = isUuid(body.sessionId) ? body.sessionId : null
+      const deviceId = clientUuid(body.deviceId)
+      const sessionId = clientUuid(body.sessionId)
       const events = Array.isArray(body.events) ? body.events.slice(0, MAX_EVENTS_PER_BATCH) : []
 
       if (!deviceId || !sessionId || events.length === 0) {
@@ -382,36 +456,45 @@ export function createAnalyticsRouter({ requireAdmin }) {
 
       const values = []
       const params = []
+      const byUid = new Map()
       let i = 0
       for (const event of events) {
         const name = str(event?.name, MAX_NAME_LEN)
         if (!name) continue
-        values.push(
-          `($${++i},$${++i},$${++i},$${++i},$${++i},$${++i},$${++i},$${++i}::jsonb,$${++i},$${++i})`
-        )
+        const uid = clientUuid(event.uid) ?? crypto.randomUUID()
+        if (byUid.has(uid)) continue
+        const props = sanitiseProps(event.props)
+        const occurredAt = clampTimestamp(event.at)
+        byUid.set(uid, { name, props, occurredAt })
+        values.push(`($${++i},$${++i},$${++i},$${++i},$${++i},$${++i},$${++i},$${++i},$${++i},$${++i})`)
         params.push(
-          isUuid(event.uid) ? event.uid : crypto.randomUUID(),
+          uid,
           sessionId,
           deviceId,
           memberId,
           name,
           EVENT_CATEGORIES[name] || 'custom',
-          str(event.path, MAX_PATH_LEN),
-          JSON.stringify(sanitiseProps(event.props)),
-          clampTimestamp(event.at),
+          seal(str(event.path, MAX_PATH_LEN), eventCtx('path', uid)),
+          sealJson(props, eventCtx('props', uid)),
+          occurredAt,
           int(event.seq)
         )
       }
 
       if (values.length === 0) return res.status(400).json({ error: 'No valid events' })
 
-      const { rowCount } = await query(
+      const { rows: inserted } = await query(
         `INSERT INTO analytics_events
-           (event_uid, session_id, device_id, member_id, name, category, path, props, occurred_at, client_seq)
+           (event_uid, session_id, device_id, member_id, name, category, path_enc, props_enc, occurred_at, client_seq)
          VALUES ${values.join(',')}
-         ON CONFLICT (event_uid) DO NOTHING`,
+         ON CONFLICT (event_uid) DO NOTHING
+         RETURNING event_uid`,
         params
       )
+      const accepted = inserted.length
+
+      // Count only what was actually new, so a retried batch isn't counted twice.
+      await rollUp(inserted.map((r) => byUid.get(r.event_uid)))
 
       // A session_end event closes the session there and then, rather than
       // waiting for the idle sweeper to notice.
@@ -422,14 +505,14 @@ export function createAnalyticsRouter({ requireAdmin }) {
                 event_count  = event_count + $2,
                 ended_at     = CASE WHEN $3 THEN now() ELSE ended_at END
           WHERE id = $1`,
-        [sessionId, rowCount, ended]
+        [sessionId, accepted, ended]
       )
       await query(
         'UPDATE analytics_devices SET last_seen_at = now(), event_count = event_count + $2 WHERE id = $1',
-        [deviceId, rowCount]
+        [deviceId, accepted]
       )
 
-      res.json({ ok: true, accepted: rowCount })
+      res.json({ ok: true, accepted })
     } catch (err) {
       console.error('[asknelson] event ingest failed:', err.message)
       res.status(500).json({ error: 'Failed to record events' })
@@ -477,14 +560,16 @@ export function createAnalyticsRouter({ requireAdmin }) {
             ORDER BY 1`,
           [since]
         ),
+        // Props are encrypted per event, so content popularity comes from the
+        // de-identified rollups rather than a scan of the event stream.
         query(
-          `SELECT props->>'title' AS title,
-                  props->>'theme' AS theme,
-                  count(*)::int AS opens
-             FROM analytics_events
-            WHERE name = 'content_opened'
-              AND occurred_at > now() - $1::interval
-              AND props->>'title' IS NOT NULL
+          `SELECT dims->>'title' AS title,
+                  dims->>'theme' AS theme,
+                  sum(count)::int AS opens
+             FROM analytics_daily_counts
+            WHERE event_name = 'content_opened'
+              AND dims ? 'title'
+              AND day > (now() - $1::interval)::date
             GROUP BY 1, 2
             ORDER BY opens DESC
             LIMIT 10`,
@@ -517,15 +602,24 @@ export function createAnalyticsRouter({ requireAdmin }) {
       const offset = Math.max(int(req.query.offset) || 0, 0)
       const { rows } = await query(
         `SELECT s.id, s.device_id, s.started_at, s.last_seen_at, s.ended_at,
-                s.source, s.entry_path, s.is_whatsapp, s.event_count,
-                m.external_ref, m.label AS member_label
+                s.source, s.entry_path_enc, s.is_whatsapp, s.event_count,
+                m.external_ref_hash, m.external_ref_enc, m.label_enc
            FROM analytics_sessions s
            LEFT JOIN analytics_members m ON m.id = s.member_id
           ORDER BY s.started_at DESC
           LIMIT $1 OFFSET $2`,
         [limit, offset]
       )
-      res.json({ sessions: rows, limit, offset })
+      res.json({
+        sessions: rows.map(({ entry_path_enc, external_ref_hash, external_ref_enc, label_enc, ...s }) => ({
+          ...s,
+          entry_path: open(entry_path_enc, sessionCtx('entry_path', s.id)),
+          external_ref: memberRef({ external_ref_hash, external_ref_enc }),
+          member_label: memberLabel({ external_ref_hash, label_enc }),
+        })),
+        limit,
+        offset,
+      })
     } catch (err) {
       console.error('[asknelson] sessions query failed:', err.message)
       res.status(500).json({ error: 'Failed to load sessions' })
@@ -533,6 +627,7 @@ export function createAnalyticsRouter({ requireAdmin }) {
   })
 
   // Everything one device has ever done — the "what did this person see?" view.
+  // Opening it decrypts personal information, so it is audited.
   router.get('/admin/devices/:id', requireAdmin, async (req, res) => {
     try {
       const { id } = req.params
@@ -540,14 +635,18 @@ export function createAnalyticsRouter({ requireAdmin }) {
 
       const [device, sessions, events] = await Promise.all([
         query(
-          `SELECT d.*, m.external_ref, m.label AS member_label
+          `SELECT d.id, d.member_id, d.first_seen_at, d.last_seen_at, d.linked_at,
+                  d.user_agent_enc, d.platform, d.language, d.timezone, d.screen_w, d.screen_h,
+                  d.display_mode, d.is_whatsapp, d.first_referrer_enc, d.first_landing_path_enc,
+                  d.first_utm_enc, d.session_count, d.event_count,
+                  m.external_ref_hash, m.external_ref_enc, m.label_enc
              FROM analytics_devices d
              LEFT JOIN analytics_members m ON m.id = d.member_id
             WHERE d.id = $1`,
           [id]
         ),
         query(
-          `SELECT id, started_at, last_seen_at, ended_at, source, entry_path, event_count
+          `SELECT id, started_at, last_seen_at, ended_at, source, entry_path_enc, event_count
              FROM analytics_sessions
             WHERE device_id = $1
             ORDER BY started_at DESC
@@ -555,7 +654,7 @@ export function createAnalyticsRouter({ requireAdmin }) {
           [id]
         ),
         query(
-          `SELECT id, session_id, name, category, path, props, occurred_at
+          `SELECT id, event_uid, session_id, name, category, path_enc, props_enc, occurred_at
              FROM analytics_events
             WHERE device_id = $1
             ORDER BY occurred_at DESC
@@ -565,7 +664,37 @@ export function createAnalyticsRouter({ requireAdmin }) {
       ])
 
       if (device.rows.length === 0) return res.status(404).json({ error: 'Unknown device' })
-      res.json({ device: device.rows[0], sessions: sessions.rows, events: events.rows })
+      const {
+        user_agent_enc,
+        first_referrer_enc,
+        first_landing_path_enc,
+        first_utm_enc,
+        external_ref_hash,
+        external_ref_enc,
+        label_enc,
+        ...d
+      } = device.rows[0]
+
+      audit(req, { actor: 'admin', action: 'admin_viewed_device', targetType: 'device', targetId: id })
+      res.json({
+        device: {
+          ...d,
+          user_agent: open(user_agent_enc, deviceCtx('user_agent', id)),
+          first_referrer: open(first_referrer_enc, deviceCtx('first_referrer', id)),
+          first_landing_path: open(first_landing_path_enc, deviceCtx('first_landing_path', id)),
+          first_utm: openJson(first_utm_enc, deviceCtx('first_utm', id)),
+          external_ref: memberRef({ external_ref_hash, external_ref_enc }),
+          member_label: memberLabel({ external_ref_hash, label_enc }),
+        },
+        sessions: sessions.rows.map(({ entry_path_enc, ...s }) => ({
+          ...s,
+          entry_path: open(entry_path_enc, sessionCtx('entry_path', s.id)),
+        })),
+        events: events.rows.map(({ path_enc, props_enc, event_uid, ...e }) => ({
+          ...e,
+          ...decryptEvent({ path_enc, props_enc, event_uid }),
+        })),
+      })
     } catch (err) {
       console.error('[asknelson] device query failed:', err.message)
       res.status(500).json({ error: 'Failed to load device' })
@@ -576,8 +705,8 @@ export function createAnalyticsRouter({ requireAdmin }) {
     try {
       const days = windowDays(req)
       const { rows } = await query(
-        `SELECT e.occurred_at, e.received_at, e.name, e.category, e.path,
-                e.device_id, e.session_id, m.external_ref, e.props
+        `SELECT e.event_uid, e.occurred_at, e.received_at, e.name, e.category, e.path_enc,
+                e.device_id, e.session_id, e.props_enc, m.external_ref_hash, m.external_ref_enc
            FROM analytics_events e
            LEFT JOIN analytics_members m ON m.id = e.member_id
           WHERE e.occurred_at > now() - $1::interval
@@ -594,24 +723,28 @@ export function createAnalyticsRouter({ requireAdmin }) {
       const header =
         'occurred_at,received_at,name,category,path,device_id,session_id,member_ref,props\n'
       const body = rows
-        .map((r) =>
-          [
+        .map((r) => {
+          const { path, props } = decryptEvent(r)
+          return [
             r.occurred_at.toISOString(),
             r.received_at.toISOString(),
             r.name,
             r.category,
-            r.path,
+            path,
             r.device_id,
             r.session_id,
-            r.external_ref,
-            r.props,
+            memberRef(r),
+            props,
           ]
             .map(escape)
             .join(',')
-        )
+        })
         .join('\n')
 
+      // A CSV of decrypted events leaves the system: record that it happened.
+      audit(req, { actor: 'admin', action: 'admin_exported_events', details: { days, rows: rows.length } })
       res.set('Content-Type', 'text/csv; charset=utf-8')
+      res.set('Cache-Control', 'no-store')
       res.set('Content-Disposition', `attachment; filename="asknelson-events-${days}d.csv"`)
       res.send(header + body)
     } catch (err) {
@@ -633,24 +766,19 @@ export function createAnalyticsRouter({ requireAdmin }) {
       const expiresInDays = int(req.body?.expiresInDays)
       if (!externalRef) return res.status(400).json({ error: 'externalRef is required' })
 
-      const { rows: memberRows } = await query(
-        `INSERT INTO analytics_members (id, external_ref, label)
-         VALUES ($1, $2, $3)
-         ON CONFLICT (external_ref) DO UPDATE SET label = COALESCE(EXCLUDED.label, analytics_members.label)
-         RETURNING id`,
-        [crypto.randomUUID(), externalRef, label]
-      )
-      const memberId = memberRows[0].id
+      const memberId = await upsertMember(externalRef, label)
 
       // 32 bytes base64url — unguessable, and short enough to keep the
       // WhatsApp message tidy.
       const token = crypto.randomBytes(32).toString('base64url')
+      const tokenHash = hashToken(token)
       await query(
-        `INSERT INTO analytics_link_tokens (token_hash, member_id, label, expires_at)
+        `INSERT INTO analytics_link_tokens (token_hash, member_id, label_enc, expires_at)
          VALUES ($1, $2, $3, CASE WHEN $4::int IS NULL THEN NULL ELSE now() + ($4 || ' days')::interval END)`,
-        [hashToken(token), memberId, label, expiresInDays]
+        [tokenHash, memberId, seal(label, tokenLabelCtx(tokenHash)), expiresInDays]
       )
 
+      audit(req, { actor: 'admin', action: 'admin_minted_link', targetType: 'member', targetId: memberId })
       res.json({
         token,
         memberId,
@@ -667,16 +795,22 @@ export function createAnalyticsRouter({ requireAdmin }) {
   router.get('/admin/link-tokens', requireAdmin, async (_req, res) => {
     try {
       const { rows } = await query(
-        `SELECT t.token_hash, t.label, t.created_at, t.expires_at, t.revoked_at,
+        `SELECT t.token_hash, t.label_enc, t.created_at, t.expires_at, t.revoked_at,
                 t.first_used_at, t.last_used_at, t.use_count,
-                m.external_ref,
+                m.external_ref_hash, m.external_ref_enc,
                 (SELECT count(*)::int FROM analytics_devices d WHERE d.member_id = m.id) AS devices
            FROM analytics_link_tokens t
            JOIN analytics_members m ON m.id = t.member_id
           ORDER BY t.created_at DESC
           LIMIT 200`
       )
-      res.json({ tokens: rows })
+      res.json({
+        tokens: rows.map(({ label_enc, external_ref_hash, external_ref_enc, ...t }) => ({
+          ...t,
+          label: open(label_enc, tokenLabelCtx(t.token_hash)),
+          external_ref: memberRef({ external_ref_hash, external_ref_enc }),
+        })),
+      })
     } catch (err) {
       console.error('[asknelson] token list failed:', err.message)
       res.status(500).json({ error: 'Failed to load link tokens' })

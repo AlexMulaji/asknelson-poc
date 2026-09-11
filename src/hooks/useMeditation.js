@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { track } from '../lib/analytics.js'
+import { MEDITATION_PREFS_KEY, pushMeditation } from '../lib/progressSync.js'
 
 // Audio files are added manually to /src/assets/sounds/.
 // We import them so Vite fingerprints + the service worker can cache them.
@@ -34,13 +35,36 @@ export function soundById(id) {
   return SOUNDS.find((s) => s.id === id) ?? SOUNDS[0]
 }
 
+// The last settings used, so the timer opens the way the member left it.
+// Written here on start, and from the account on sign-in.
+function readPrefs() {
+  try {
+    const prefs = JSON.parse(localStorage.getItem(MEDITATION_PREFS_KEY) || 'null')
+    return {
+      durationMin: DURATIONS.includes(prefs?.durationMin) ? prefs.durationMin : 5,
+      sound: SOUNDS.some((s) => s.id === prefs?.sound) ? prefs.sound : 'none',
+    }
+  } catch {
+    return { durationMin: 5, sound: 'none' }
+  }
+}
+
+function writePrefs(prefs) {
+  try {
+    localStorage.setItem(MEDITATION_PREFS_KEY, JSON.stringify(prefs))
+  } catch {
+    /* ignore quota / privacy mode errors */
+  }
+}
+
 /**
  * Meditation session timer with optional looping ambient sound.
  */
 export function useMeditation() {
-  const [durationMin, setDurationMin] = useState(5)
-  const [sound, setSound] = useState('none')
-  const [remaining, setRemaining] = useState(5 * 60) // seconds
+  const [initial] = useState(readPrefs)
+  const [durationMin, setDurationMin] = useState(initial.durationMin)
+  const [sound, setSound] = useState(initial.sound)
+  const [remaining, setRemaining] = useState(initial.durationMin * 60) // seconds
   const [isRunning, setIsRunning] = useState(false)
   const [isComplete, setIsComplete] = useState(false)
   const [volume, setVolume] = useState(0.6)
@@ -101,6 +125,12 @@ export function useMeditation() {
     const run = runRef.current
     if (run) {
       track('meditation_completed', { duration_min: run.durationMin, sound: run.sound })
+      pushMeditation({
+        durationMin: run.durationMin,
+        sound: run.sound,
+        elapsedSec: run.durationMin * 60,
+        completed: true,
+      })
       runRef.current = null
     }
   }, [clearTick, stopAudio])
@@ -114,6 +144,7 @@ export function useMeditation() {
     if (!runRef.current) {
       runRef.current = { durationMin, sound, startedAt: Date.now() }
       track('meditation_started', { duration_min: durationMin, sound })
+      writePrefs({ durationMin, sound })
     }
     setIsRunning(true)
     playAudio()
@@ -150,6 +181,7 @@ export function useMeditation() {
         sound: run.sound,
         elapsed_sec: elapsedSec,
       })
+      pushMeditation({ durationMin: run.durationMin, sound: run.sound, elapsedSec, completed: false })
       runRef.current = null
     }
   }, [clearTick, stopAudio, durationMin])

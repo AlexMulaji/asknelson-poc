@@ -1,5 +1,6 @@
 import { useMemo } from 'react'
 import { Link } from 'react-router-dom'
+import AccountBadge from '../components/AccountBadge.jsx'
 import CoverImage from '../components/CoverImage.jsx'
 import PrivacyBand from '../components/PrivacyBand.jsx'
 import ConfidentialityStamp from '../components/ConfidentialityStamp.jsx'
@@ -79,13 +80,17 @@ export default function Home() {
             }}
           />
           <div className="absolute inset-x-0 top-0 px-5 pt-[calc(1.75rem+env(safe-area-inset-top,0px))] lg:px-10 lg:pt-12">
-            <div className="min-w-0">
-              <h1 className="font-display text-[28px] font-extrabold leading-tight text-white lg:text-[38px]">
-                Welcome
-              </h1>
-              <p className="mt-2 hidden max-w-sm text-[15px] leading-relaxed text-white/85 lg:block">
-                Start your journey to better wellbeing and build healthier habits.
-              </p>
+            <div className="flex items-start justify-between gap-3">
+              <div className="min-w-0">
+                <h1 className="font-display text-[28px] font-extrabold leading-tight text-white lg:text-[38px]">
+                  Welcome
+                </h1>
+                <p className="mt-2 hidden max-w-sm text-[15px] leading-relaxed text-white/85 lg:block">
+                  Start your journey to better wellbeing and build healthier habits.
+                </p>
+              </div>
+              {/* Sign in (or the signed-in chip) on mobile; desktop has it in the sidebar. */}
+              <AccountBadge className="shrink-0 lg:hidden" />
             </div>
           </div>
         </div>

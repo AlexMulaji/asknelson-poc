@@ -20,10 +20,13 @@ async function request(path, { method = 'GET', body } = {}) {
   if (!res.ok) {
     const err = new Error(data?.error || `Request failed (${res.status})`)
     err.status = res.status
+    err.data = data
     throw err
   }
   return data
 }
+
+const enc = encodeURIComponent
 
 /** Who am I? Returns { user: null } when signed out — not an error. */
 export const fetchMe = () => request('/me')
@@ -39,10 +42,25 @@ export const resendOtp = (userId, channel) =>
 export const verifyOtp = (userId, code) =>
   request('/register/verify', { method: 'POST', body: { userId, code } })
 
-export const login = (identifier, password) =>
-  request('/login', { method: 'POST', body: { identifier, password } })
+/** `remember: false` gives a browser-session cookie and a short server session. */
+export const login = (identifier, password, remember = true) =>
+  request('/login', { method: 'POST', body: { identifier, password, remember } })
 
 export const logout = () => request('/logout', { method: 'POST' })
 
-export const checkUsername = (username) =>
-  request(`/username-available?username=${encodeURIComponent(username)}`)
+export const checkUsername = (username) => request(`/username-available?username=${enc(username)}`)
+
+/** Send a reset link. `channel` is 'sms' or 'email'; `identifier` what they typed. */
+export const requestPasswordReset = (channel, identifier) =>
+  request('/password/forgot', { method: 'POST', body: { channel, identifier } })
+
+export const validateResetToken = (token) => request(`/password/reset/validate?token=${enc(token)}`)
+
+export const resetPassword = (token, password) =>
+  request('/password/reset', { method: 'POST', body: { token, password } })
+
+/** POPIA right of access: everything held about the signed-in user. */
+export const exportMyData = () => request('/me/export')
+
+/** POPIA right to deletion. Requires the current password. */
+export const deleteMyAccount = (password) => request('/me/delete', { method: 'POST', body: { password } })

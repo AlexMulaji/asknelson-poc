@@ -9,6 +9,8 @@ function titleCase(s) {
 // A row in the 30-day list. `status` is 'completed' | 'current' | 'locked'.
 // The current day is highlighted with a green border and wash; completed days
 // carry a check; locked days show a padlock and dim back.
+// `onOpenResource(event, day)` handles the source link (the parent opens it in
+// the in-app viewer); without it the link opens in a new tab.
 export default function DayCard({ day, status, onOpen, onMarkDone, onOpenResource, expanded = false }) {
   const isLocked = status === 'locked'
   const isCompleted = status === 'completed'
@@ -70,7 +72,7 @@ export default function DayCard({ day, status, onOpen, onMarkDone, onOpenResourc
               href={day.source_url}
               target="_blank"
               rel="noopener noreferrer"
-              onClick={onOpenResource}
+              onClick={onOpenResource ? (e) => onOpenResource(e, day) : undefined}
               className="inline-flex min-h-[44px] items-center gap-1.5 text-[14px] font-extrabold text-brand"
             >
               {day.source_title || 'Open resource'}

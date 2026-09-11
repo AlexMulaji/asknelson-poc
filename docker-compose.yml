@@ -9,7 +9,20 @@ services:
       # Event tracking. Remove this line to run without analytics: the app works
       # exactly as before and the tracking endpoints become no-ops.
       DATABASE_URL: postgres://asknelson:${POSTGRES_PASSWORD:-asknelson}@db:5432/asknelson
-      DATABASE_SSL: disable
+      # Plaintext is acceptable only because app and db share compose's private
+      # network. Against a hosted database use verify-full (see .env.example).
+      DATABASE_SSL: ${DATABASE_SSL:-disable}
+      # Seals personal information at rest (AES-256-GCM, see server/crypto.js).
+      # REQUIRED: run `npm run keys:generate` and put the line in .env (which is
+      # gitignored). Keep a copy in a secrets manager — lose it and every
+      # encrypted column is unreadable.
+      DATA_ENCRYPTION_KEYS: ${DATA_ENCRYPTION_KEYS:?Set DATA_ENCRYPTION_KEYS in .env - run npm run keys:generate}
+      # POPIA s14 retention, in days (0 keeps forever).
+      ANALYTICS_RETENTION_DAYS: ${ANALYTICS_RETENTION_DAYS:-730}
+      AUDIT_RETENTION_DAYS: ${AUDIT_RETENTION_DAYS:-1825}
+      # Set true once TLS is terminated in front of the app: redirects plain
+      # HTTP to HTTPS (HSTS is sent on HTTPS responses regardless).
+      FORCE_HTTPS: ${FORCE_HTTPS:-false}
       # Used to build the WhatsApp link shown in /admin. Set this to the public
       # URL members will actually open.
       PUBLIC_BASE_URL: ${PUBLIC_BASE_URL:-http://localhost:8180}

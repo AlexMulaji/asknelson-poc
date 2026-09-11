@@ -1,5 +1,6 @@
 import CoverImage from './CoverImage.jsx'
 import Pill from './Pill.jsx'
+import { isPlainClick, useOpenExternal } from './InAppBrowser.jsx'
 import { BookIcon, ClockIcon, ExternalLinkIcon, VideoIcon } from './Icons.jsx'
 import { track } from '../lib/analytics.js'
 
@@ -7,15 +8,32 @@ import { track } from '../lib/analytics.js'
 // left, the topic pill and copy on the right, and a meta row giving the time
 // cost and publisher.
 // Items are enriched in Explore.jsx with theme label/colour + a duration string.
+//
+// A tap opens the item in the in-app viewer; it stays a real link, so a
+// long-press or ctrl-click still offers "open in new tab".
 export default function ContentCard({ item }) {
   const isVideo = (item.type || '').toLowerCase() === 'video'
+  const openExternal = useOpenExternal()
+
+  const onClick = (e) => {
+    track('content_opened', {
+      id: item.id,
+      title: item.title,
+      theme: item.theme,
+      type: item.type,
+      source: item.source,
+    })
+    if (!isPlainClick(e)) return
+    e.preventDefault()
+    openExternal(item.url, { title: item.title, contentId: item.id, themeId: item.themeId, type: item.type })
+  }
 
   return (
     <a
       href={item.url}
       target="_blank"
       rel="noopener noreferrer"
-      
+      onClick={onClick}
       // card-press gives a physical scale-down on tap (defined in index.css).
       className="card-press flex overflow-hidden rounded-card bg-white shadow-card"
     >

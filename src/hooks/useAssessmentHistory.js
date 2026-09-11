@@ -1,4 +1,5 @@
-import { useCallback, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
+import { PROGRESS_EVENT, notifyProgressChanged, pushAssessmentResult } from '../lib/progressSync.js'
 
 // localStorage layout (mirrors the journey-progress pattern):
 //   asknelson.assessment.<id> -> {
@@ -9,6 +10,8 @@ import { useCallback, useState } from 'react'
 // PRIVACY: we deliberately persist only score / band / date — never the raw
 // question responses. Sensitive answers (e.g. the self-harm screening item)
 // are kept in memory for the session only and are never written to storage.
+// When signed in, the same score / band / date is saved to the account,
+// encrypted (lib/progressSync), so history follows the member across devices.
 
 const recordKey = (assessmentId) => `asknelson.assessment.${assessmentId}`
 const MAX_HISTORY = 20
@@ -74,6 +77,13 @@ export function retakeInfo(record, retakeAfterDays) {
 export function useAssessmentHistory() {
   const [records, setRecords] = useState(() => readAll())
 
+  // Re-read when history changes elsewhere, e.g. the account's arriving on sign-in.
+  useEffect(() => {
+    const reload = () => setRecords(readAll())
+    window.addEventListener(PROGRESS_EVENT, reload)
+    return () => window.removeEventListener(PROGRESS_EVENT, reload)
+  }, [])
+
   const getRecord = useCallback((assessmentId) => records[assessmentId] ?? null, [records])
 
   const saveResult = useCallback((assessmentId, { score, band }) => {
@@ -85,6 +95,8 @@ export function useAssessmentHistory() {
     const next = { lastScore: score, lastBand: band ?? null, lastDate: date, history }
     writeJSON(key, next)
     setRecords((prev) => ({ ...prev, [assessmentId]: next }))
+    pushAssessmentResult(assessmentId, entry)
+    notifyProgressChanged()
     return next
   }, [])
 

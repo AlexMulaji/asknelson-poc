@@ -5,6 +5,7 @@ import JourneyCard from '../components/JourneyCard.jsx'
 import JourneyHero from '../components/JourneyHero.jsx'
 import DayCard from '../components/DayCard.jsx'
 import EmptyState from '../components/EmptyState.jsx'
+import { isPlainClick, useOpenExternal } from '../components/InAppBrowser.jsx'
 import { listContainer, listItem } from '../lib/motion.js'
 import { useJourneyProgress } from '../hooks/useJourneyProgress.js'
 import { useContent } from '../hooks/useContent.js'
@@ -35,6 +36,7 @@ export default function Journeys({ onMenuChange }) {
 
   const [openDay, setOpenDay] = useState(null)
   const [searchParams, setSearchParams] = useSearchParams()
+  const openExternal = useOpenExternal()
 
   const activeJourney = useMemo(
     () => journeysData.find((j) => j.id === activeJourneyId) || null,
@@ -75,11 +77,25 @@ export default function Journeys({ onMenuChange }) {
     track('journey_started', { journey: journeyId, title: journey?.title })
   }
 
+  // The day's source opens in the in-app viewer, and counts towards the
+  // member's "recently opened" list.
+  const handleOpenResource = (e, day) => {
+    track('journey_resource_opened', { journey: activeJourney.id, day: day.day, title: day.source_title })
+    if (!isPlainClick(e)) return
+    e.preventDefault()
+    openExternal(day.source_url, {
+      title: day.source_title,
+      contentId: `${activeJourney.id}:day-${day.day}`,
+      themeId: activeJourney.id,
+      type: day.type,
+    })
+  }
+
   const handleMarkDayDone = (dayNumber) => {
-    markDayDone(dayNumber)
     if (!activeJourney) return
     const day = (activeJourney.days ?? []).find((d) => d.day === dayNumber)
     const total = (activeJourney.days ?? []).length
+    markDayDone(dayNumber, total || undefined)
     // completedDays is this render's value, so the day just finished isn't in
     // it yet — hence the +1 when checking for the final day.
     const done = completedDays.includes(dayNumber)
@@ -178,7 +194,8 @@ export default function Journeys({ onMenuChange }) {
                 status={status}
                 expanded={openDay === day.day}
                 onOpen={() => setOpenDay((d) => (d === day.day ? null : day.day))}
-                onMarkDone={status === 'current' ? markDayDone : undefined}
+                onMarkDone={status === 'current' ? handleMarkDayDone : undefined}
+                onOpenResource={handleOpenResource}
               />
             )
           })}

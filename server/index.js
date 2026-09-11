@@ -3,9 +3,13 @@ import crypto from 'node:crypto'
 import fs from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { isEnabled as analyticsEnabled, migrate } from './db.js'
+import { isEnabled as analyticsEnabled, migrate, sweepRetention } from './db.js'
+import { encryptionConfigured } from './crypto.js'
 import { createAnalyticsRouter, startSessionSweeper } from './analytics.js'
 import { createAuthRouter, startAuthSweeper } from './auth.js'
+import { createProgressRouter } from './progress.js'
+import { createEmbedRouter } from './embed.js'
+import { isSecure } from './http.js'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const ROOT = path.resolve(__dirname, '..')
@@ -71,6 +75,44 @@ function writeDataset(key, value) {
   const tmp = `${target}.${crypto.randomBytes(6).toString('hex')}.tmp`
   fs.writeFileSync(tmp, JSON.stringify(value, null, 2))
   fs.renameSync(tmp, target)
+}
+
+// Every host the content links to — the only sites the embed checker will
+// contact. Recomputed at most once a minute so admin edits are picked up.
+// EMBED_EXTRA_HOSTS covers links that live in code rather than content (the
+// Kaelo booking form on the AskNelson tab).
+const EMBED_EXTRA_HOSTS = (process.env.EMBED_EXTRA_HOSTS ?? 'www.kaelo.co.za')
+  .split(',')
+  .map((h) => h.trim().toLowerCase())
+  .filter(Boolean)
+let hostCache = { at: 0, hosts: new Set() }
+
+function collectHosts(node, hosts) {
+  if (typeof node === 'string') {
+    if (node.startsWith('https://')) {
+      try {
+        hosts.add(new URL(node).hostname)
+      } catch {
+        /* not a URL after all */
+      }
+    }
+  } else if (node && typeof node === 'object') {
+    for (const value of Object.values(node)) collectHosts(value, hosts)
+  }
+}
+
+function contentHosts() {
+  if (Date.now() - hostCache.at < 60_000) return hostCache.hosts
+  const hosts = new Set(EMBED_EXTRA_HOSTS)
+  for (const key of Object.keys(DATASETS)) {
+    try {
+      collectHosts(readDataset(key), hosts)
+    } catch {
+      /* a missing dataset just contributes nothing */
+    }
+  }
+  hostCache = { at: Date.now(), hosts }
+  return hosts
 }
 
 // --- uploads ------------------------------------------------------------------
@@ -158,6 +200,26 @@ app.disable('x-powered-by')
 // Behind a load balancer or ingress: needed for correct req.ip (analytics rate
 // limiting) and req.secure (the Secure flag on the device cookie).
 app.set('trust proxy', Number(process.env.TRUST_PROXY_HOPS || 1))
+
+// Encryption in transit (POPIA s19). TLS itself terminates at the load
+// balancer or ingress in front of this process; these make sure nothing
+// travels over plain HTTP once a browser has seen the HTTPS site.
+const FORCE_HTTPS = process.env.FORCE_HTTPS === 'true'
+app.use((req, res, next) => {
+  if (FORCE_HTTPS && !isSecure(req) && req.path !== '/api/health') {
+    return res.redirect(308, `https://${req.get('host')}${req.originalUrl}`)
+  }
+  if (isSecure(req)) res.set('Strict-Transport-Security', 'max-age=31536000; includeSubDomains')
+  res.set('X-Content-Type-Options', 'nosniff')
+  // Never send a full in-app URL (which can name a journey or assessment) to
+  // the external sites members open.
+  res.set('Referrer-Policy', 'strict-origin-when-cross-origin')
+  // Other sites may not frame AskNelson (clickjacking on sign-in).
+  res.set('X-Frame-Options', 'SAMEORIGIN')
+  res.set('Permissions-Policy', 'camera=(), microphone=(), geolocation=()')
+  next()
+})
+
 app.use(express.json({ limit: '5mb' }))
 
 // Event tracking. Mounted before the static handler so /api wins, and a no-op
@@ -167,6 +229,13 @@ app.use('/api/analytics', createAnalyticsRouter({ requireAdmin }))
 // Accounts, OTP verification and sessions. Also requires a database; the app
 // stays fully browsable without one, it just can't offer sign-in.
 app.use('/api/auth', createAuthRouter())
+
+// Journey, assessment, meditation and reading progress for signed-in members,
+// so they can continue where they left off on any device.
+app.use('/api/progress', createProgressRouter())
+
+// Whether an external article can be shown inside the in-app viewer.
+app.use('/api/embed', createEmbedRouter({ allowedHosts: contentHosts }))
 
 // Content is fetched by the PWA; keep it out of the HTTP cache so edits show up
 // on the next load (the service worker applies its own NetworkFirst strategy).
@@ -306,7 +375,9 @@ app.delete('/api/admin/uploads/:name', requireAdmin, (req, res) => {
   }
 })
 
-app.get('/api/health', (_req, res) => res.json({ ok: true, analytics: analyticsEnabled }))
+app.get('/api/health', (_req, res) =>
+  res.json({ ok: true, analytics: analyticsEnabled, encryption: encryptionConfigured })
+)
 
 // --- static frontend ------------------------------------------------------------
 
@@ -328,11 +399,26 @@ if (fs.existsSync(DIST_DIR)) {
 // half-built schema. A database that is configured but unreachable is fatal —
 // failing loudly beats silently dropping every event.
 if (analyticsEnabled) {
+  // Personal information is sealed before it reaches Postgres. Refusing to
+  // start beats silently writing plaintext, or writing data nobody can read.
+  if (!encryptionConfigured) {
+    console.error(
+      '[asknelson] FATAL: DATABASE_URL is set but DATA_ENCRYPTION_KEYS is not. ' +
+        'Generate a key with `npm run keys:generate` and set it (see .env.example).'
+    )
+    process.exit(1)
+  }
   try {
     await migrate()
     startSessionSweeper()
     startAuthSweeper()
-    console.log('[asknelson] analytics + accounts enabled — schema up to date')
+    // Daily, plus once now: raw analytics and audit rows past their
+    // retention window are deleted (POPIA s14).
+    const sweep = () =>
+      sweepRetention().catch((err) => console.error('[asknelson] retention sweep failed:', err.message))
+    sweep()
+    setInterval(sweep, 24 * 60 * 60 * 1000).unref()
+    console.log('[asknelson] analytics + accounts enabled — schema up to date, encryption on')
   } catch (err) {
     // Log the whole error, not just .message — a refused connection surfaces as
     // an AggregateError whose message is empty, which tells an operator nothing.

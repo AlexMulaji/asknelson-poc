@@ -1,31 +1,53 @@
+import fs from 'node:fs'
 import pg from 'pg'
+import m003 from './migrations/003_popia_encryption.js'
 
-// Postgres connection + schema migrations for the analytics store.
+// Postgres connection + schema migrations for accounts, progress and analytics.
 //
-// Analytics is OPTIONAL: with no DATABASE_URL the app runs exactly as before —
-// the tracking endpoints return 204 and the admin analytics tab shows a notice.
-// That keeps `npm run dev` and offline PWA use working with zero infra.
+// The database is OPTIONAL: with no DATABASE_URL the app runs exactly as
+// before — the tracking endpoints return 204, sign-in is hidden, progress stays
+// on the device, and the admin analytics tab shows a notice. That keeps
+// `npm run dev` and offline PWA use working with zero infra.
 
 const { Pool } = pg
 
 const DATABASE_URL = process.env.DATABASE_URL || ''
-// Managed Postgres (Render, Heroku, Supabase, RDS) usually needs TLS but serves
-// a cert this client can't chain to a public root, hence rejectUnauthorized.
 const SSL_MODE = (process.env.DATABASE_SSL || '').toLowerCase()
 
 export const isEnabled = Boolean(DATABASE_URL)
+
+// Encryption in transit between the app and Postgres (POPIA s19).
+//   verify-full  TLS, and the server certificate is checked against the system
+//                roots or DATABASE_SSL_CA_FILE. Use this in production.
+//   require      TLS without certificate checks: encrypted, but open to a
+//                man-in-the-middle. A stopgap for a managed host whose CA
+//                bundle you haven't fetched yet.
+//   disable      Plaintext. Only for a database on the same private network as
+//                the app, like the compose file's internal network.
+// Unset defers to sslmode= in DATABASE_URL.
+function sslConfig() {
+  if (SSL_MODE === 'disable') return false
+  if (SSL_MODE === 'require') return { rejectUnauthorized: false }
+  if (SSL_MODE === 'verify-full') {
+    const caFile = process.env.DATABASE_SSL_CA_FILE
+    return { rejectUnauthorized: true, ...(caFile ? { ca: fs.readFileSync(caFile, 'utf8') } : {}) }
+  }
+  return undefined
+}
+
+if (isEnabled && SSL_MODE === 'require') {
+  console.warn(
+    '[asknelson] DATABASE_SSL=require encrypts but does not verify the server certificate. ' +
+      'Use DATABASE_SSL=verify-full (with DATABASE_SSL_CA_FILE if needed) in production.'
+  )
+}
 
 // `timestamptz` comes back as a JS Date by default, which JSON-serialises to
 // UTC ISO strings — exactly what the admin UI and CSV export want.
 export const pool = isEnabled
   ? new Pool({
       connectionString: DATABASE_URL,
-      ssl:
-        SSL_MODE === 'require'
-          ? { rejectUnauthorized: false }
-          : SSL_MODE === 'disable'
-            ? false
-            : undefined,
+      ssl: sslConfig(),
       max: Number(process.env.DATABASE_POOL_MAX || 10),
       idleTimeoutMillis: 30_000,
       connectionTimeoutMillis: 10_000,
@@ -45,11 +67,32 @@ export function query(text, params) {
   return pool.query(text, params)
 }
 
+/** Run `fn(client)` inside BEGIN/COMMIT, rolling back if it throws. */
+export async function withTransaction(fn) {
+  if (!pool) throw new Error('Database is not configured')
+  const client = await pool.connect()
+  try {
+    await client.query('BEGIN')
+    const result = await fn(client)
+    await client.query('COMMIT')
+    return result
+  } catch (err) {
+    await client.query('ROLLBACK').catch(() => {})
+    throw err
+  } finally {
+    client.release()
+  }
+}
+
 // --- schema -------------------------------------------------------------------
 
 // Applied in order, each inside a transaction, tracked in _analytics_migrations
 // so restarts and redeploys are no-ops. Never edit a shipped migration — add a
 // new one, or existing databases will silently drift from new ones.
+//
+// A migration is { name, sql?, run?(client), after?: string[] }: `sql` for
+// schema, `run` for data work that needs code (re-encrypting existing rows),
+// `after` for maintenance that can't run in a transaction (VACUUM FULL).
 const MIGRATIONS = [
   {
     name: '001_initial',
@@ -258,6 +301,9 @@ const MIGRATIONS = [
       CREATE INDEX IF NOT EXISTS auth_sessions_expiry_idx ON auth_sessions (expires_at);
     `,
   },
+  // Encrypts personal information at rest and adds consent, audit, password
+  // reset and progress tables. See server/migrations/003_popia_encryption.js.
+  m003,
 ]
 
 export async function migrate() {
@@ -278,7 +324,8 @@ export async function migrate() {
     const client = await pool.connect()
     try {
       await client.query('BEGIN')
-      await client.query(migration.sql)
+      if (migration.sql) await client.query(migration.sql)
+      if (migration.run) await migration.run(client)
       await client.query('INSERT INTO _analytics_migrations (name) VALUES ($1)', [migration.name])
       await client.query('COMMIT')
       console.log(`[asknelson] applied migration ${migration.name}`)
@@ -288,6 +335,35 @@ export async function migrate() {
     } finally {
       client.release()
     }
+    // The schema change is committed by now, so a failure here is logged
+    // rather than fatal.
+    for (const statement of migration.after ?? []) {
+      await pool
+        .query(statement)
+        .catch((err) => console.warn(`[asknelson] "${statement}" failed:`, err.message))
+    }
+  }
+}
+
+// POPIA s14: personal information may not be kept longer than its purpose
+// needs. Raw events, sessions and long-idle devices age out; the de-identified
+// analytics_daily_counts are kept. 0 keeps forever.
+const ANALYTICS_RETENTION_DAYS = Number(process.env.ANALYTICS_RETENTION_DAYS ?? 730)
+const AUDIT_RETENTION_DAYS = Number(process.env.AUDIT_RETENTION_DAYS ?? 1825)
+
+export async function sweepRetention() {
+  if (!pool) return
+  if (ANALYTICS_RETENTION_DAYS > 0) {
+    const window = `${ANALYTICS_RETENTION_DAYS} days`
+    await pool.query('DELETE FROM analytics_events WHERE occurred_at < now() - $1::interval', [window])
+    await pool.query('DELETE FROM analytics_sessions WHERE started_at < now() - $1::interval', [window])
+    // Cascades to anything left on the device, acquisition details included.
+    await pool.query('DELETE FROM analytics_devices WHERE last_seen_at < now() - $1::interval', [window])
+  }
+  if (AUDIT_RETENTION_DAYS > 0) {
+    await pool.query('DELETE FROM audit_log WHERE occurred_at < now() - $1::interval', [
+      `${AUDIT_RETENTION_DAYS} days`,
+    ])
   }
 }
 

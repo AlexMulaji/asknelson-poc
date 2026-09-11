@@ -47,6 +47,9 @@ export const Hgroup = ({ title, sub, long = false }) => (
   </div>
 );
 
+// Accepts React's camelCase autoComplete / inputMode (the lower-case spellings
+// from the HTML prototype still work). `error` shows under the box and marks
+// the input invalid for screen readers.
 export const Field = ({
   id,
   label,
@@ -55,18 +58,23 @@ export const Field = ({
   value,
   optional = false,
   password = false,
+  autoComplete,
   autocomplete,
+  inputMode,
   inputmode,
+  error,
   onChange,
+  ...rest
 }) => {
   const [showPassword, setShowPassword] = useState(false);
+  const errorId = error ? `${id}-error` : undefined;
 
   const togglePassword = () => {
     setShowPassword((prev) => !prev);
   };
 
   return (
-    <div className="field">
+    <div className={`field${error ? " field--error" : ""}`}>
       <label className="field__label" htmlFor={id}>
         {label}
         {optional && <em> (Optional)</em>}
@@ -84,10 +92,13 @@ export const Field = ({
               : type
           }
           placeholder={hint || ""}
-          value={value || ""}
-          autoComplete={autocomplete}
-          inputMode={inputmode}
+          value={value ?? ""}
+          autoComplete={autoComplete ?? autocomplete}
+          inputMode={inputMode ?? inputmode}
+          aria-invalid={error ? true : undefined}
+          aria-describedby={errorId}
           onChange={onChange}
+          {...rest}
         />
 
         {password && (
@@ -105,16 +116,22 @@ export const Field = ({
           </button>
         )}
       </div>
+      {error && (
+        <p className="field__error" id={errorId}>
+          {error}
+        </p>
+      )}
     </div>
   );
 };
 
-
-
+// `type="submit"` lets a screen be a real <form>, so Enter submits it.
 export const Btn = ({
   label,
   loading = false,
   variant = "primary",
+  type = "button",
+  disabled = false,
   go,
   act,
   onClick
@@ -125,6 +142,7 @@ export const Btn = ({
         className="btn btn--loading"
         type="button"
         aria-busy="true"
+        disabled
       >
         {ICON.loader}
         <span>{label}</span>
@@ -137,7 +155,8 @@ export const Btn = ({
       className={`btn ${
         variant === "ghost" ? "btn--ghost" : "btn--primary"
       }`}
-      type="button"
+      type={type}
+      disabled={disabled}
       data-go={go}
       data-act={act}
       onClick={onClick}
@@ -147,17 +166,40 @@ export const Btn = ({
   );
 };
 
-export const Footnote = ({ text, linkLabel, to, onClick }) => (
+// With an onClick the link navigates in-app (client-side routing); `href`
+// keeps it a real link for long-press / open-in-new-tab.
+export const Footnote = ({ text, linkLabel, href = "#", to, onClick }) => (
   <p className="footnote">
     {text}
     <a
-      href="#"
+      href={href}
       data-go={to}
-      onClick={onClick}
+      onClick={
+        onClick
+          ? (e) => {
+              e.preventDefault();
+              onClick(e);
+            }
+          : undefined
+      }
     >
       {linkLabel}
     </a>
   </p>
+);
+
+// The design's checkbox (Remember Me, and the privacy consent).
+export const Check = ({ id, checked, onChange, children, className = "" }) => (
+  <label className={`check ${className}`.trim()} htmlFor={id}>
+    <input
+      type="checkbox"
+      id={id}
+      checked={checked}
+      onChange={(e) => onChange?.(e.target.checked)}
+    />
+    <span className="check__box">{ICON.tick}</span>
+    <span className="check__label">{children}</span>
+  </label>
 );
 
 export const Stepper = ({ step }) => (
@@ -184,54 +226,49 @@ export const Stepper = ({ step }) => (
   </div>
 );
 
-// const [otp, setOtp] = useState("");
-
-// <Otp
-//   digits={otp}
-//   onChange={setOtp}
-//   onComplete={(code) => {
-//     console.log("Verify:", code);
-//     // render("verifying")
-//     // verifyOtp(code)
-//   }}
-// />;
-
+// Six-box code entry. `digits` is the code so far; an empty box in the middle
+// is held as a space, so each digit stays in its own box. onComplete fires
+// once all six are filled — by typing, pasting, or SMS autofill.
 export const Otp = ({
   digits = "",
   onChange,
-  onComplete
+  onComplete,
+  disabled = false,
+  error = false
 }) => {
   const inputRefs = useRef([]);
+  const cells = Array.from({ length: 6 }, (_, i) =>
+    digits[i] && digits[i] !== " " ? digits[i] : ""
+  );
 
-  const updateDigits = (index, value) => {
-    const digit = value.replace(/\D/g, "").slice(0, 1);
+  const emit = (next) => {
+    const value = next.map((c) => c || " ").join("").replace(/\s+$/, "");
+    onChange?.(value);
+    if (/^\d{6}$/.test(value)) setTimeout(() => onComplete?.(value), 220);
+  };
 
-    const nextDigits = digits.split("");
-    nextDigits[index] = digit;
-
-    const newValue = nextDigits.join("");
-    onChange?.(newValue);
-
-    // Auto-advance
-    if (digit && index < 5) {
-      inputRefs.current[index + 1]?.focus();
+  const updateDigit = (index, raw) => {
+    const typed = raw.replace(/\D/g, "");
+    // A whole code at once is autofill (iOS/Android offer the SMS code).
+    if (typed.length >= 6) {
+      emit(typed.slice(0, 6).split(""));
+      inputRefs.current[5]?.focus();
+      return;
     }
-
-    // Complete
-    if (newValue.length === 6 && !newValue.includes("")) {
-      setTimeout(() => onComplete?.(newValue), 220);
-    }
+    const next = [...cells];
+    next[index] = typed.slice(-1);
+    emit(next);
+    if (next[index] && index < 5) inputRefs.current[index + 1]?.focus();
   };
 
   const handleKeyDown = (e, index) => {
-    // Backspace
-    if (
-      e.key === "Backspace" &&
-      !digits[index] &&
-      index > 0
-    ) {
-      inputRefs.current[index - 1]?.focus();
+    // Backspace on an empty box clears the one before it.
+    if (e.key === "Backspace" && !cells[index] && index > 0) {
       e.preventDefault();
+      const next = [...cells];
+      next[index - 1] = "";
+      emit(next);
+      inputRefs.current[index - 1]?.focus();
     }
 
     // Left Arrow
@@ -249,39 +286,31 @@ export const Otp = ({
 
   const handlePaste = (e) => {
     e.preventDefault();
-
-    const pasted = (
-      e.clipboardData.getData("text") || ""
-    )
+    const pasted = (e.clipboardData.getData("text") || "")
       .replace(/\D/g, "")
       .slice(0, 6);
-
-    onChange?.(pasted);
-
-    if (pasted.length === 6) {
-      setTimeout(() => onComplete?.(pasted), 220);
-    } else {
-      inputRefs.current[Math.min(pasted.length, 5)]?.focus();
-    }
+    emit(Array.from({ length: 6 }, (_, i) => pasted[i] || ""));
+    inputRefs.current[Math.min(pasted.length, 5)]?.focus();
   };
 
   return (
-    <div className="otp" data-otp>
-      {Array.from({ length: 6 }, (_, i) => (
+    <div className={`otp${error ? " otp--error" : ""}`} data-otp>
+      {cells.map((cell, i) => (
         <input
           key={i}
           ref={(el) => (inputRefs.current[i] = el)}
           type="text"
           inputMode="numeric"
-          maxLength={1}
+          pattern="[0-9]*"
+          autoComplete={i === 0 ? "one-time-code" : "off"}
           aria-label={`Digit ${i + 1}`}
-          value={digits[i] || ""}
-          onChange={(e) =>
-            updateDigits(i, e.target.value)
-          }
-          onKeyDown={(e) =>
-            handleKeyDown(e, i)
-          }
+          aria-invalid={error ? true : undefined}
+          value={cell}
+          disabled={disabled}
+          // Select on focus, so typing into a filled box replaces its digit.
+          onFocus={(e) => e.target.select()}
+          onChange={(e) => updateDigit(i, e.target.value)}
+          onKeyDown={(e) => handleKeyDown(e, i)}
           onPaste={handlePaste}
         />
       ))}
@@ -332,11 +361,12 @@ export const Alert = ({ kind, title, text }) => (
   </div>
 );
 
-export const Resend = ({ onClick }) => (
+export const Resend = ({ onClick, disabled = false }) => (
   <button
     className="resend"
     type="button"
     data-act="resend"
+    disabled={disabled}
     onClick={onClick}
   >
     {ICON.restart}
@@ -346,11 +376,19 @@ export const Resend = ({ onClick }) => (
 
 export const HelpFoot = (props) => (
   <Footnote
-    text="Need help or support? "
+    text="Need help or support?"
     linkLabel="Contact Us"
-    to="login"
+    href="/asknelson"
     {...props}
   />
+);
+
+// OTP_ECHO demo mode: shows the code (or reset link) the server would have
+// sent. Deliberately loud — it must never pass for part of the product.
+export const DemoNote = ({ children }) => (
+  <div className="demo-note" role="note">
+    <strong>Demo mode — no message was sent.</strong> {children}
+  </div>
 );
 
 

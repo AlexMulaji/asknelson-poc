@@ -1,4 +1,5 @@
 import { NavLink } from 'react-router-dom'
+import AccountBadge from './AccountBadge.jsx'
 import { navTabs } from './navTabs.js'
 import logoUrl from '../assets/logo-asknelson.png'
 
@@ -37,6 +38,11 @@ export default function Sidebar() {
           ))}
         </ul>
       </nav>
+
+      {/* Sign in / signed-in account, pinned to the bottom of the rail. */}
+      <div className="px-5 pb-8">
+        <AccountBadge variant="full" />
+      </div>
     </aside>
   )
 }
