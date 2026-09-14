@@ -3,25 +3,49 @@ import { useLocation, useNavigate } from 'react-router-dom'
 import { CloseIcon, ExternalLinkIcon } from './Icons.jsx'
 import { track } from '../lib/analytics.js'
 import { pushContentOpened } from '../lib/progressSync.js'
-import { checkEmbeddable, hostOf, isExternalUrl, videoEmbedUrl } from '../lib/externalLinks.js'
+import {
+  cachedVerdict,
+  checkEmbeddable,
+  hostOf,
+  isExternalUrl,
+  videoEmbedUrl,
+} from '../lib/externalLinks.js'
 
 // In-app viewer for external articles, videos and the booking form.
 //
-// Opening one pushes a history entry carrying { viewer } in location.state:
-// the phone's back button or gesture closes it, and the page underneath stays
-// mounted, scroll position and all. Videos play in the provider's embed
-// player. Pages are framed only when the publisher allows it; when they
-// don't, the viewer says so and offers the browser instead of a broken frame.
-// Either way there is an "Open in browser" escape hatch in the header.
+// Three ways a link can open, in order of preference:
+//   1. video    - YouTube/TED/Vimeo play in the provider's embed player.
+//   2. embedded - the publisher allows framing, so the page opens inside the
+//                 app. Back (button or gesture) closes it and the screen
+//                 underneath stays exactly where it was.
+//   3. popup    - the publisher refuses framing (about half of them do), so
+//                 the page opens in a window over the app on desktop, or a
+//                 browser tab on mobile, with AskNelson still open behind it.
+//
+// Framing is the publisher's choice, declared in their headers and checked
+// server-side. Cards warm that check on hover or first touch, so the click
+// already knows the answer and can open the popup inside the user's gesture -
+// a popup opened after an await would be blocked by the browser.
+
+const POPUP_FEATURES = 'noopener,noreferrer,popup=yes,width=560,height=840'
+
+function openPopup(url) {
+  try {
+    return window.open(url, '_blank', POPUP_FEATURES)
+  } catch {
+    return null
+  }
+}
 
 /** True for an ordinary click — not a new-tab/window gesture the browser should handle. */
 export const isPlainClick = (e) =>
   !(e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey)
 
 /**
- * Returns open(url, meta) — shows the URL in the viewer. meta: { title,
- * contentId, themeId, type, record }. `record: false` keeps it out of the
- * member's "recently opened" list (e.g. the booking form).
+ * Returns open(url, meta) — shows the URL in the viewer, or in a popup window
+ * when the publisher is known to refuse framing. meta: { title, contentId,
+ * themeId, type, record }. `record: false` keeps it out of the member's
+ * "recently opened" list (e.g. the booking form).
  */
 export function useOpenExternal() {
   const navigate = useNavigate()
@@ -30,18 +54,34 @@ export function useOpenExternal() {
     (url, meta = {}) => {
       if (!isExternalUrl(url)) return false
       const { record = true, ...details } = meta
+      const remember = () => {
+        if (record) {
+          pushContentOpened({
+            contentId: details.contentId,
+            url,
+            title: details.title,
+            themeId: details.themeId,
+            type: details.type,
+          })
+        }
+      }
+
+      // Known to refuse framing: straight to a popup, while this still counts
+      // as a user gesture. If the browser blocks it anyway, fall through to the
+      // viewer, which explains and offers the link again.
+      const known = cachedVerdict(url)
+      if (known && !known.embeddable && !videoEmbedUrl(url)) {
+        if (openPopup(url)) {
+          track('external_opened_outside', { host: hostOf(url), from: 'popup' })
+          remember()
+          return true
+        }
+      }
+
       navigate(`${location.pathname}${location.search}${location.hash}`, {
         state: { ...(location.state ?? {}), viewer: { url, ...details } },
       })
-      if (record) {
-        pushContentOpened({
-          contentId: details.contentId,
-          url,
-          title: details.title,
-          themeId: details.themeId,
-          type: details.type,
-        })
-      }
+      remember()
       return true
     },
     [navigate, location]
@@ -112,7 +152,7 @@ function Viewer({ viewer, onClose }) {
     }
   }, [])
 
-  const openOutside = (from) => () => track('external_opened_outside', { host, from })
+  const openOutside = (from) => track('external_opened_outside', { host, from })
 
   return (
     <div
@@ -139,7 +179,7 @@ function Viewer({ viewer, onClose }) {
           href={url}
           target="_blank"
           rel="noopener noreferrer"
-          onClick={openOutside('header')}
+          onClick={() => openOutside('header')}
           aria-label="Open in browser"
           title="Open in browser"
           className="grid h-11 w-11 shrink-0 place-items-center rounded-full text-slate-500 transition hover:bg-canvas"
@@ -170,27 +210,41 @@ function Viewer({ viewer, onClose }) {
           </>
         ) : null}
 
+        {/* The publisher refuses framing: offer it as a popup window instead. */}
         {mode === 'blocked' ? (
-          <div className="mx-auto flex h-full max-w-md flex-col items-center justify-center px-6 text-center">
-            <span className="grid h-14 w-14 place-items-center rounded-full bg-brand-tint text-brand">
-              <ExternalLinkIcon className="h-6 w-6" />
-            </span>
-            <h2 className="mt-4 font-display text-[20px] font-extrabold leading-snug text-navy">
-              This one opens in your browser
-            </h2>
-            <p className="mt-2 text-[14px] leading-relaxed text-slate-500">
-              {host} doesn't allow its pages to be shown inside other apps. AskNelson stays open
-              underneath — close the page to come back.
-            </p>
-            <a
-              href={url}
-              target="_blank"
-              rel="noopener noreferrer"
-              onClick={openOutside('blocked')}
-              className="mt-6 grid min-h-[48px] w-full place-items-center rounded-btn bg-brand px-6 text-[15px] font-extrabold text-white transition hover:bg-brand-dark active:scale-[0.98]"
-            >
-              Open {title ? `“${title}”` : host}
-            </a>
+          <div className="absolute inset-0 grid place-items-center bg-navy/40 p-5">
+            <div className="w-full max-w-sm rounded-card bg-white p-6 text-center shadow-card">
+              <span className="mx-auto grid h-14 w-14 place-items-center rounded-full bg-brand-tint text-brand">
+                <ExternalLinkIcon className="h-6 w-6" />
+              </span>
+              <h2 className="mt-4 font-display text-[19px] font-extrabold leading-snug text-navy">
+                This one opens in its own window
+              </h2>
+              <p className="mt-2 text-[14px] leading-relaxed text-slate-500">
+                {host} doesn&rsquo;t allow its pages to be shown inside other apps. AskNelson stays
+                open behind it.
+              </p>
+              <a
+                href={url}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={(e) => {
+                  e.preventDefault()
+                  openOutside('blocked')
+                  if (openPopup(url)) onClose()
+                }}
+                className="mt-6 grid min-h-[48px] w-full place-items-center rounded-btn bg-brand px-6 text-[15px] font-extrabold text-white transition hover:bg-brand-dark active:scale-[0.98]"
+              >
+                Open {title ? `“${title}”` : host}
+              </a>
+              <button
+                type="button"
+                onClick={onClose}
+                className="mt-3 min-h-[44px] w-full text-[14px] font-bold text-slate-500"
+              >
+                Not now
+              </button>
+            </div>
           </div>
         ) : null}
       </div>

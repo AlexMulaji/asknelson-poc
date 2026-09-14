@@ -59,24 +59,47 @@ export function videoEmbedUrl(raw) {
   return null
 }
 
-const verdicts = new Map()
+const verdicts = new Map() // url -> verdict
+const inFlight = new Map() // url -> promise, so hover + click don't ask twice
 
 /**
  * { embeddable: boolean, reason?: string } for an external page. Anything
  * that isn't a clear yes — the check failing, being offline, no backend in
- * `vite dev` — comes back as a no, so the viewer offers "Open in browser"
- * rather than a broken frame.
+ * `vite dev` — comes back as a no, so the viewer offers the page in a popup
+ * window rather than showing a broken frame.
  */
-export async function checkEmbeddable(url) {
-  if (verdicts.has(url)) return verdicts.get(url)
-  try {
-    const res = await fetch(`/api/embed/check?url=${encodeURIComponent(url)}`, {
-      credentials: 'same-origin',
-    })
-    const verdict = res.ok ? await res.json() : { embeddable: false, reason: `check-${res.status}` }
-    if (res.ok) verdicts.set(url, verdict)
-    return verdict
-  } catch {
-    return { embeddable: false, reason: 'offline' }
+export function checkEmbeddable(url) {
+  if (verdicts.has(url)) return Promise.resolve(verdicts.get(url))
+  if (inFlight.has(url)) return inFlight.get(url)
+
+  const request = (async () => {
+    try {
+      const res = await fetch(`/api/embed/check?url=${encodeURIComponent(url)}`, {
+        credentials: 'same-origin',
+      })
+      const verdict = res.ok ? await res.json() : { embeddable: false, reason: `check-${res.status}` }
+      if (res.ok) verdicts.set(url, verdict)
+      return verdict
+    } catch {
+      return { embeddable: false, reason: 'offline' }
+    } finally {
+      inFlight.delete(url)
+    }
+  })()
+  inFlight.set(url, request)
+  return request
+}
+
+/** The verdict already known for a URL, or undefined if it hasn't been checked. */
+export const cachedVerdict = (url) => verdicts.get(url)
+
+/**
+ * Warm the check on hover or first touch, so the click that follows knows the
+ * answer and can open a popup window inside the user's gesture. Videos need no
+ * check — they always play in-app.
+ */
+export function prefetchEmbeddable(url) {
+  if (isExternalUrl(url) && !videoEmbedUrl(url) && !verdicts.has(url)) {
+    checkEmbeddable(url).catch(() => {})
   }
 }

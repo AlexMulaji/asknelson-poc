@@ -1,19 +1,29 @@
 import { Link } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth.jsx'
 
-// The account affordance: a "Sign in" link when signed out, a name chip with a
-// sign-out control when signed in.
+// The account affordance: the signed-in member's chip, with a sign-out control.
 //
-// An account is optional throughout the app, so this never nags and never
-// blocks — it is a quiet control in the corner. It renders nothing at all while
-// the session is still resolving, or when the server has no database and so
-// cannot offer accounts.
+// Signing out drops them back at /login, since the app now requires an account.
+// It renders nothing while the session is still resolving, or when the server
+// has no database and so cannot offer accounts.
 
 function initials(user) {
   if (user.isAnonymous) return user.username?.slice(0, 2).toUpperCase() || 'AN'
   const first = user.firstName?.[0] ?? ''
   const last = user.lastName?.[0] ?? ''
-  return (first + last).toUpperCase() || 'ME'
+  if (first || last) return (first + last).toUpperCase()
+  // The Figma sign-up collects no name, so fall back to the last two digits of
+  // the mobile number the member signed up with.
+  return user.phone?.slice(-2) || 'ME'
+}
+
+// 27821234567 -> 082 123 4567, so people recognise their own number.
+function displayName(user) {
+  if (user.isAnonymous) return user.username
+  if (user.firstName) return [user.firstName, user.lastName].filter(Boolean).join(' ')
+  const digits = (user.phone || '').replace(/\D/g, '')
+  const local = digits.startsWith('27') ? `0${digits.slice(2)}` : digits
+  return local.length === 10 ? local.replace(/(\d{3})(\d{3})(\d{4})/, '$1 $2 $3') : local || 'Your account'
 }
 
 export default function AccountBadge({ className = '', variant = 'chip' }) {
@@ -36,7 +46,7 @@ export default function AccountBadge({ className = '', variant = 'chip' }) {
     )
   }
 
-  const label = user.isAnonymous ? user.username : user.firstName || 'Your account'
+  const label = displayName(user)
 
   if (variant === 'full') {
     return (
@@ -48,7 +58,7 @@ export default function AccountBadge({ className = '', variant = 'chip' }) {
           <span className="min-w-0 flex-1">
             <span className="block truncate text-[13px] font-semibold text-gray-800">{label}</span>
             <span className="block text-[11px] text-gray-400">
-              {user.isAnonymous ? 'Anonymous account' : user.employer || 'Signed in'}
+              {user.isAnonymous ? 'Anonymous account' : 'Signed in'}
             </span>
           </span>
         </div>
@@ -77,7 +87,7 @@ export default function AccountBadge({ className = '', variant = 'chip' }) {
       <span className="flex h-7 w-7 items-center justify-center rounded-full bg-brand text-[11px] font-bold text-white">
         {initials(user)}
       </span>
-      <span className="max-w-[100px] truncate">{label}</span>
+      <span className="max-w-[110px] truncate">{label}</span>
     </button>
   )
 }

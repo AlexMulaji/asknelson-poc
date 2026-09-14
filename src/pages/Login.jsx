@@ -37,7 +37,8 @@ export default function Login() {
     setError(null)
     try {
       const { lastRoute } = await signIn(identifier.trim(), password, remember)
-      navigate(lastRoute || '/home', { replace: true })
+      // Where they were going before the gate, else where they left off.
+      navigate(location.state?.from || lastRoute || '/home', { replace: true })
     } catch (err) {
       setError(err.message)
       track('sign_in_failed', { status: err.status ?? 0 })

@@ -1,6 +1,7 @@
 import CoverImage from './CoverImage.jsx'
 import Pill from './Pill.jsx'
 import { isPlainClick, useOpenExternal } from './InAppBrowser.jsx'
+import { prefetchEmbeddable } from '../lib/externalLinks.js'
 import { BookIcon, ClockIcon, ExternalLinkIcon, VideoIcon } from './Icons.jsx'
 import { track } from '../lib/analytics.js'
 
@@ -34,6 +35,9 @@ export default function ContentCard({ item }) {
       target="_blank"
       rel="noopener noreferrer"
       onClick={onClick}
+      // Ask the server whether this site can be framed before the tap lands.
+      onPointerEnter={() => prefetchEmbeddable(item.url)}
+      onTouchStart={() => prefetchEmbeddable(item.url)}
       // card-press gives a physical scale-down on tap (defined in index.css).
       className="card-press flex overflow-hidden rounded-card bg-white shadow-card"
     >

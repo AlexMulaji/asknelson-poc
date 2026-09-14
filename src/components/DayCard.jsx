@@ -1,5 +1,6 @@
 import Pill from './Pill.jsx'
 import { CheckCircleIcon, ChevronRightIcon, ExternalLinkIcon, LockIcon } from './Icons.jsx'
+import { prefetchEmbeddable } from '../lib/externalLinks.js'
 
 function titleCase(s) {
   if (!s) return ''
@@ -73,6 +74,8 @@ export default function DayCard({ day, status, onOpen, onMarkDone, onOpenResourc
               target="_blank"
               rel="noopener noreferrer"
               onClick={onOpenResource ? (e) => onOpenResource(e, day) : undefined}
+              onPointerEnter={() => prefetchEmbeddable(day.source_url)}
+              onTouchStart={() => prefetchEmbeddable(day.source_url)}
               className="inline-flex min-h-[44px] items-center gap-1.5 text-[14px] font-extrabold text-brand"
             >
               {day.source_title || 'Open resource'}

@@ -18,6 +18,7 @@ import Journeys from './pages/Journeys.jsx'
 import Reset from './pages/ResetPassword.jsx'
 import Forgot from './pages/ForgotPassword.jsx'
 import InAppBrowser from './components/InAppBrowser.jsx'
+import { useAuth } from './hooks/useAuth.jsx'
 import {
   getNotificationPreference,
   requestNotificationPermission,
@@ -61,7 +62,8 @@ function RouteTracker() {
 }
 
 export default function App() {
-  const { pathname } = useLocation()
+  const { pathname, search } = useLocation()
+  const { status, isSignedIn } = useAuth()
   // The admin console lives outside the member-facing shell.
   const isAdmin = pathname.startsWith('/admin')
   // Taking an assessment is a full-screen task: the mockups drop the nav so the
@@ -116,6 +118,25 @@ export default function App() {
         </Routes>
       </MotionConfig>
     )
+  }
+
+  // Everything past this point needs an account. Wait for /me rather than
+  // flashing the sign-in screen at someone who is already signed in, then send
+  // signed-out visitors to /login, remembering where they were headed.
+  if (status === 'loading') {
+    return (
+      <div className="grid min-h-screen place-items-center bg-canvas">
+        <span
+          role="status"
+          aria-label="Loading"
+          className="h-8 w-8 animate-spin rounded-full border-[3px] border-brand border-t-transparent"
+        />
+      </div>
+    )
+  }
+
+  if (!isSignedIn) {
+    return <Navigate to="/login" replace state={{ from: pathname + search }} />
   }
 
   return (
