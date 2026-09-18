@@ -69,18 +69,18 @@ services:
     volumes:
       # Admin content edits survive rebuilds and restarts.
       - asknelson-data:/app/data
-    # The shared database is owned by another compose project, so it cannot
-    # be waited on here. The app retries its first connection at boot.
-    networks:
-      - default
-      - shared-db
+    # Only needed for the bundled `db` below; when ASKNELSON_DATABASE_URL
+    # points somewhere else this is a no-op, and the app retries its first
+    # connection at boot either way.
+    depends_on:
+      db:
+        condition: service_healthy
     restart: unless-stopped
 
-  # The original, app-private database. Its data was merged into the shared
-  # container, so it no longer starts by default and is kept only as a
-  # rollback: `docker compose --profile legacy-db up -d db`.
+  # This project's own database — the default, and all a fresh checkout or a
+  # standalone host needs. To run against the shared Odoo Postgres instead,
+  # see docker-compose.shared-db.yml.
   db:
-    profiles: ["legacy-db"]
     image: postgres:16-alpine
     environment:
       POSTGRES_USER: asknelson
@@ -101,26 +101,6 @@ services:
       timeout: 5s
       retries: 10
     restart: unless-stopped
-
-  # Optional: exposes the shared database on 127.0.0.1:5433 for psql, a GUI
-  # client or a local `npm start`, which cannot reach a container network.
-  # Start it with `docker compose --profile tools up -d dbproxy`.
-  dbproxy:
-    profiles: ["tools"]
-    image: alpine/socat:1.8.0.0
-    command: tcp-listen:5432,fork,reuseaddr tcp-connect:kaelo19test-db-1:5432
-    ports:
-      - "127.0.0.1:${POSTGRES_HOST_PORT:-5433}:5432"
-    networks:
-      - shared-db
-    restart: unless-stopped
-
-networks:
-  default:
-  # Created by the Odoo compose project (kaelo19test); joined, never managed.
-  shared-db:
-    name: kaelo19test_default
-    external: true
 
 volumes:
   asknelson-data:

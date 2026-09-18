@@ -1,0 +1,51 @@
+# Opt-in overlay: run the app against the shared Odoo Postgres instead of this
+# project's own database.
+#
+#   docker compose -f docker-compose.yml -f docker-compose.shared-db.yml up -d
+#
+# or, so plain `docker compose` picks it up on that host, put this in .env:
+#
+#   COMPOSE_FILE=docker-compose.yml:docker-compose.shared-db.yml
+#   SHARED_DB_NETWORK=<odoo project>_default
+#   ASKNELSON_DATABASE_URL=postgres://user:pw@<odoo db container>:5432/<database>
+#
+# Without this file nothing here applies, so a host that never sets it up is
+# unaffected by the Odoo stack entirely.
+services:
+  asknelson:
+    # Reach the Odoo project's Postgres over its network.
+    networks:
+      - default
+      - shared-db
+    # That container belongs to another compose project, so it cannot be waited
+    # on from here; the app retries its first connection at boot. This cancels
+    # the base file's wait on the local db, which is switched off below.
+    depends_on: !reset null
+
+  # Switched off: the shared database is in use. Kept as the rollback path —
+  # `docker compose --profile legacy-db up -d db` starts it again, with its
+  # volume and data intact.
+  db:
+    profiles: ["legacy-db"]
+
+  # Optional: exposes the shared database on 127.0.0.1:5433 for psql, a GUI
+  # client or a local `npm start`, which cannot reach a container network.
+  # Start it with `docker compose --profile tools up -d dbproxy`.
+  dbproxy:
+    profiles: ["tools"]
+    image: alpine/socat:1.8.0.0
+    command: tcp-listen:5432,fork,reuseaddr tcp-connect:${SHARED_DB_HOST:-kaelo19test-db-1}:5432
+    ports:
+      - "127.0.0.1:${POSTGRES_HOST_PORT:-5433}:5432"
+    networks:
+      - shared-db
+    restart: unless-stopped
+
+networks:
+  default:
+  # Created by the Odoo compose project; joined, never managed. The project
+  # name differs per host, so set SHARED_DB_NETWORK in .env to whatever
+  # `docker network ls` shows for the Odoo stack on that machine.
+  shared-db:
+    name: ${SHARED_DB_NETWORK:-kaelo19test_default}
+    external: true
