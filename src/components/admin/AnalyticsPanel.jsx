@@ -1,13 +1,18 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import {
   createLinkToken,
   downloadEventsCsv,
+  fetchCompanyReport,
   fetchDevice,
+  fetchEventsByCompany,
   fetchLinkTokens,
+  fetchOrganisations,
   fetchOverview,
   fetchSessions,
   revokeLinkToken,
 } from '../../lib/adminApi.js'
+import { PERMISSIONS, useAdminSession } from '../../hooks/useAdminSession.jsx'
+import { filterCompanies, formatDuration } from '../../lib/companyTable.js'
 
 const WINDOWS = [7, 30, 90]
 
@@ -27,9 +32,9 @@ function shortId(id) {
 
 function Stat({ label, value, hint }) {
   return (
-    <div className="rounded-xl border border-gray-200 bg-white p-4">
+    <div className="rounded-xl border border-gray-200 bg-surface p-4">
       <p className="text-[11px] font-semibold uppercase tracking-wide text-gray-400">{label}</p>
-      <p className="mt-1 font-display text-[24px] font-semibold text-black">{value ?? '—'}</p>
+      <p className="mt-1 font-display text-[24px] font-semibold text-ink">{value ?? '—'}</p>
       {hint ? <p className="mt-0.5 text-[11px] text-gray-400">{hint}</p> : null}
     </div>
   )
@@ -113,8 +118,8 @@ function LinkTokens() {
   }
 
   return (
-    <section className="rounded-xl border border-gray-200 bg-white p-5">
-      <h3 className="font-display text-[16px] font-semibold text-black">WhatsApp links</h3>
+    <section className="rounded-xl border border-gray-200 bg-surface p-5">
+      <h3 className="font-display text-[16px] font-semibold text-ink">WhatsApp links</h3>
       <p className="mt-1 text-sm text-gray-500">
         Mint one link per member and send it over WhatsApp. When they open it, their device is
         bound to that member and every event from then on is attributed to them.
@@ -155,7 +160,7 @@ function LinkTokens() {
         <button
           type="submit"
           disabled={busy || !externalRef.trim()}
-          className="rounded-lg bg-brand px-4 py-2 text-sm font-semibold text-white transition disabled:opacity-40"
+          className="rounded-lg bg-brand px-4 py-2 text-sm font-semibold text-on-brand transition disabled:opacity-40"
         >
           {busy ? 'Creating…' : 'Create link'}
         </button>
@@ -171,13 +176,13 @@ function LinkTokens() {
             Link for {minted.externalRef} — copy it now, it is not shown again.
           </p>
           <div className="mt-2 flex items-center gap-2">
-            <code className="flex-1 overflow-x-auto whitespace-nowrap rounded border border-green-200 bg-white px-3 py-2 text-xs text-gray-700">
+            <code className="flex-1 overflow-x-auto whitespace-nowrap rounded border border-green-200 bg-surface px-3 py-2 text-xs text-gray-700">
               {minted.url}
             </code>
             <button
               type="button"
               onClick={() => navigator.clipboard?.writeText(minted.url)}
-              className="rounded-lg border border-green-300 bg-white px-3 py-2 text-xs font-semibold text-green-800"
+              className="rounded-lg border border-green-300 bg-surface px-3 py-2 text-xs font-semibold text-green-800"
             >
               Copy
             </button>
@@ -257,12 +262,12 @@ function DeviceDetail({ deviceId, onClose }) {
   return (
     <div className="fixed inset-0 z-50 flex justify-end bg-black/30" onClick={onClose}>
       <div
-        className="h-full w-full max-w-xl overflow-y-auto bg-white p-6 shadow-2xl"
+        className="h-full w-full max-w-xl overflow-y-auto bg-surface p-6 shadow-2xl"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-start justify-between gap-4">
           <div>
-            <h3 className="font-display text-[17px] font-semibold text-black">Device timeline</h3>
+            <h3 className="font-display text-[17px] font-semibold text-ink">Device timeline</h3>
             <p className="mt-0.5 font-mono text-xs text-gray-400">{deviceId}</p>
           </div>
           <button
@@ -341,21 +346,351 @@ function DeviceDetail({ deviceId, onClose }) {
   )
 }
 
+// --- per-company reporting -------------------------------------------------------
+
+// One company in depth: what its people actually do, and what they read.
+// Opened from the company table; closes back to the all-companies view.
+function CompanyReport({ organisationId, filters, onClose }) {
+  const [data, setData] = useState(null)
+  const [error, setError] = useState(null)
+
+  useEffect(() => {
+    let alive = true
+    setData(null)
+    setError(null)
+    // The company is in the path, so the org filter is dropped from the query
+    // — sending both would just be the same constraint twice.
+    const { organisationId: _ignored, ...rest } = filters
+    fetchCompanyReport(organisationId, rest)
+      .then((d) => alive && setData(d))
+      .catch((err) => alive && setError(err.message))
+    return () => {
+      alive = false
+    }
+  }, [organisationId, filters])
+
+  return (
+    <section className="rounded-xl border border-brand/30 bg-surface p-5">
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <h3 className="font-display text-[16px] font-semibold text-ink">
+            {data?.organisation?.name ?? 'Company report'}
+          </h3>
+          <p className="mt-0.5 text-[12px] text-gray-400">
+            Everything this company&apos;s people did in the selected window.
+          </p>
+        </div>
+        <button
+          type="button"
+          onClick={onClose}
+          className="shrink-0 rounded-lg border border-gray-200 px-3 py-1.5 text-xs font-semibold text-gray-600 hover:bg-gray-50"
+        >
+          Close
+        </button>
+      </div>
+
+      {error ? <p className="mt-4 text-sm text-red-600">{error}</p> : null}
+      {!data && !error ? <p className="mt-6 text-sm text-gray-400">Loading…</p> : null}
+
+      {data ? (
+        <>
+          <div className="mt-4 grid grid-cols-2 gap-3 lg:grid-cols-5">
+            <Stat label="Events" value={data.totals.events} />
+            <Stat label="Sessions" value={data.totals.sessions} />
+            <Stat label="Devices" value={data.totals.devices} />
+            <Stat label="Unique users" value={data.totals.members} />
+            <Stat
+              label="Time in app"
+              value={formatDuration(data.totals.time_spent_seconds)}
+              hint="Total session length"
+            />
+          </div>
+
+          <div className="mt-4">
+            <DailyChart daily={data.daily} />
+          </div>
+
+          <div className="mt-5 grid gap-4 lg:grid-cols-2">
+            <div>
+              <h4 className="text-[11px] font-semibold uppercase tracking-wide text-gray-400">
+                Most popular events
+              </h4>
+              <ul className="mt-2 space-y-1.5">
+                {data.topEvents.map((row) => (
+                  <li key={row.name} className="flex items-baseline justify-between gap-3 text-sm">
+                    <span className="truncate text-gray-700">{row.name}</span>
+                    <span className="shrink-0 text-gray-400">
+                      <span className="font-semibold text-gray-900">{row.count}</span> ·{' '}
+                      {row.devices} device(s)
+                    </span>
+                  </li>
+                ))}
+                {data.topEvents.length === 0 ? (
+                  <li className="py-4 text-sm text-gray-400">Nothing recorded in this window.</li>
+                ) : null}
+              </ul>
+            </div>
+
+            <div>
+              <h4 className="text-[11px] font-semibold uppercase tracking-wide text-gray-400">
+                Most opened content
+              </h4>
+              <ul className="mt-2 space-y-1.5">
+                {data.topContent.map((row) => (
+                  <li
+                    key={`${row.theme}-${row.title}`}
+                    className="flex items-baseline justify-between gap-3 text-sm"
+                  >
+                    <span className="truncate text-gray-700" title={row.title}>
+                      {row.title}
+                    </span>
+                    <span className="shrink-0 font-semibold text-gray-900">{row.opens}</span>
+                  </li>
+                ))}
+                {data.topContent.length === 0 ? (
+                  <li className="py-4 text-sm text-gray-400">No content opened in this window.</li>
+                ) : null}
+              </ul>
+            </div>
+          </div>
+        </>
+      ) : null}
+    </section>
+  )
+}
+
+const COMPANY_COLUMNS = [
+  { key: 'name', label: 'Company' },
+  { key: 'events', label: 'Events' },
+  { key: 'sessions', label: 'Sessions' },
+  { key: 'members', label: 'Unique users' },
+  {
+    key: 'time_spent_seconds',
+    label: 'Time in app',
+    title: 'Total session length in the selected window. Not narrowed by the event filter.',
+  },
+]
+
+const filterInput =
+  'rounded-lg border border-gray-200 bg-surface px-2.5 py-1.5 text-xs text-gray-700 focus:border-brand focus:outline-none'
+
+// Every company side by side, with its busiest events. The answer to "who is
+// using this, and for what" without opening a single member record.
+function CompanyTable({ filters, onSelect }) {
+  const [rows, setRows] = useState(null)
+  const [breakdown, setBreakdown] = useState(null)
+  const [unattributed, setUnattributed] = useState(null)
+  const [error, setError] = useState(null)
+  const [search, setSearch] = useState('')
+  const [minEvents, setMinEvents] = useState('')
+  const [minUsers, setMinUsers] = useState('')
+  const [sort, setSort] = useState({ by: 'events', direction: 'desc' })
+
+  const visible = useMemo(
+    () =>
+      filterCompanies(rows, {
+        search,
+        minEvents,
+        minUsers,
+        organisationId: filters.organisationId,
+        sortBy: sort.by,
+        direction: sort.direction,
+      }),
+    [rows, search, minEvents, minUsers, filters.organisationId, sort]
+  )
+
+  // Clicking the active column flips it; a new column starts A–Z for names
+  // and biggest-first for numbers, which is what people look for first.
+  const sortOn = (key) =>
+    setSort((s) =>
+      s.by === key
+        ? { by: key, direction: s.direction === 'asc' ? 'desc' : 'asc' }
+        : { by: key, direction: key === 'name' ? 'asc' : 'desc' }
+    )
+
+  const narrowed = search || minEvents || minUsers
+
+  useEffect(() => {
+    let alive = true
+    Promise.all([fetchOrganisations(filters), fetchEventsByCompany(filters)])
+      .then(([orgs, by]) => {
+        if (!alive) return
+        setRows(orgs.organisations)
+        setUnattributed(orgs.unattributed)
+        setBreakdown(new Map(by.companies.map((c) => [c.organisationId, c.topEvents])))
+      })
+      .catch((err) => alive && setError(err.message))
+    return () => {
+      alive = false
+    }
+  }, [filters])
+
+  if (error) return <p className="text-sm text-red-600">{error}</p>
+  if (!rows) return <p className="py-8 text-center text-sm text-gray-400">Loading companies…</p>
+
+  return (
+    <section className="rounded-xl border border-gray-200 bg-surface p-5">
+      <h3 className="font-display text-[16px] font-semibold text-ink">By company</h3>
+      <p className="mt-0.5 text-[12px] text-gray-400">
+        Activity per employer, with each one&apos;s three busiest events. Click a column to sort, or
+        a row for the full report.
+      </p>
+
+      <div className="mt-3 flex flex-wrap items-center gap-2">
+        <input
+          type="search"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          placeholder="Search companies"
+          aria-label="Search companies"
+          className={`${filterInput} min-w-[160px] flex-1`}
+        />
+        <input
+          type="number"
+          min="0"
+          value={minEvents}
+          onChange={(e) => setMinEvents(e.target.value)}
+          placeholder="Min events"
+          aria-label="Minimum events"
+          className={`${filterInput} w-28`}
+        />
+        <input
+          type="number"
+          min="0"
+          value={minUsers}
+          onChange={(e) => setMinUsers(e.target.value)}
+          placeholder="Min unique users"
+          aria-label="Minimum unique users"
+          className={`${filterInput} w-36`}
+        />
+        {narrowed ? (
+          <button
+            type="button"
+            onClick={() => {
+              setSearch('')
+              setMinEvents('')
+              setMinUsers('')
+            }}
+            className="rounded-lg px-2 py-1.5 text-xs font-semibold text-gray-500 hover:text-gray-800"
+          >
+            Clear
+          </button>
+        ) : null}
+      </div>
+
+      <div className="mt-3 overflow-x-auto">
+        <table className="w-full text-left text-sm">
+          <thead className="text-[11px] uppercase tracking-wide text-gray-400">
+            <tr>
+              {COMPANY_COLUMNS.map((col) => (
+                <th
+                  key={col.key}
+                  className="pb-2 pr-4 font-semibold"
+                  aria-sort={
+                    sort.by === col.key
+                      ? sort.direction === 'asc'
+                        ? 'ascending'
+                        : 'descending'
+                      : undefined
+                  }
+                >
+                  <button
+                    type="button"
+                    onClick={() => sortOn(col.key)}
+                    title={col.title}
+                    className={[
+                      'uppercase tracking-wide hover:text-gray-700',
+                      sort.by === col.key ? 'text-gray-700' : '',
+                    ].join(' ')}
+                  >
+                    {col.label}
+                    {sort.by === col.key ? (sort.direction === 'asc' ? ' ↑' : ' ↓') : ''}
+                  </button>
+                </th>
+              ))}
+              <th className="pb-2 font-semibold">Most popular</th>
+            </tr>
+          </thead>
+          <tbody className="text-gray-600">
+            {visible.map((row) => (
+              <tr
+                key={row.id}
+                onClick={() => onSelect(row.id)}
+                className="cursor-pointer border-t border-gray-100 hover:bg-gray-50"
+              >
+                <td className="py-2 pr-4 font-medium text-gray-800">{row.name}</td>
+                <td className="py-2 pr-4">{row.events}</td>
+                <td className="py-2 pr-4">{row.sessions}</td>
+                <td className="py-2 pr-4">{row.members}</td>
+                <td className="py-2 pr-4 whitespace-nowrap">
+                  {formatDuration(row.time_spent_seconds)}
+                </td>
+                <td className="py-2 text-[12px] text-gray-500">
+                  {(breakdown?.get(row.id) ?? [])
+                    .slice(0, 3)
+                    .map((e) => `${e.name} (${e.count})`)
+                    .join(', ') || '—'}
+                </td>
+              </tr>
+            ))}
+            {visible.length === 0 ? (
+              <tr>
+                <td colSpan={6} className="py-6 text-center text-gray-400">
+                  {rows.length === 0
+                    ? 'No company activity in this window.'
+                    : 'No companies match these filters.'}
+                </td>
+              </tr>
+            ) : null}
+          </tbody>
+        </table>
+      </div>
+
+      {unattributed?.events > 0 ? (
+        <p className="mt-3 rounded-lg bg-gray-50 px-3 py-2 text-[12px] leading-relaxed text-gray-500">
+          {unattributed.events} event(s) in this window belong to no company — anonymous accounts,
+          which are never linked to an employer by design, and visits that happened before the
+          person signed in. They are counted in the totals above but not in any company row.
+        </p>
+      ) : null}
+    </section>
+  )
+}
+
 // --- panel --------------------------------------------------------------------
 
 export default function AnalyticsPanel() {
+  const { can } = useAdminSession()
   const [days, setDays] = useState(30)
+  const [organisationId, setOrganisationId] = useState('')
+  const [eventName, setEventName] = useState('')
   const [overview, setOverview] = useState(null)
   const [sessions, setSessions] = useState([])
+  const [companies, setCompanies] = useState([])
+  const [openCompany, setOpenCompany] = useState(null)
   const [error, setError] = useState(null)
   const [loading, setLoading] = useState(true)
   const [openDevice, setOpenDevice] = useState(null)
+  const [reloadKey, setReloadKey] = useState(0)
 
-  const load = useCallback(async (windowDays) => {
+  // One object, so every panel and the CSV export are filtered identically —
+  // and memoised, because it is a dependency of the child effects.
+  const filters = useMemo(
+    () => ({ days, organisationId: organisationId || undefined, name: eventName || undefined }),
+    [days, organisationId, eventName]
+  )
+
+  const canDrillIntoDevices = can(PERMISSIONS.ANALYTICS_READ_PII)
+  const canExport = can(PERMISSIONS.ANALYTICS_EXPORT)
+
+  const load = useCallback(async (active) => {
     setLoading(true)
     setError(null)
     try {
-      const [o, s] = await Promise.all([fetchOverview(windowDays), fetchSessions(50)])
+      const [o, s] = await Promise.all([
+        fetchOverview(active),
+        fetchSessions({ ...active, limit: 50 }),
+      ])
       setOverview(o)
       setSessions(s.sessions)
     } catch (err) {
@@ -366,8 +701,22 @@ export default function AnalyticsPanel() {
   }, [])
 
   useEffect(() => {
-    load(days)
-  }, [days, load])
+    load(filters)
+  }, [filters, load, reloadKey])
+
+  // The company picker lists every company with activity in the window, so it
+  // is loaded independently of whichever company is currently selected.
+  useEffect(() => {
+    let alive = true
+    fetchOrganisations({ days })
+      .then((body) => alive && setCompanies(body.organisations))
+      .catch(() => {
+        /* the picker simply stays empty; the error surfaces on the main load */
+      })
+    return () => {
+      alive = false
+    }
+  }, [days, reloadKey])
 
   if (error) {
     return (
@@ -380,40 +729,75 @@ export default function AnalyticsPanel() {
 
   const totals = overview?.totals ?? {}
   const linkage = overview?.deviceLinkage ?? {}
+  const eventNames = overview?.byName ?? []
 
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <div className="flex rounded-lg border border-gray-200 bg-white p-0.5">
-          {WINDOWS.map((w) => (
-            <button
-              key={w}
-              type="button"
-              onClick={() => setDays(w)}
-              className={[
-                'rounded-md px-3 py-1 text-xs font-semibold transition',
-                days === w ? 'bg-gray-900 text-white' : 'text-gray-500',
-              ].join(' ')}
-            >
-              {w} days
-            </button>
-          ))}
+        <div className="flex flex-wrap items-center gap-2">
+          <div className="flex rounded-lg border border-gray-200 bg-surface p-0.5">
+            {WINDOWS.map((w) => (
+              <button
+                key={w}
+                type="button"
+                onClick={() => setDays(w)}
+                className={[
+                  'rounded-md px-3 py-1 text-xs font-semibold transition',
+                  days === w ? 'bg-ink text-surface' : 'text-gray-500',
+                ].join(' ')}
+              >
+                {w} days
+              </button>
+            ))}
+          </div>
+
+          <select
+            value={organisationId}
+            onChange={(e) => {
+              setOrganisationId(e.target.value)
+              setOpenCompany(null)
+            }}
+            className="rounded-lg border border-gray-200 bg-surface px-2.5 py-1.5 text-xs font-semibold text-gray-600"
+          >
+            <option value="">All companies</option>
+            {companies.map((c) => (
+              <option key={c.id} value={c.id}>
+                {c.name} ({c.events})
+              </option>
+            ))}
+          </select>
+
+          <select
+            value={eventName}
+            onChange={(e) => setEventName(e.target.value)}
+            className="rounded-lg border border-gray-200 bg-surface px-2.5 py-1.5 text-xs font-semibold text-gray-600"
+          >
+            <option value="">All events</option>
+            {eventNames.map((row) => (
+              <option key={row.name} value={row.name}>
+                {row.name}
+              </option>
+            ))}
+          </select>
         </div>
+
         <div className="flex gap-2">
           <button
             type="button"
-            onClick={() => load(days)}
-            className="rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-xs font-semibold text-gray-600 hover:bg-gray-50"
+            onClick={() => setReloadKey((k) => k + 1)}
+            className="rounded-lg border border-gray-200 bg-surface px-3 py-1.5 text-xs font-semibold text-gray-600 hover:bg-gray-50"
           >
             Refresh
           </button>
-          <button
-            type="button"
-            onClick={() => downloadEventsCsv(days).catch((err) => setError(err.message))}
-            className="rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-xs font-semibold text-gray-600 hover:bg-gray-50"
-          >
-            Export CSV
-          </button>
+          {canExport ? (
+            <button
+              type="button"
+              onClick={() => downloadEventsCsv(filters).catch((err) => setError(err.message))}
+              className="rounded-lg border border-gray-200 bg-surface px-3 py-1.5 text-xs font-semibold text-gray-600 hover:bg-gray-50"
+            >
+              Export CSV
+            </button>
+          ) : null}
         </div>
       </div>
 
@@ -421,10 +805,21 @@ export default function AnalyticsPanel() {
         <p className="py-16 text-center text-sm text-gray-400">Loading analytics…</p>
       ) : (
         <>
-          <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+          <div className="grid grid-cols-2 gap-3 md:grid-cols-4 xl:grid-cols-7">
             <Stat label="Events" value={totals.events} />
             <Stat label="Sessions" value={totals.sessions} />
-            <Stat label="Devices" value={totals.devices} hint={`${totals.devices_all_time} all time`} />
+            <Stat
+              label="Unique users"
+              value={totals.unique_users}
+              hint="Linked people, else devices"
+            />
+            <Stat
+              label="Time in app"
+              value={formatDuration(totals.time_spent_seconds)}
+              hint="Total session length"
+            />
+            <Stat label="Devices" value={totals.devices} />
+            <Stat label="Companies" value={totals.companies} />
             <Stat
               label="Identified"
               value={totals.members}
@@ -432,8 +827,8 @@ export default function AnalyticsPanel() {
             />
           </div>
 
-          <section className="rounded-xl border border-gray-200 bg-white p-5">
-            <h3 className="font-display text-[16px] font-semibold text-black">
+          <section className="rounded-xl border border-gray-200 bg-surface p-5">
+            <h3 className="font-display text-[16px] font-semibold text-ink">
               Daily activity
               <span className="ml-2 text-[12px] font-normal text-gray-400">
                 {totals.whatsapp_sessions} of {totals.sessions} sessions arrived from WhatsApp
@@ -444,24 +839,34 @@ export default function AnalyticsPanel() {
             </div>
           </section>
 
+          {openCompany ? (
+            <CompanyReport
+              organisationId={openCompany}
+              filters={filters}
+              onClose={() => setOpenCompany(null)}
+            />
+          ) : (
+            <CompanyTable filters={filters} onSelect={setOpenCompany} />
+          )}
+
           <div className="grid gap-4 lg:grid-cols-2">
-            <section className="rounded-xl border border-gray-200 bg-white p-5">
-              <h3 className="font-display text-[16px] font-semibold text-black">Events by type</h3>
+            <section className="rounded-xl border border-gray-200 bg-surface p-5">
+              <h3 className="font-display text-[16px] font-semibold text-ink">Events by type</h3>
               <ul className="mt-3 space-y-1.5">
-                {(overview?.byName ?? []).slice(0, 15).map((row) => (
+                {eventNames.slice(0, 15).map((row) => (
                   <li key={row.name} className="flex items-baseline justify-between gap-3 text-sm">
                     <span className="text-gray-700">{row.name}</span>
                     <span className="shrink-0 font-semibold text-gray-900">{row.count}</span>
                   </li>
                 ))}
-                {(overview?.byName ?? []).length === 0 ? (
+                {eventNames.length === 0 ? (
                   <li className="py-4 text-sm text-gray-400">Nothing recorded yet.</li>
                 ) : null}
               </ul>
             </section>
 
-            <section className="rounded-xl border border-gray-200 bg-white p-5">
-              <h3 className="font-display text-[16px] font-semibold text-black">Most opened content</h3>
+            <section className="rounded-xl border border-gray-200 bg-surface p-5">
+              <h3 className="font-display text-[16px] font-semibold text-ink">Most opened content</h3>
               <ul className="mt-3 space-y-1.5">
                 {(overview?.topContent ?? []).map((row) => (
                   <li
@@ -481,17 +886,19 @@ export default function AnalyticsPanel() {
             </section>
           </div>
 
-          <section className="rounded-xl border border-gray-200 bg-white p-5">
-            <h3 className="font-display text-[16px] font-semibold text-black">Recent sessions</h3>
+          <section className="rounded-xl border border-gray-200 bg-surface p-5">
+            <h3 className="font-display text-[16px] font-semibold text-ink">Recent sessions</h3>
             <div className="mt-3 overflow-x-auto">
               <table className="w-full text-left text-sm">
                 <thead className="text-[11px] uppercase tracking-wide text-gray-400">
                   <tr>
                     <th className="pb-2 pr-4 font-semibold">Started</th>
                     <th className="pb-2 pr-4 font-semibold">Member</th>
+                    <th className="pb-2 pr-4 font-semibold">Company</th>
                     <th className="pb-2 pr-4 font-semibold">Device</th>
                     <th className="pb-2 pr-4 font-semibold">Source</th>
                     <th className="pb-2 pr-4 font-semibold">Entry</th>
+                    <th className="pb-2 pr-4 font-semibold">Length</th>
                     <th className="pb-2 font-semibold">Events</th>
                   </tr>
                 </thead>
@@ -499,12 +906,23 @@ export default function AnalyticsPanel() {
                   {sessions.map((s) => (
                     <tr
                       key={s.id}
-                      onClick={() => setOpenDevice(s.device_id)}
-                      className="cursor-pointer border-t border-gray-100 hover:bg-gray-50"
+                      onClick={() => canDrillIntoDevices && setOpenDevice(s.device_id)}
+                      title={
+                        canDrillIntoDevices
+                          ? undefined
+                          : 'Your role cannot open individual member activity'
+                      }
+                      className={[
+                        'border-t border-gray-100',
+                        canDrillIntoDevices ? 'cursor-pointer hover:bg-gray-50' : '',
+                      ].join(' ')}
                     >
                       <td className="py-2 pr-4 whitespace-nowrap">{formatDate(s.started_at)}</td>
                       <td className="py-2 pr-4 font-medium text-gray-800">
                         {s.external_ref || <span className="text-gray-400">Anonymous</span>}
+                      </td>
+                      <td className="py-2 pr-4">
+                        {s.organisation || <span className="text-gray-400">—</span>}
                       </td>
                       <td className="py-2 pr-4 font-mono text-xs">{shortId(s.device_id)}</td>
                       <td className="py-2 pr-4">
@@ -517,12 +935,15 @@ export default function AnalyticsPanel() {
                         )}
                       </td>
                       <td className="py-2 pr-4">{s.entry_path || '—'}</td>
+                      <td className="py-2 pr-4 whitespace-nowrap">
+                        {formatDuration(s.duration_seconds)}
+                      </td>
                       <td className="py-2">{s.event_count}</td>
                     </tr>
                   ))}
                   {sessions.length === 0 ? (
                     <tr>
-                      <td colSpan={6} className="py-6 text-center text-gray-400">
+                      <td colSpan={8} className="py-6 text-center text-gray-400">
                         No sessions recorded yet.
                       </td>
                     </tr>
@@ -532,7 +953,7 @@ export default function AnalyticsPanel() {
             </div>
           </section>
 
-          <LinkTokens />
+          {canDrillIntoDevices ? <LinkTokens /> : null}
         </>
       )}
 

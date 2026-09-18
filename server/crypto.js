@@ -121,3 +121,30 @@ export function blindIndex(value, namespace = '') {
   const input = namespace ? `${namespace}\u0000${value}` : String(value)
   return crypto.createHmac('sha256', PEPPER || 'asknelson-unkeyed').update(input).digest('hex')
 }
+
+// --- text envelopes -------------------------------------------------------------
+
+// The columns above are bytea, written by code that only ever runs when a
+// database — and therefore DATA_ENCRYPTION_KEYS — is configured. Admin
+// accounts are the exception: the portal also runs in the no-database mode
+// (plain `npm run dev`, content editing only), where there are no keys at all.
+//
+// These wrap a value in a self-describing text envelope so one column type
+// serves both: sealed when keys exist, marked plain when they do not, and
+// readable either way after keys are added. `plain:` is a deliberate,
+// greppable admission rather than a silent fallback — index.js warns at
+// startup when the portal is running without keys.
+
+export function protect(value, context) {
+  if (value == null || value === '') return null
+  if (!encryptionConfigured) return `plain:${value}`
+  return `enc:${seal(value, context).toString('base64')}`
+}
+
+export function unprotect(stored, context) {
+  if (stored == null || stored === '') return null
+  const text = String(stored)
+  if (text.startsWith('plain:')) return text.slice(6)
+  if (text.startsWith('enc:')) return open(Buffer.from(text.slice(4), 'base64'), context)
+  throw new Error(`Unrecognised protected value (${context})`)
+}

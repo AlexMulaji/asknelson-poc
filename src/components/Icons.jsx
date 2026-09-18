@@ -24,6 +24,38 @@ const filled = {
   fill: 'currentColor',
 }
 
+/* ── Appearance ─────────────────────────────────────────────────────────── */
+// Not from the brand set: the light/dark control is a platform affordance the
+// V1 mockups never had one for, so these are drawn to match `stroked`.
+
+export function SunIcon(props) {
+  return (
+    <svg {...stroked} {...props}>
+      <circle cx="12" cy="12" r="4" />
+      <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41" />
+    </svg>
+  )
+}
+
+// A plain crescent, distinct from the decorative MoonIcon used by Meditate.
+export function CrescentIcon(props) {
+  return (
+    <svg {...stroked} {...props}>
+      <path d="M20 14.5A8.5 8.5 0 1 1 9.5 4a6.6 6.6 0 0 0 10.5 10.5Z" />
+    </svg>
+  )
+}
+
+// "Follow the system": a display, the convention every OS settings pane uses.
+export function MonitorIcon(props) {
+  return (
+    <svg {...stroked} {...props}>
+      <rect x="2.5" y="4" width="19" height="13" rx="2" />
+      <path d="M8.5 21h7M12 17v4" />
+    </svg>
+  )
+}
+
 /* ── Navigation ─────────────────────────────────────────────────────────── */
 
 // Home.svg

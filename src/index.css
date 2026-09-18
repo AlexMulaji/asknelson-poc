@@ -43,9 +43,219 @@
   font-display: swap;
 }
 
-/* ─── Safe-area / nav clearance ─────────────────────────────────────────── */
+/* ─── Colour tokens ──────────────────────────────────────────────────────── */
+/* Every Tailwind colour resolves to one of these (see tailwind.config.js).
+   Defined as "R G B" triples rather than hex so the utilities keep their
+   opacity modifiers. Light values are the original Figma palette unchanged. */
 :root {
   color-scheme: light;
+
+  --brand: 137 186 22;
+  --brand-dark: 120 164 23;
+  --brand-tint: 237 244 220;
+  --brand-wash: 249 251 244;
+  /* Label on a brand fill. The light-mode green is dark enough for white. */
+  --on-brand: 255 255 255;
+
+  --navy: 1 36 59;
+  --navy-soft: 18 56 79;
+
+  --accent: 255 117 28;
+  --danger: 225 35 31;
+  --muted: 147 161 170;
+
+  --canvas: 244 246 247;
+  --surface: 255 255 255;
+  --surface-sunken: 248 250 252;
+  --line: 230 235 237;
+
+  --ink: 1 36 59;
+  --ink-soft: 100 116 139;
+  --ink-faint: 148 163 184;
+
+  /* Placeholder tint behind photos, so cards don't flash white while loading. */
+  --media: 223 230 233;
+  /* Shadows are cast in the brand navy rather than pure black. */
+  --shadow: 1 36 59;
+
+  /* Shared neutral ramp behind both gray-* and slate-*: Tailwind's slate. */
+  --n-50: 248 250 252;
+  --n-100: 241 245 249;
+  --n-200: 226 232 240;
+  --n-300: 203 213 225;
+  --n-400: 148 163 184;
+  --n-500: 100 116 139;
+  --n-600: 71 85 105;
+  --n-700: 51 65 85;
+  --n-800: 30 41 59;
+  --n-900: 15 23 42;
+  --n-950: 2 6 23;
+
+  --pill-orange: 255 234 221;
+  --pill-orange-fg: 196 85 26;
+  --pill-purple: 235 226 241;
+  --pill-purple-fg: 107 74 138;
+  --pill-green: 226 239 225;
+  --pill-green-fg: 61 122 63;
+  --pill-lime: 232 241 211;
+  --pill-lime-fg: 94 127 20;
+  --pill-red: 252 233 233;
+  --pill-red-fg: 179 58 54;
+  --pill-blue: 221 235 245;
+  --pill-blue-fg: 47 98 136;
+  /* Status hues. Scoped the same way as the neutral ramp so a warning chip or
+     an error message inverts with everything else instead of staying a bright
+     patch on a dark page. Light values are Tailwind's own. */
+  --red-50: 254 242 242;
+  --red-100: 254 226 226;
+  --red-200: 254 202 202;
+  --red-300: 252 165 165;
+  --red-400: 248 113 113;
+  --red-500: 239 68 68;
+  --red-600: 220 38 38;
+  --red-700: 185 28 28;
+  --red-800: 153 27 27;
+  --red-900: 127 29 29;
+  --red-950: 69 10 10;
+
+  --amber-50: 255 251 235;
+  --amber-100: 254 243 199;
+  --amber-200: 253 230 138;
+  --amber-300: 252 211 77;
+  --amber-400: 251 191 36;
+  --amber-500: 245 158 11;
+  --amber-600: 217 119 6;
+  --amber-700: 180 83 9;
+  --amber-800: 146 64 14;
+  --amber-900: 120 53 15;
+  --amber-950: 69 26 3;
+
+  --green-50: 240 253 244;
+  --green-100: 220 252 231;
+  --green-200: 187 247 208;
+  --green-300: 134 239 172;
+  --green-400: 74 222 128;
+  --green-500: 34 197 94;
+  --green-600: 22 163 74;
+  --green-700: 21 128 61;
+  --green-800: 22 101 52;
+  --green-900: 20 83 45;
+  --green-950: 5 46 22;
+}
+
+/* Dark theme. Not pure black: the canvas and surfaces keep the brand's navy
+   cast, so the app reads as the same product with the lights off rather than
+   a generic greyscale inversion. Surfaces sit *above* the canvas in lightness
+   because shadow does almost no work on a dark background -- cards separate by
+   being lighter than what they sit on, which is the inverse of light mode. */
+.dark {
+  color-scheme: dark;
+
+  /* Lifted off the light-mode green: #89BA16 on a dark surface is muddy and
+     fails contrast for small text. */
+  --brand: 158 208 40;
+  /* Hover goes *lighter* here. On a dark UI, "darker on press" reads as the
+     control switching off. */
+  --brand-dark: 181 226 78;
+  --brand-tint: 33 48 18;
+  --brand-wash: 22 32 14;
+  /* The brighter green is far too light for white text (~2:1), so the label
+     on a brand button flips to near-black. */
+  --on-brand: 8 18 4;
+
+  /* The hero card, one step above the canvas so it still reads as a card. */
+  --navy: 13 29 40;
+  --navy-soft: 24 45 59;
+
+  --accent: 255 146 79;
+  /* Barely lifted, unlike the other hues: danger is used as a solid fill with
+     a white label (SafetyScreen, the SOS button), and brightening it far
+     enough to read well as *text* would drop that label below 3:1. */
+  --danger: 230 70 66;
+  --muted: 125 143 158;
+
+  --canvas: 7 15 22;
+  --surface: 15 27 37;
+  --surface-sunken: 21 35 46;
+  --line: 32 49 63;
+
+  --ink: 232 239 243;
+  --ink-soft: 152 170 184;
+  --ink-faint: 125 143 158;
+
+  --media: 26 40 51;
+  --shadow: 0 0 0;
+
+  /* The ramp inverted. Not a straight mirror: the light end is compressed so
+     400/500 stay readable as secondary text on --surface (4.8:1 and 6.9:1)
+     while 50/100/200 stay dark enough to work as raised fills and borders. */
+  --n-50: 21 34 45;
+  --n-100: 27 42 54;
+  --n-200: 36 54 68;
+  --n-300: 52 72 89;
+  --n-400: 125 143 158;
+  --n-500: 152 170 184;
+  --n-600: 181 195 207;
+  --n-700: 205 217 226;
+  --n-800: 224 233 239;
+  --n-900: 237 243 247;
+  --n-950: 248 251 253;
+
+  --pill-orange: 61 35 18;
+  --pill-orange-fg: 255 178 124;
+  --pill-purple: 48 36 61;
+  --pill-purple-fg: 201 172 228;
+  --pill-green: 25 48 29;
+  --pill-green-fg: 143 202 148;
+  --pill-lime: 38 48 18;
+  --pill-lime-fg: 186 216 110;
+  --pill-red: 58 28 28;
+  --pill-red-fg: 246 156 152;
+  --pill-blue: 22 45 62;
+  --pill-blue-fg: 145 196 230;
+  /* Status hues inverted: the 50-300 end becomes a deep tint to fill a chip,
+     the 500-900 end becomes the light text that sits on it. 400 is left at its
+     light-mode value in each -- it is the one step used as a standalone accent
+     rather than as a pair. */
+  --red-50: 48 18 18;
+  --red-100: 60 22 22;
+  --red-200: 78 30 30;
+  --red-300: 110 42 42;
+  --red-400: 248 113 113;
+  --red-500: 248 128 128;
+  --red-600: 250 150 148;
+  --red-700: 252 175 173;
+  --red-800: 253 200 198;
+  --red-900: 254 220 219;
+  --red-950: 254 240 240;
+
+  --amber-50: 48 33 10;
+  --amber-100: 61 42 12;
+  --amber-200: 82 56 16;
+  --amber-300: 110 75 22;
+  --amber-400: 251 191 36;
+  --amber-500: 250 200 70;
+  --amber-600: 252 211 100;
+  --amber-700: 253 224 140;
+  --amber-800: 254 235 175;
+  --amber-900: 254 243 205;
+  --amber-950: 255 250 235;
+
+  --green-50: 12 40 22;
+  --green-100: 17 52 29;
+  --green-200: 22 70 38;
+  --green-300: 30 95 50;
+  --green-400: 74 222 128;
+  --green-500: 90 210 125;
+  --green-600: 120 220 150;
+  --green-700: 150 230 175;
+  --green-800: 190 240 205;
+  --green-900: 220 248 228;
+  --green-950: 240 253 244;
+}
+
+/* ─── Safe-area / nav clearance ─────────────────────────────────────────── */
+:root {
   /* Nav bar is ~64px tall. Bottom clearance adds the device safe area on top
      so content never hides behind the home indicator on notched phones. */
   --nav-h: 64px;
@@ -76,9 +286,13 @@ body,
 
 body {
   margin: 0;
-  /* Soft canvas so white cards lift off the background (see tailwind `canvas`). */
-  background-color: #f4f6f7;
-  color: #01243b;
+  /* Soft canvas so raised cards lift off the background (tailwind `canvas`). */
+  background-color: rgb(var(--canvas));
+  color: rgb(var(--ink));
+  /* Theme swaps are a whole-screen colour change; easing it stops the flip
+     from reading as a flash. Instant for anyone who asked for less motion
+     (see the reduced-motion block below). */
+  transition: background-color 0.2s ease, color 0.2s ease;
   font-family: 'Hurme Geometric Sans 4', system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -111,7 +325,7 @@ a {
 
 /* Focus ring: visible for keyboard navigation but hidden on touch/click. */
 :focus-visible {
-  outline: 2px solid #89ba16;
+  outline: 2px solid rgb(var(--brand));
   outline-offset: 2px;
 }
 :focus:not(:focus-visible) {
@@ -175,7 +389,7 @@ a {
 @media (hover: hover) {
   .card-press:hover {
     transform: translateY(-2px);
-    box-shadow: 0 10px 34px -10px rgb(16 24 40 / 0.2);
+    box-shadow: 0 10px 34px -10px rgb(var(--shadow) / 0.2);
   }
 }
 
@@ -188,7 +402,7 @@ a {
 /* ─── Media ──────────────────────────────────────────────────────────────── */
 /* Placeholder tint behind photos so cards don't flash white while loading. */
 .media-bg {
-  background-color: #dfe6e9;
+  background-color: rgb(var(--media));
 }
 
 /* ─── Reduced motion ─────────────────────────────────────────────────────── */
@@ -201,4 +415,39 @@ a {
     animation-iteration-count: 1 !important;
     transition-duration: 0.001ms !important;
   }
+}
+
+/* ─── Reader view ────────────────────────────────────────────────────────── */
+/* Articles shown in the in-app reader (InAppBrowser.jsx). The markup comes
+   from other publishers, so it is styled by element rather than by class. */
+@layer components {
+  .reader-content {
+    @apply text-[17px] leading-[1.7] text-navy;
+    overflow-wrap: anywhere;
+  }
+  .reader-content > * + * { @apply mt-5; }
+  .reader-content h2 { @apply mt-9 font-display text-[22px] font-extrabold leading-snug; }
+  .reader-content h3 { @apply mt-8 font-display text-[19px] font-extrabold leading-snug; }
+  .reader-content h4,
+  .reader-content h5,
+  .reader-content h6 { @apply mt-7 text-[17px] font-extrabold; }
+  .reader-content a { @apply font-semibold text-brand-dark underline underline-offset-2; }
+  .reader-content strong,
+  .reader-content b { @apply font-bold; }
+  .reader-content ul { @apply list-disc space-y-2 pl-6; }
+  .reader-content ol { @apply list-decimal space-y-2 pl-6; }
+  .reader-content li > ul,
+  .reader-content li > ol { @apply mt-2; }
+  .reader-content blockquote { @apply border-l-4 border-brand pl-4 italic text-slate-600; }
+  .reader-content img { @apply mx-auto h-auto max-w-full rounded-xl; }
+  .reader-content figure { @apply my-6; }
+  .reader-content figcaption { @apply mt-2 text-center text-[13px] leading-snug text-slate-500; }
+  .reader-content pre { @apply overflow-x-auto rounded-xl bg-canvas p-4 text-[14px]; }
+  .reader-content code { @apply rounded bg-canvas px-1 text-[15px]; }
+  .reader-content pre code { @apply bg-transparent p-0; }
+  .reader-content hr { @apply my-8 border-line; }
+  .reader-content table { @apply block w-full overflow-x-auto border-collapse text-[15px]; }
+  .reader-content th,
+  .reader-content td { @apply border border-line px-3 py-2 text-left align-top; }
+  .reader-content th { @apply bg-canvas font-bold; }
 }

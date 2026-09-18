@@ -3,118 +3,87 @@ import { Link } from 'react-router-dom'
 import CollectionEditor from '../components/admin/CollectionEditor.jsx'
 import RawJsonEditor from '../components/admin/RawJsonEditor.jsx'
 import AnalyticsPanel from '../components/admin/AnalyticsPanel.jsx'
+import AdminLogin from '../components/admin/AdminLogin.jsx'
+import AdminUsersPanel from '../components/admin/AdminUsersPanel.jsx'
+import ThemeToggle from '../components/ThemeToggle.jsx'
 import { DATASET_SCHEMAS } from '../components/admin/schemas.js'
-import {
-  adminLogin,
-  fetchDataset,
-  getAdminKey,
-  resetDataset,
-  saveDataset,
-  setAdminKey,
-} from '../lib/adminApi.js'
+import { fetchDataset, resetDataset, saveDataset, setItemPublished } from '../lib/adminApi.js'
 import { downloadJson } from '../lib/downloadJson.js'
+import {
+  AdminSessionProvider,
+  PERMISSIONS,
+  useAdminSession,
+} from '../hooks/useAdminSession.jsx'
 
 const DATASET_KEYS = Object.keys(DATASET_SCHEMAS)
 
-// Analytics sits alongside the content datasets as a read-only tab; it has no
-// draft/save cycle, so the editor toolbar is hidden while it is open.
 const ANALYTICS_TAB = 'analytics'
-const TABS = [...DATASET_KEYS, ANALYTICS_TAB]
+const ACCOUNTS_TAB = 'accounts'
+
+// Every tab names the permission it needs, and the tab bar is built from the
+// ones the signed-in admin holds. The server checks the same permission on
+// every route behind them — this only decides what is worth showing.
+const TAB_PERMISSIONS = {
+  ...Object.fromEntries(DATASET_KEYS.map((k) => [k, PERMISSIONS.CONTENT_READ])),
+  [ANALYTICS_TAB]: PERMISSIONS.ANALYTICS_READ,
+  [ACCOUNTS_TAB]: PERMISSIONS.ADMIN_MANAGE,
+}
+
 const TAB_LABELS = {
   ...Object.fromEntries(DATASET_KEYS.map((k) => [k, DATASET_SCHEMAS[k].label])),
   [ANALYTICS_TAB]: 'Analytics',
-}
-
-// ---------------------------------------------------------------------------
-// Login screen
-// ---------------------------------------------------------------------------
-function AdminLogin({ onSuccess }) {
-  const [password, setPassword] = useState('')
-  const [error, setError] = useState(null)
-  const [busy, setBusy] = useState(false)
-
-  const submit = async (e) => {
-    e.preventDefault()
-    setBusy(true)
-    setError(null)
-    try {
-      await adminLogin(password)
-      onSuccess()
-    } catch (err) {
-      setError(err.message || 'Login failed')
-    } finally {
-      setBusy(false)
-    }
-  }
-
-  return (
-    <div className="flex min-h-screen items-center justify-center bg-canvas px-5">
-      <form
-        onSubmit={submit}
-        className="w-full max-w-sm rounded-2xl border border-gray-200 bg-white p-7 shadow-sm"
-      >
-        <h1 className="font-display text-[22px] font-bold text-black">Admin</h1>
-        <p className="mt-1 text-sm text-gray-500">
-          Sign in to edit the content shown in the app.
-        </p>
-        <label className="mt-5 block">
-          <span className="mb-1 block text-xs font-semibold text-gray-500">Admin password</span>
-          <input
-            type="password"
-            value={password}
-            autoFocus
-            onChange={(e) => setPassword(e.target.value)}
-            className="w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm focus:border-brand focus:outline-none"
-          />
-        </label>
-        {error ? <p className="mt-3 text-sm text-red-600">{error}</p> : null}
-        <button
-          type="submit"
-          disabled={busy || !password}
-          className="mt-5 w-full rounded-lg bg-brand py-2.5 text-sm font-semibold text-white transition disabled:opacity-40"
-        >
-          {busy ? 'Signing in…' : 'Sign in'}
-        </button>
-        <Link to="/explore" className="mt-4 block text-center text-xs text-gray-400 hover:text-gray-600">
-          ← Back to the app
-        </Link>
-      </form>
-    </div>
-  )
+  [ACCOUNTS_TAB]: 'Admin accounts',
 }
 
 // ---------------------------------------------------------------------------
 // Editor shell
 // ---------------------------------------------------------------------------
-export default function Admin() {
-  const [authed, setAuthed] = useState(() => Boolean(getAdminKey()))
-  const [active, setActive] = useState(DATASET_KEYS[0])
+function AdminShell() {
+  const { admin, can, signOut } = useAdminSession()
+
+  const tabs = useMemo(
+    () => [...DATASET_KEYS, ANALYTICS_TAB, ACCOUNTS_TAB].filter((tab) => can(TAB_PERMISSIONS[tab])),
+    [can]
+  )
+
+  const [active, setActive] = useState(() => tabs[0] ?? ANALYTICS_TAB)
   // Per-dataset { original, draft } so switching tabs never loses edits.
   const [docs, setDocs] = useState({})
   const [mode, setMode] = useState('visual') // 'visual' | 'raw'
   const [status, setStatus] = useState(null) // { kind: 'ok' | 'error', text }
   const [busy, setBusy] = useState(false)
 
-  const isAnalytics = active === ANALYTICS_TAB
+  const isDataset = DATASET_KEYS.includes(active)
   const schema = DATASET_SCHEMAS[active]
   const entry = docs[active]
+  const canPublish = can(PERMISSIONS.CONTENT_PUBLISH)
+  const canWrite = can(PERMISSIONS.CONTENT_WRITE)
   const dirty = useMemo(
     () => Boolean(entry) && JSON.stringify(entry.draft) !== JSON.stringify(entry.original),
     [entry]
   )
 
+  // An admin whose role lost them the tab they were on must not be left
+  // staring at a panel every request behind it will refuse.
+  useEffect(() => {
+    if (tabs.length && !tabs.includes(active)) setActive(tabs[0])
+  }, [tabs, active])
+
   const load = useCallback(async (key) => {
     try {
       const data = await fetchDataset(key)
-      setDocs((prev) => ({ ...prev, [key]: { original: data, draft: data } }))
+      // The server adds _publishing purely as a report; it is not part of the
+      // dataset and must not be saved back into it.
+      const { _publishing, ...doc } = data
+      setDocs((prev) => ({ ...prev, [key]: { original: doc, draft: doc } }))
     } catch (err) {
       setStatus({ kind: 'error', text: err.message })
     }
   }, [])
 
   useEffect(() => {
-    if (authed && !isAnalytics && !docs[active]) load(active)
-  }, [authed, active, isAnalytics, docs, load])
+    if (isDataset && !docs[active]) load(active)
+  }, [active, isDataset, docs, load])
 
   const setDraft = (draft) => {
     setDocs((prev) => ({ ...prev, [active]: { ...prev[active], draft } }))
@@ -125,19 +94,51 @@ export default function Admin() {
     setBusy(true)
     setStatus(null)
     try {
-      await saveDataset(active, entry.draft)
+      const result = await saveDataset(active, entry.draft)
       setDocs((prev) => ({ ...prev, [active]: { original: entry.draft, draft: entry.draft } }))
-      setStatus({ kind: 'ok', text: 'Saved — changes are live.' })
+      setStatus({
+        kind: 'ok',
+        text: result.publishChanges?.length
+          ? `Saved — ${result.publishChanges.length} visibility change(s) are live.`
+          : 'Saved — changes are live.',
+      })
+    } catch (err) {
+      // A 403 for a publish change is the common one: say what to do about it.
+      setStatus({
+        kind: 'error',
+        text:
+          err.required === PERMISSIONS.CONTENT_PUBLISH
+            ? `${err.message} Ask a publisher to review it, or undo the visibility change to save your edits.`
+            : err.message,
+      })
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  // Publishing one item goes straight to the server rather than through the
+  // draft, so an unsaved edit elsewhere in the document cannot ride along
+  // with it.
+  const togglePublished = async (ref, published) => {
+    setBusy(true)
+    setStatus(null)
+    try {
+      await setItemPublished(active, ref, published)
+      await load(active)
+      setStatus({ kind: 'ok', text: published ? 'Published.' : 'Unpublished — hidden from the app.' })
     } catch (err) {
       setStatus({ kind: 'error', text: err.message })
-      if (!getAdminKey()) setAuthed(false)
     } finally {
       setBusy(false)
     }
   }
 
   const reset = async () => {
-    if (!window.confirm(`Reset ${schema.label} to the content shipped with the app? Your edits will be lost.`))
+    if (
+      !window.confirm(
+        `Reset ${schema.label} to the content shipped with the app? Your edits will be lost, and everything in the original is published.`
+      )
+    )
       return
     setBusy(true)
     setStatus(null)
@@ -147,21 +148,18 @@ export default function Admin() {
       setStatus({ kind: 'ok', text: 'Reset to defaults.' })
     } catch (err) {
       setStatus({ kind: 'error', text: err.message })
-      if (!getAdminKey()) setAuthed(false)
     } finally {
       setBusy(false)
     }
   }
 
-  if (!authed) return <AdminLogin onSuccess={() => setAuthed(true)} />
-
   return (
     <div className="min-h-screen bg-canvas">
       {/* Top bar */}
-      <header className="sticky top-0 z-20 border-b border-gray-200 bg-white/90 backdrop-blur">
-        <div className="mx-auto flex max-w-4xl items-center justify-between gap-3 px-5 py-3">
+      <header className="sticky top-0 z-20 border-b border-gray-200 bg-surface/90 backdrop-blur">
+        <div className="mx-auto flex max-w-5xl items-center justify-between gap-3 px-5 py-3">
           <div className="flex items-center gap-3">
-            <h1 className="font-display text-[18px] font-bold text-black">Content admin</h1>
+            <h1 className="font-display text-[18px] font-bold text-ink">AskNelson admin</h1>
             {dirty ? (
               <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[11px] font-semibold text-amber-700">
                 Unsaved changes
@@ -169,6 +167,11 @@ export default function Admin() {
             ) : null}
           </div>
           <div className="flex items-center gap-2">
+            <ThemeToggle variant="icon" />
+            <span className="hidden text-right text-[11px] leading-tight text-gray-400 sm:block">
+              <span className="block font-semibold text-gray-600">{admin?.name || admin?.email}</span>
+              {admin?.role}
+            </span>
             <Link
               to="/explore"
               className="rounded-lg border border-gray-200 px-3 py-1.5 text-xs font-semibold text-gray-600 hover:bg-gray-50"
@@ -177,10 +180,7 @@ export default function Admin() {
             </Link>
             <button
               type="button"
-              onClick={() => {
-                setAdminKey('')
-                setAuthed(false)
-              }}
+              onClick={signOut}
               className="rounded-lg border border-gray-200 px-3 py-1.5 text-xs font-semibold text-gray-600 hover:bg-gray-50"
             >
               Log out
@@ -188,9 +188,9 @@ export default function Admin() {
           </div>
         </div>
 
-        {/* Dataset tabs */}
-        <div className="mx-auto flex max-w-4xl gap-1 px-5 pb-2">
-          {TABS.map((key) => {
+        {/* Tabs */}
+        <div className="mx-auto flex max-w-5xl flex-wrap gap-1 px-5 pb-2">
+          {tabs.map((key) => {
             const isActive = key === active
             const keyDirty =
               docs[key] && JSON.stringify(docs[key].draft) !== JSON.stringify(docs[key].original)
@@ -204,7 +204,7 @@ export default function Admin() {
                 }}
                 className={[
                   'rounded-lg px-3.5 py-1.5 text-sm font-semibold transition',
-                  isActive ? 'bg-brand text-white' : 'text-gray-500 hover:bg-gray-100',
+                  isActive ? 'bg-brand text-on-brand' : 'text-gray-500 hover:bg-gray-100',
                 ].join(' ')}
               >
                 {TAB_LABELS[key]}
@@ -215,101 +215,139 @@ export default function Admin() {
         </div>
       </header>
 
-      <main className={`mx-auto px-5 py-6 ${isAnalytics ? 'max-w-6xl' : 'max-w-4xl'}`}>
-        {isAnalytics ? (
+      <main className={`mx-auto px-5 py-6 ${isDataset ? 'max-w-4xl' : 'max-w-6xl'}`}>
+        {tabs.length === 0 ? (
+          <p className="py-16 text-center text-sm text-gray-400">
+            Your role ({admin?.role}) has no panels enabled. Ask an owner to adjust it.
+          </p>
+        ) : active === ACCOUNTS_TAB ? (
+          <AdminUsersPanel />
+        ) : active === ANALYTICS_TAB ? (
           <>
             <p className="mb-4 text-sm text-gray-500">
-              Every event recorded by the app, tied to the device that produced it and — for
-              members who arrived on a WhatsApp link — to the person behind it.
+              Every event recorded by the app, filterable by company and date, and — for members
+              who arrived on a WhatsApp link — traceable to the person behind it.
             </p>
             <AnalyticsPanel />
           </>
         ) : (
           <>
-        <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-          <div>
-            <p className="text-sm text-gray-500">{schema.description}</p>
-            {status ? (
-              <p
-                className={`mt-1 text-sm font-medium ${
-                  status.kind === 'ok' ? 'text-green-600' : 'text-red-600'
-                }`}
-              >
-                {status.text}
-              </p>
-            ) : null}
-          </div>
+            <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+              <div>
+                <p className="text-sm text-gray-500">{schema.description}</p>
+                {!canPublish ? (
+                  <p className="mt-1 text-[12px] text-amber-600">
+                    Your role can edit content but not publish it — draft freely, then ask a
+                    publisher to make it live.
+                  </p>
+                ) : null}
+                {status ? (
+                  <p
+                    className={`mt-1 text-sm font-medium ${
+                      status.kind === 'ok' ? 'text-green-600' : 'text-red-600'
+                    }`}
+                  >
+                    {status.text}
+                  </p>
+                ) : null}
+              </div>
 
-          <div className="flex items-center gap-2">
-            {/* Visual / raw toggle */}
-            <div className="flex rounded-lg border border-gray-200 bg-white p-0.5">
-              {['visual', 'raw'].map((m) => (
+              <div className="flex items-center gap-2">
+                {/* Visual / raw toggle */}
+                <div className="flex rounded-lg border border-gray-200 bg-surface p-0.5">
+                  {['visual', 'raw'].map((m) => (
+                    <button
+                      key={m}
+                      type="button"
+                      onClick={() => setMode(m)}
+                      className={[
+                        'rounded-md px-3 py-1 text-xs font-semibold transition',
+                        mode === m ? 'bg-ink text-surface' : 'text-gray-500',
+                      ].join(' ')}
+                    >
+                      {m === 'visual' ? 'Visual' : 'Raw JSON'}
+                    </button>
+                  ))}
+                </div>
+
+                {/* Export the dataset so it can be committed to the repo. Saves
+                    what's on screen, so unsaved edits can be rescued too. */}
                 <button
-                  key={m}
                   type="button"
-                  onClick={() => setMode(m)}
-                  className={[
-                    'rounded-md px-3 py-1 text-xs font-semibold transition',
-                    mode === m ? 'bg-gray-900 text-white' : 'text-gray-500',
-                  ].join(' ')}
+                  onClick={() => downloadJson(`${active}.json`, entry.draft)}
+                  disabled={!entry}
+                  title={
+                    dirty
+                      ? 'Downloads the unsaved version currently on screen'
+                      : `Download ${active}.json to commit into src/data/`
+                  }
+                  className="rounded-lg border border-gray-200 bg-surface px-3 py-1.5 text-xs font-semibold text-gray-600 hover:bg-gray-50 disabled:opacity-40"
                 >
-                  {m === 'visual' ? 'Visual' : 'Raw JSON'}
+                  Download JSON{dirty ? ' *' : ''}
                 </button>
-              ))}
+                {canPublish ? (
+                  <button
+                    type="button"
+                    onClick={reset}
+                    disabled={busy}
+                    className="rounded-lg border border-gray-200 bg-surface px-3 py-1.5 text-xs font-semibold text-gray-600 hover:bg-gray-50 disabled:opacity-40"
+                  >
+                    Reset to defaults
+                  </button>
+                ) : null}
+                <button
+                  type="button"
+                  onClick={() => setDraft(entry.original)}
+                  disabled={!dirty || busy}
+                  className="rounded-lg border border-gray-200 bg-surface px-3 py-1.5 text-xs font-semibold text-gray-600 hover:bg-gray-50 disabled:opacity-40"
+                >
+                  Discard
+                </button>
+                <button
+                  type="button"
+                  onClick={save}
+                  disabled={!dirty || busy || !canWrite}
+                  title={canWrite ? undefined : 'Your role is read-only for content'}
+                  className="rounded-lg bg-brand px-4 py-1.5 text-sm font-semibold text-on-brand transition disabled:opacity-40"
+                >
+                  {busy ? 'Saving…' : 'Save'}
+                </button>
+              </div>
             </div>
 
-            {/* Export the dataset so it can be committed to the repo. Saves
-                what's on screen, so unsaved edits can be rescued too. */}
-            <button
-              type="button"
-              onClick={() => downloadJson(`${active}.json`, entry.draft)}
-              disabled={!entry}
-              title={
-                dirty
-                  ? 'Downloads the unsaved version currently on screen'
-                  : `Download ${active}.json to commit into src/data/`
-              }
-              className="rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-xs font-semibold text-gray-600 hover:bg-gray-50 disabled:opacity-40"
-            >
-              Download JSON{dirty ? ' *' : ''}
-            </button>
-            <button
-              type="button"
-              onClick={reset}
-              disabled={busy}
-              className="rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-xs font-semibold text-gray-600 hover:bg-gray-50 disabled:opacity-40"
-            >
-              Reset to defaults
-            </button>
-            <button
-              type="button"
-              onClick={() => setDraft(entry.original)}
-              disabled={!dirty || busy}
-              className="rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-xs font-semibold text-gray-600 hover:bg-gray-50 disabled:opacity-40"
-            >
-              Discard
-            </button>
-            <button
-              type="button"
-              onClick={save}
-              disabled={!dirty || busy}
-              className="rounded-lg bg-brand px-4 py-1.5 text-sm font-semibold text-white transition disabled:opacity-40"
-            >
-              {busy ? 'Saving…' : 'Save'}
-            </button>
-          </div>
-        </div>
-
-        {!entry ? (
-          <p className="py-16 text-center text-sm text-gray-400">Loading {schema.label}…</p>
-        ) : mode === 'raw' ? (
-          <RawJsonEditor doc={entry.draft} onChange={setDraft} />
-        ) : (
-          <CollectionEditor schema={schema} doc={entry.draft} onChange={setDraft} />
-        )}
+            {!entry ? (
+              <p className="py-16 text-center text-sm text-gray-400">Loading {schema.label}…</p>
+            ) : mode === 'raw' ? (
+              <RawJsonEditor doc={entry.draft} onChange={setDraft} />
+            ) : (
+              <CollectionEditor
+                schema={schema}
+                doc={entry.draft}
+                onChange={setDraft}
+                canPublish={canPublish}
+                busy={busy}
+                onTogglePublished={togglePublished}
+              />
+            )}
           </>
         )}
       </main>
     </div>
+  )
+}
+
+function AdminRoot() {
+  const { status } = useAdminSession()
+  if (status === 'loading') {
+    return <p className="py-24 text-center text-sm text-gray-400">Checking your session…</p>
+  }
+  return status === 'signed_in' ? <AdminShell /> : <AdminLogin />
+}
+
+export default function Admin() {
+  return (
+    <AdminSessionProvider>
+      <AdminRoot />
+    </AdminSessionProvider>
   )
 }

@@ -33,12 +33,17 @@ Compose starts two services: the app and a Postgres 16 database for event
 tracking. The app waits for the database to pass its health check, runs its
 migrations, and only then starts listening.
 
-Set the admin password via the `ADMIN_PASSWORD` environment variable (compose
-defaults to `change-me`):
+The first boot needs `ADMIN_BOOTSTRAP_EMAIL` and `ADMIN_PASSWORD`, which create
+the first admin account (an owner). They are ignored on every boot after that —
+every other admin is created from inside the portal:
 
 ```bash
-ADMIN_PASSWORD=my-secret docker compose up --build
+ADMIN_BOOTSTRAP_EMAIL=you@example.com ADMIN_PASSWORD=a-good-long-password \
+  docker compose up --build
 ```
+
+That account's first sign-in must enrol two-factor authentication before it can
+do anything. See [Admin console](#admin-console-admin).
 
 Content edits made in `/admin` are written to the `asknelson-data` volume and
 survive rebuilds. Use **Reset to defaults** in the admin console to restore the
@@ -53,16 +58,46 @@ npm run serve    # content API + serves dist/ at http://localhost:8080
 npm run start    # build + serve in one step
 npm run build    # production build
 npm run preview  # preview the production build
+npm test         # the test suite (node:test, no database needed)
+npm run test:watch
 ```
 
 For local admin work run `npm run serve` in one terminal (API on :8080) and
 `npm run dev` in another — vite proxies `/api` to :8080. Local edits are stored
-in `data-store/` (gitignored).
+in `data-store/` (gitignored). Set `ADMIN_BOOTSTRAP_EMAIL` and `ADMIN_PASSWORD`
+on the `npm run serve` process to get an admin account to sign in with.
+
+### Tests
+
+`npm test` runs `tests/` on node's built-in runner — no test framework, no
+database, and no network beyond an ephemeral localhost port. Roughly what is
+covered:
+
+| File | What it holds the line on |
+| ---- | ------------------------- |
+| `totp.test.js` | The RFC 6238 vectors, drift tolerance, and that a code cannot be replayed |
+| `rbac.test.js` | The role/permission matrix, and that a half-authenticated session holds nothing |
+| `adminAuth.test.js` | The whole sign-in flow over HTTP: lockouts, enrolment, recovery codes, session expiry |
+| `adminUsers.test.js` | Who may create, demote and disable whom; the bootstrap rules |
+| `adminStore.test.js` | The account store, including that the file backing survives a restart |
+| `content.test.js` | What counts as a publishing decision rather than an edit |
+| `contentApi.test.js` | The same, per role, over HTTP — including that a publish cannot be buried in a save |
+| `publishRef.test.js` | That the editor and the server name the same item the same way |
+| `images.test.js` | Format sniffing and dimension parsing, against the repo's own images |
+| `uploads.test.js` | Upload limits and permissions over HTTP, including path traversal |
+| `imageCompression.test.js` | The browser-side downscale maths: never upscale, never distort |
+| `analyticsFilters.test.js` | That nothing from a query string reaches the SQL text |
+| `username.test.js` | Handle generation, collision retries, and that a phone number is never displayed |
+| `passwords.test.js` | scrypt round-trips, and that a corrupt hash fails rather than throws |
 
 ## Admin console (`/admin`)
 
-Password-gated editor (password = `ADMIN_PASSWORD`, default `admin` when unset)
-for everything the member-facing app displays:
+Named admin accounts, each with one role and a mandatory second factor. There
+is no shared password: `ADMIN_PASSWORD` is used **once**, on a boot where no
+admin account exists yet, to create the first owner (see
+[Bootstrapping the first admin](#bootstrapping-the-first-admin)).
+
+The editor covers everything the member-facing app displays:
 
 - **Explore** — themes and their article/video tiles: titles, descriptions,
   sources, URLs, colours, icons, read/watch times. Add, remove, reorder.
@@ -73,12 +108,121 @@ for everything the member-facing app displays:
   (response scales, scoring bands, result copy, safety screens) is edited in
   the **Raw JSON** tab, available for all three datasets as a full-control
   escape hatch.
-- **Analytics** — read-only: usage totals, daily activity, most-opened content,
-  recent sessions (click one for that device's full timeline), CSV export, and
-  the WhatsApp link minting described under [Event tracking](#event-tracking).
+- **Analytics** — usage totals, daily activity, most-opened content, a
+  per-company breakdown, recent sessions (click one for that device's full
+  timeline), CSV export, and the WhatsApp link minting described under
+  [Event tracking](#event-tracking).
+- **Admin accounts** — owners only: create admins, change roles, disable them,
+  reset a lost second factor.
 
-Saves go live immediately: the app fetches content from `/api/content/<key>`
-(network-first, falling back to the bundled JSON when offline).
+Tabs are built from the permissions the signed-in admin actually holds, so
+somebody never sees a panel every request behind it would refuse.
+
+### Signing in
+
+Two steps, and the session between them can do nothing else:
+
+1. **Email and password.** On success the browser gets an httpOnly session
+   cookie marked as *not* two-factor verified. Every route except the two below
+   refuses it.
+2. **A 6-digit code** from an authenticator app (Google Authenticator,
+   1Password, Authy, Microsoft Authenticator), or one of the recovery codes
+   issued at enrolment.
+
+An account with no second factor yet cannot skip this: its first sign-in has to
+enrol one, and it is shown ten single-use recovery codes exactly once at that
+point. Those are stored only as keyed hashes, so they cannot be recovered
+later — only replaced.
+
+Other behaviour worth knowing:
+
+- Codes are single-use. A code read over somebody's shoulder cannot be replayed
+  for the rest of its 30-second window.
+- One step of clock drift either side is tolerated, so a phone that is half a
+  minute out still works.
+- Five wrong passwords locks the account for 15 minutes.
+- Sessions last 12 hours (rolling); the half-finished one between password and
+  code lasts 10 minutes.
+- A role change, a disable, a password reset or a 2FA reset ends that admin's
+  sessions immediately, not at their next sign-in.
+- Lost phone and lost recovery codes: an owner clicks **Reset 2FA** on the
+  account, which clears the secret and ends their sessions. They enrol again at
+  their next sign-in.
+
+TOTP is implemented on `node:crypto` (`server/totp.js`, ~60 lines of HMAC) and
+verified against the RFC 6238 test vectors in `tests/totp.test.js`. There is no
+dependency between an admin and their ability to sign in.
+
+### Roles
+
+One role per account. Routes declare the *permission* they need, never a role,
+so adding a role is a line in `server/rbac.js`.
+
+| Permission            | analyst | editor | publisher | admin | owner |
+| --------------------- | :-----: | :----: | :-------: | :---: | :---: |
+| `content:read`        | ●       | ●      | ●         | ●     | ●     |
+| `content:write`       |         | ●      | ●         | ●     | ●     |
+| `content:publish`     |         |        | ●         | ●     | ●     |
+| `media:read`          |         | ●      | ●         | ●     | ●     |
+| `media:write`         |         | ●      | ●         | ●     | ●     |
+| `media:delete`        |         |        | ●         | ●     | ●     |
+| `analytics:read`      | ●       | ●      | ●         | ●     | ●     |
+| `analytics:export`    | ●       |        |           | ●     | ●     |
+| `analytics:read_pii`  |         |        |           | ●     | ●     |
+| `audit:read`          |         |        |           | ●     | ●     |
+| `admin:manage`        |         |        |           |       | ●     |
+
+`analytics:read` is aggregate reporting. `analytics:read_pii` is the device
+drill-down, which decrypts a person's browsing history — its own permission for
+that reason, and audited on every use.
+
+Two rules protect the portal from itself: nobody can change their own role or
+status, and only an owner can change an owner. Together they guarantee there is
+always somebody who can hand a role back.
+
+### Publishing
+
+Every Explore theme, Explore tile, journey and assessment carries a
+`published` flag, shown as a **Live**/**Draft** badge in the editor. The public
+`GET /api/content/:key` serves published items only, with the flag itself
+stripped — the app is never told what is being held back. An item with no flag
+is live, so content written before this existed is unaffected.
+
+**Editing and publishing are separate permissions.** An editor can fix a typo
+on the front page; making something live, pulling it, or deleting something
+live needs `content:publish` as well. That is enforced by diffing the incoming
+document against the stored one, so a visibility change cannot be smuggled
+through inside an otherwise ordinary save — the 403 names exactly which items
+were refused, so the editor can undo just those and still save their words.
+
+New items are created as drafts, so drafting costs no permission at all.
+
+The **Live**/**Draft** badge calls a dedicated endpoint rather than going
+through the draft document, so publishing one item never carries somebody's
+unsaved edits elsewhere in the dataset along with it.
+
+Publishing and unpublishing are written to the audit trail with the item, the
+dataset and who did it.
+
+### Bootstrapping the first admin
+
+On a boot where `admin_users` is empty, `ADMIN_BOOTSTRAP_EMAIL` and
+`ADMIN_PASSWORD` create the first owner. It is ignored on every subsequent
+boot, so setting an environment variable can never be used to re-take an
+installation that already has admins. That account has no second factor yet, so
+its first sign-in has to enrol one.
+
+```bash
+ADMIN_BOOTSTRAP_EMAIL=you@example.com ADMIN_PASSWORD=a-good-long-password \
+  docker compose up --build
+```
+
+Every admin after the first is created from inside the portal.
+
+Without a database (plain `npm run serve`), admin accounts live in
+`<DATA_DIR>/admin-accounts.json`, written 0600. Set `DATA_ENCRYPTION_KEYS` and
+their emails and TOTP secrets are sealed in it; without keys the server warns
+loudly at startup and stores them in the clear.
 
 ### Images
 
@@ -89,15 +233,38 @@ browses previously uploaded images, or takes an external URL pasted by hand.
 Uploads land in `<DATA_DIR>/uploads/` — the same persistent volume as the JSON
 that references them — and are served publicly from `/uploads/<file>`.
 
-- PNG, JPG, WEBP and GIF only, 8 MB max. The server identifies the format from
-  the file's magic bytes, not its extension or `Content-Type`. SVG is rejected
-  on purpose: it can carry script and these files are served same-origin.
+**Uploads are downscaled and re-encoded in the browser before they are sent.**
+A 3 MB camera JPEG becomes roughly a 150 KB WebP at 1600px, and the original
+never crosses the network. That is where nearly all of the load-time
+improvement comes from: the cards are plain `<img src>` tags, so the file size
+*is* the loading time on a phone on mobile data.
+
+- Target: 1600px on the longest side, WebP at quality 0.82 (JPEG on browsers
+  whose canvas cannot encode WebP). The aspect ratio is preserved and images
+  are never scaled up.
+- Files under 120 KB are left alone — re-encoding small PNG UI art usually
+  makes it bigger — and a re-encode that came out larger than the original is
+  discarded.
+- Animated GIFs are never re-encoded: a canvas pass would keep the first frame
+  and silently drop the animation.
+- The server enforces the same limits regardless, because a browser can be
+  bypassed: **2 MB** and **2400px** on the longest side by default
+  (`MAX_UPLOAD_MB`, `MAX_IMAGE_DIMENSION`). Dimensions are read from the file
+  header, never by decoding it.
+- PNG, JPG, WEBP and GIF only. The format comes from the file's magic bytes,
+  not its extension or `Content-Type`. SVG is rejected on purpose: it can carry
+  script and these files are served same-origin.
 - Filenames get a content-hash suffix (`anxiety-cover-acb20e4d.png`), so
   re-uploading identical bytes reuses the existing file and a replaced image is
   always a new URL — safe to cache immutably, in the browser and the service
   worker alike.
 - A journey with no cover, or one whose image has been deleted from the
   library, falls back to the original colour-stripe card.
+
+On the rendering side, `CoverImage` lazy-loads and async-decodes everything
+except images marked `priority` (the home hero, journey hero, meditation
+scene), and every image declares an intrinsic ratio so cards reserve their
+space before the bytes arrive and nothing jumps as images land.
 
 To offer an image on another field, add one line to its schema in
 `src/components/admin/schemas.js` — the picker is generic:
@@ -141,17 +308,40 @@ git diff src/data                                # review, then commit
 
 ### Content API
 
-| Method | Route                      | Auth   | Purpose                          |
-| ------ | -------------------------- | ------ | -------------------------------- |
-| GET    | `/api/content/:key`        | none   | Fetch a dataset (`explore`, `journeys`, `assessments`) |
-| PUT    | `/api/content/:key`        | Bearer `ADMIN_PASSWORD` | Replace a dataset |
-| POST   | `/api/content/:key/reset`  | Bearer `ADMIN_PASSWORD` | Restore the shipped JSON |
-| POST   | `/api/admin/login`         | body `{ password }` | Validate the admin password |
-| GET    | `/uploads/:file`           | none   | Serve an uploaded image |
-| GET    | `/api/admin/uploads`       | Bearer `ADMIN_PASSWORD` | List the media library |
-| POST   | `/api/admin/uploads?name=` | Bearer `ADMIN_PASSWORD` | Upload an image (raw body) |
-| DELETE | `/api/admin/uploads/:file` | Bearer `ADMIN_PASSWORD` | Remove an image |
-| GET    | `/api/health`              | none   | Liveness check |
+Admin routes authenticate with the session cookie set at sign-in, and each one
+names the permission it needs. A signed-in session that has not yet passed the
+second factor is treated as not signed in (`401`, with `mfaRequired: true`).
+
+| Method | Route                              | Needs                | Purpose |
+| ------ | ---------------------------------- | -------------------- | ------- |
+| GET    | `/api/content/:key`                | none                 | Fetch a dataset, published items only |
+| GET    | `/api/content/:key?include=drafts` | `content:read`       | The same dataset with drafts, plus a `_publishing` report |
+| PUT    | `/api/content/:key`                | `content:write` (+ `content:publish` if visibility changes) | Replace a dataset |
+| POST   | `/api/content/:key/publish`        | `content:publish`    | Publish or unpublish one item by `ref` |
+| POST   | `/api/content/:key/reset`          | `content:publish`    | Restore the shipped JSON |
+| GET    | `/uploads/:file`                   | none                 | Serve an uploaded image |
+| GET    | `/api/admin/uploads`               | `media:read`         | List the media library, with the size limits |
+| POST   | `/api/admin/uploads?name=`         | `media:write`        | Upload an image (raw body) |
+| DELETE | `/api/admin/uploads/:file`         | `media:delete`       | Remove an image |
+| GET    | `/api/health`                      | none                 | Liveness check |
+
+Sign-in and account management:
+
+| Method | Route                              | Needs            | Purpose |
+| ------ | ---------------------------------- | ---------------- | ------- |
+| POST   | `/api/admin/auth/login`            | none             | Email + password; returns `mfa_required` or `enrolment_required` |
+| POST   | `/api/admin/auth/totp/setup`       | first factor     | Mint a TOTP secret and `otpauth://` URI |
+| POST   | `/api/admin/auth/totp/enrol`       | first factor     | Confirm the code; returns the recovery codes once |
+| POST   | `/api/admin/auth/mfa`              | first factor     | Present a TOTP or recovery code |
+| GET    | `/api/admin/auth/me`               | any session      | Who is signed in, how far through, and their permissions |
+| POST   | `/api/admin/auth/logout`           | any session      | End the session |
+| POST   | `/api/admin/auth/password`         | signed in        | Change your own password; ends your other sessions |
+| POST   | `/api/admin/auth/recovery-codes`   | signed in        | Replace your recovery codes |
+| GET    | `/api/admin/users`                 | `admin:manage`   | List admins and the role definitions |
+| POST   | `/api/admin/users`                 | `admin:manage`   | Create an admin |
+| PATCH  | `/api/admin/users/:id`             | `admin:manage`   | Change name, role, status or password |
+| POST   | `/api/admin/users/:id/reset-mfa`   | `admin:manage`   | Clear a lost second factor |
+| DELETE | `/api/admin/users/:id`             | `admin:manage`   | Delete an admin |
 
 ## Event tracking
 
@@ -250,21 +440,83 @@ open forever.
 A configured-but-unreachable database is fatal at boot: failing loudly beats
 silently dropping every event.
 
+#### Admin portal and uploads
+
+| Variable | Default | Purpose |
+| -------- | ------- | ------- |
+| `ADMIN_BOOTSTRAP_EMAIL` | *(unset)* | With `ADMIN_PASSWORD`, creates the first owner — **only** on a boot where no admin account exists. Ignored afterwards. |
+| `ADMIN_PASSWORD` | *(unset)* | That first owner's password. No longer a shared portal password. |
+| `ADMIN_SESSION_HOURS` | `12` | How long a fully signed-in admin session lasts (rolling). |
+| `ADMIN_MFA_WINDOW_MINUTES` | `10` | How long the half-finished session between password and second factor lasts. |
+| `ADMIN_MAX_FAILED_LOGINS` | `5` | Wrong passwords before the account locks. |
+| `ADMIN_LOCKOUT_MINUTES` | `15` | How long that lock lasts. |
+| `MAX_UPLOAD_MB` | `2` | Hard ceiling on an uploaded image. The editor compresses first, so this is the backstop. |
+| `MAX_IMAGE_DIMENSION` | `2400` | Hard ceiling on the longest side, read from the file header. |
+| `WARN_UPLOAD_KB` | `400` | Above this the upload is accepted but the editor warns. |
+
+Without a database, admin accounts live in `<DATA_DIR>/admin-accounts.json`
+(0600). Their emails and TOTP secrets are sealed when `DATA_ENCRYPTION_KEYS` is
+set, and stored in the clear with a startup warning when it is not.
+
 ### Analytics API
 
-All admin routes take `Authorization: Bearer <ADMIN_PASSWORD>`.
+Admin routes authenticate with the admin session cookie and each names the
+permission it needs (see [Roles](#roles)).
 
-| Method | Route | Auth | Purpose |
-| ------ | ----- | ---- | ------- |
+| Method | Route | Needs | Purpose |
+| ------ | ----- | ----- | ------- |
 | POST | `/api/analytics/session` | none | Open/resume a session; redeems the `?t=` token |
 | POST | `/api/analytics/events` | none | Ingest a batch of events |
-| GET | `/api/analytics/admin/overview?days=` | admin | Totals, per-event counts, daily series, top content |
-| GET | `/api/analytics/admin/sessions?limit=&offset=` | admin | Recent sessions |
-| GET | `/api/analytics/admin/devices/:id` | admin | One device: profile, sessions, event timeline |
-| GET | `/api/analytics/admin/events.csv?days=` | admin | CSV export |
-| POST | `/api/analytics/admin/link-tokens` | admin | Mint a WhatsApp link |
-| GET | `/api/analytics/admin/link-tokens` | admin | List links and their usage |
-| POST | `/api/analytics/admin/link-tokens/:hash/revoke` | admin | Revoke a link |
+| GET | `/api/analytics/admin/overview` | `analytics:read` | Totals, per-event counts, daily series, top content, top companies |
+| GET | `/api/analytics/admin/organisations` | `analytics:read` | Every company with activity, plus what is unattributed |
+| GET | `/api/analytics/admin/organisations/:id` | `analytics:read` | One company: totals, most popular events, most opened content, daily series |
+| GET | `/api/analytics/admin/by-company` | `analytics:read` | Event counts per company and event name, in one request |
+| GET | `/api/analytics/admin/sessions` | `analytics:read` | Recent sessions, with the company on each |
+| GET | `/api/analytics/admin/devices/:id` | `analytics:read_pii` | One device: profile, sessions, event timeline (decrypts; audited) |
+| GET | `/api/analytics/admin/events.csv` | `analytics:export` | CSV export (decrypts; audited) |
+| POST | `/api/analytics/admin/link-tokens` | `analytics:read_pii` | Mint a WhatsApp link |
+| GET | `/api/analytics/admin/link-tokens` | `analytics:read_pii` | List links and their usage |
+| POST | `/api/analytics/admin/link-tokens/:hash/revoke` | `analytics:read_pii` | Revoke a link |
+
+#### Filtering
+
+Every reporting route above takes the same filters, parsed in one place
+(`server/analyticsFilters.js`) so a filter cannot reach the overview but
+quietly miss the CSV export:
+
+| Parameter | Meaning |
+| --------- | ------- |
+| `days` | Rolling window, 1-365 (default 30) |
+| `from`, `to` | `YYYY-MM-DD`, inclusive of both ends; overrides `days` |
+| `organisationId` | One company, by UUID |
+| `name` | One event name, or several comma-separated |
+| `category` | One event category (`journey`, `content`, `auth`, ...) |
+| `whatsappOnly` | `true` to count only sessions that arrived from WhatsApp |
+
+Everything either becomes a bound parameter or is rejected with a `400` — a bad
+filter is never silently ignored, because quietly widening a report somebody
+asked to narrow is worse than refusing it.
+
+#### Reporting by company
+
+`organisation_id` is stamped onto members, devices, sessions and events at
+ingest, from the employer on the account. A company name is not personal
+information, so those columns are clear text and indexed: a per-company report
+is a plain `WHERE`, with nothing decrypted and no join back through the account
+tables.
+
+Two things follow from how the data is shaped:
+
+- **Anonymous accounts never appear in a company report.** They are not linked
+  to a member at all, by design, so there is nothing to attribute. The
+  `/organisations` response reports that volume separately as `unattributed`
+  rather than hiding it, so per-company numbers are never mistaken for the
+  whole picture.
+- **Most-opened content is answered from different sources depending on the
+  filter.** Unfiltered, it reads `analytics_daily_counts`, which is
+  de-identified and survives the retention sweep. Filtered to one company it
+  reads the raw event stream instead, decrypting as it goes — those rollups
+  carry no company — so it is limited to the retention window and capped.
 
 ### Schema
 
@@ -392,6 +644,7 @@ The Figma flow creates **identified** accounts. The API still supports
 |  | Anonymous | Identified |
 | -- | --------- | ---------- |
 | Stored | Username, password | Mobile, email, company — encrypted |
+| Display name | The username they chose | A generated handle (`CalmRiver4821`) |
 | ID number | — | Keyed hash only, never the number |
 | Contact details | **Erased at verification**, hash kept for login | Retained, encrypted |
 | Analytics member | **Never linked** | Linked; past events backfilled |
@@ -416,6 +669,25 @@ cannot quietly break the promise. Their events stay unattributed in
 Neat consequence of the peppered hashes: someone who registered anonymously can
 still sign in with the email address they verified, even though the service no
 longer holds it.
+
+#### Display handles
+
+Identified accounts are given a random handle at sign-up — two neutral words
+and four digits, `CalmRiver4821` — and that is what the app shows wherever a
+name is needed. Before this, an account with no first name fell back to the
+mobile number it signed up with, which put a personal identifier on the home
+screen where anyone glancing at the phone could read it. On a mental-health
+app, on a shared or work device, that is a real disclosure.
+
+The word lists (`server/username.js`) are deliberately neutral: nothing about
+mood, health, gender or age, so a handle can never imply something about the
+person behind it. Roughly 20 million combinations, allocated inside the
+registration transaction and backed by a case-insensitive unique index, so two
+accounts cannot differ only in capitalisation. Existing accounts were
+backfilled by migration `006_member_usernames`.
+
+A member can still see the number their account uses on their profile; it is
+just not their name.
 
 ### Security
 
@@ -516,6 +788,12 @@ Progress endpoints (`/api/progress/*`) are listed in
 
 Screens for the POPIA export and delete endpoints, and a profile page to
 correct details — none are in the Figma designs yet.
+
+Two-factor authentication covers the **admin portal** only. Member accounts
+still verify once by OTP at sign-up and then sign in with a password alone,
+which is what the Figma flow specifies. `server/totp.js` is not admin-specific,
+so extending it to members is a routing question rather than a new
+implementation.
 
 ## External links in-app
 

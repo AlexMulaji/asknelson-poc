@@ -15,12 +15,12 @@ export default function AssessmentIntro({ assessment, retake, onStart }) {
   return (
     <div>
       <div className="relative -mx-5 lg:-mx-8">
-        <CoverImage src={assessment.cover} className="h-[150px] w-full" />
+        <CoverImage src={assessment.cover} width={16} height={9} className="h-[150px] w-full" />
         <div aria-hidden className="absolute inset-0 bg-navy/55" />
       </div>
 
       <div className="relative -mt-14">
-        <div className="rounded-card bg-white p-6 shadow-card">
+        <div className="rounded-card bg-surface p-6 shadow-card">
           <span
             aria-hidden
             className="grid h-14 w-14 place-items-center rounded-btn"
@@ -28,7 +28,7 @@ export default function AssessmentIntro({ assessment, retake, onStart }) {
           >
             <Icon className="h-7 w-7" />
           </span>
-          <h1 className="mt-4 font-display text-[28px] font-extrabold leading-tight text-navy">
+          <h1 className="mt-4 font-display text-[28px] font-extrabold leading-tight text-ink">
             {assessment.title}
           </h1>
           <div className="mt-3 flex flex-wrap gap-2">
@@ -57,7 +57,7 @@ export default function AssessmentIntro({ assessment, retake, onStart }) {
 
         {/* Screening, not diagnosis — kept visually distinct from the body copy. */}
         {assessment.disclaimer ? (
-          <div className="mt-6 flex gap-3 rounded-card bg-white p-4 shadow-soft">
+          <div className="mt-6 flex gap-3 rounded-card bg-surface p-4 shadow-soft">
             <InfoIcon className="h-5 w-5 shrink-0" style={{ color }} />
             <p className="text-[13px] leading-relaxed text-slate-500">{assessment.disclaimer}</p>
           </div>

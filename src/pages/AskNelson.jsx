@@ -54,7 +54,7 @@ export default function AskNelson() {
       </div>
 
       <div className="mt-7">
-        <h1 className="font-display text-[30px] font-extrabold leading-tight text-navy lg:text-[38px]">
+        <h1 className="font-display text-[30px] font-extrabold leading-tight text-ink lg:text-[38px]">
           We're Here to Help
         </h1>
         <p className="mt-2 max-w-lg text-[15px] leading-relaxed text-slate-500">
@@ -73,7 +73,7 @@ export default function AskNelson() {
             flushNow()
           }}
           className="mt-4 flex min-h-[56px] w-full items-center justify-center gap-2 rounded-card
-                     bg-red-600 px-5 text-[15px] font-bold text-white shadow-sm
+                     bg-danger px-5 text-[15px] font-bold text-white shadow-sm
                      transition-transform duration-100 active:scale-[0.98]"
         >
           <AlertIcon className="h-5 w-5 shrink-0" />

@@ -15,7 +15,7 @@ export default function SegmentedTabs({ tabs, value, onChange }) {
             className={[
               'relative -mb-px min-h-[44px] px-1 pb-3 pt-1 text-[16px] transition-colors',
               'mr-8 last:mr-0',
-              active ? 'font-extrabold text-brand' : 'font-semibold text-muted hover:text-navy',
+              active ? 'font-extrabold text-brand' : 'font-semibold text-muted hover:text-ink',
             ].join(' ')}
           >
             {label}

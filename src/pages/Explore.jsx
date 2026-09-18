@@ -81,7 +81,7 @@ export default function Explore() {
         value={query}
         onChange={(e) => setQuery(e.target.value)}
         placeholder="Search"
-        className="h-11 w-full rounded-btn border border-line bg-white pl-4 pr-10 text-[14px] text-navy
+        className="h-11 w-full rounded-btn border border-line bg-surface pl-4 pr-10 text-[14px] text-ink
                    placeholder:text-slate-400 focus:border-brand focus:outline-none lg:w-64"
       />
       <SearchIcon className="pointer-events-none absolute right-3 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400" />
@@ -102,7 +102,7 @@ export default function Explore() {
               onClick={() => setSearchOpen((o) => !o)}
               aria-label="Search resources"
               aria-expanded={searchOpen}
-              className="grid h-10 w-10 place-items-center rounded-full text-navy transition hover:bg-canvas lg:hidden"
+              className="grid h-10 w-10 place-items-center rounded-full text-ink transition hover:bg-canvas lg:hidden"
             >
               <SearchIcon className="h-6 w-6" />
             </button>
@@ -128,8 +128,8 @@ export default function Explore() {
                 className={[
                   'h-10 shrink-0 whitespace-nowrap rounded-pill border px-4 text-[13px] font-bold transition-colors duration-150',
                   isActive
-                    ? 'border-navy bg-navy text-white'
-                    : 'border-line bg-white text-slate-500 hover:border-slate-300',
+                    ? 'border-ink bg-navy text-white'
+                    : 'border-line bg-surface text-slate-500 hover:border-slate-300',
                 ].join(' ')}
               >
                 {chip.title}

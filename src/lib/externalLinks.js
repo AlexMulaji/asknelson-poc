@@ -6,6 +6,8 @@
 //   everything else — whether it can be framed is the publisher's choice
 //               (X-Frame-Options / CSP frame-ancestors). The server checks
 //               once and caches the answer (/api/embed/check).
+//               Where the publisher refuses, the server extracts the
+//               article itself for the reader view (/api/reader).
 
 export const isExternalUrl = (raw) => /^https?:\/\//i.test(String(raw || ''))
 
@@ -65,8 +67,8 @@ const inFlight = new Map() // url -> promise, so hover + click don't ask twice
 /**
  * { embeddable: boolean, reason?: string } for an external page. Anything
  * that isn't a clear yes — the check failing, being offline, no backend in
- * `vite dev` — comes back as a no, so the viewer offers the page in a popup
- * window rather than showing a broken frame.
+ * `vite dev` — comes back as a no, so the viewer offers the page in a new
+ * tab rather than showing a broken frame.
  */
 export function checkEmbeddable(url) {
   if (verdicts.has(url)) return Promise.resolve(verdicts.get(url))
@@ -90,16 +92,59 @@ export function checkEmbeddable(url) {
   return request
 }
 
-/** The verdict already known for a URL, or undefined if it hasn't been checked. */
-export const cachedVerdict = (url) => verdicts.get(url)
-
 /**
  * Warm the check on hover or first touch, so the click that follows knows the
- * answer and can open a popup window inside the user's gesture. Videos need no
+ * answer and can open a new tab inside the user's gesture. Videos need no
  * check — they always play in-app.
  */
 export function prefetchEmbeddable(url) {
-  if (isExternalUrl(url) && !videoEmbedUrl(url) && !verdicts.has(url)) {
-    checkEmbeddable(url).catch(() => {})
-  }
+  if (!isExternalUrl(url) || videoEmbedUrl(url)) return
+  // A page that refuses framing will be shown in reader view, so warm that
+  // too: by the time the member taps, the article is usually already here.
+  checkEmbeddable(url)
+    .then((verdict) => {
+      if (!verdict.embeddable) fetchReaderArticle(url).catch(() => {})
+    })
+    .catch(() => {})
+}
+
+const articles = new Map() // url -> reader response
+const articlesInFlight = new Map()
+
+/**
+ * True when it is already known that a link can be shown neither in a frame
+ * nor in reader view. The tap can then open a new tab straight away, while it
+ * still counts as a user gesture that popup blockers allow.
+ */
+export function knownToOpenOutside(url) {
+  const verdict = verdicts.get(url)
+  const article = articles.get(url)
+  return Boolean(verdict && !verdict.embeddable && article && !article.readable)
+}
+
+/**
+ * The reader-view article for a URL: { readable: true, title, content, … } or
+ * { readable: false, reason }. content is HTML the server has already reduced
+ * to an allowlist; it must still go through sanitiseReaderHtml before render.
+ */
+export function fetchReaderArticle(url) {
+  if (articles.has(url)) return Promise.resolve(articles.get(url))
+  if (articlesInFlight.has(url)) return articlesInFlight.get(url)
+
+  const request = (async () => {
+    try {
+      const res = await fetch(`/api/reader?url=${encodeURIComponent(url)}`, {
+        credentials: 'same-origin',
+      })
+      const article = res.ok ? await res.json() : { readable: false, reason: `reader-${res.status}` }
+      if (res.ok) articles.set(url, article)
+      return article
+    } catch {
+      return { readable: false, reason: 'offline' }
+    } finally {
+      articlesInFlight.delete(url)
+    }
+  })()
+  articlesInFlight.set(url, request)
+  return request
 }

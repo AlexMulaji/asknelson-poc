@@ -1,15 +1,36 @@
+// First, so .env is in place before any module below reads its settings.
+import './loadEnv.js'
 import express from 'express'
-import crypto from 'node:crypto'
 import fs from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { isEnabled as analyticsEnabled, migrate, sweepRetention } from './db.js'
+import {
+  isEnabled as analyticsEnabled,
+  migrate,
+  pool,
+  query,
+  sweepExpiredAdminSessions,
+  sweepRetention,
+} from './db.js'
 import { encryptionConfigured } from './crypto.js'
 import { createAnalyticsRouter, startSessionSweeper } from './analytics.js'
 import { createAuthRouter, startAuthSweeper } from './auth.js'
 import { createProgressRouter } from './progress.js'
 import { createEmbedRouter } from './embed.js'
+import { createReaderRouter } from './reader.js'
 import { isSecure } from './http.js'
+import {
+  createAdminAuthRouter,
+  createAdminSessionMiddleware,
+  createAdminUsersRouter,
+  ensureBootstrapAdmin,
+} from './adminAuth.js'
+import { createFileAdminStore, createPostgresAdminStore } from './adminStore.js'
+import { requirePermission } from './rbac.js'
+import { DATASETS, createContentRouter } from './contentRoutes.js'
+import { createUploadRouter } from './uploadRoutes.js'
+import { MAX_UPLOAD_BYTES, formatBytes } from './images.js'
+import { audit } from './audit.js'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const ROOT = path.resolve(__dirname, '..')
@@ -18,41 +39,20 @@ const PORT = Number(process.env.PORT || 8080)
 const DATA_DIR = process.env.DATA_DIR || path.join(ROOT, 'data-store')
 const SEED_DIR = process.env.SEED_DIR || path.join(ROOT, 'src', 'data')
 const DIST_DIR = process.env.DIST_DIR || path.join(ROOT, 'dist')
-const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'admin'
 
 // Uploaded imagery (journey covers, theme art) lives inside DATA_DIR so it sits
 // on the same persistent volume as the JSON that references it — back one up
 // and you have backed up the other.
 const UPLOAD_DIR = path.join(DATA_DIR, 'uploads')
-const MAX_UPLOAD_BYTES = 8 * 1024 * 1024
 
-if (!process.env.ADMIN_PASSWORD) {
-  console.warn(
-    '[asknelson] WARNING: ADMIN_PASSWORD is not set — using the default "admin". ' +
-      'Set ADMIN_PASSWORD before exposing this server anywhere.'
-  )
-}
-
-// The three editable datasets. Each maps to <DATA_DIR>/<key>.json, seeded from
-// the JSON bundled with the app on first boot. `rootKey` is the required
-// top-level property, used as a light sanity check on writes.
-const DATASETS = {
-  explore: { rootKey: 'explore' },
-  journeys: { rootKey: 'journeys' },
-  assessments: { rootKey: 'assessments' },
-}
-
-// --- storage ----------------------------------------------------------------
-
-function dataPath(key) {
-  return path.join(DATA_DIR, `${key}.json`)
-}
-
+// First boot: copy the JSON bundled with the app into the writable data
+// directory, so the admin portal has something to edit and the app has
+// something to serve.
 function seedIfMissing() {
   fs.mkdirSync(DATA_DIR, { recursive: true })
   fs.mkdirSync(UPLOAD_DIR, { recursive: true })
   for (const key of Object.keys(DATASETS)) {
-    const target = dataPath(key)
+    const target = path.join(DATA_DIR, `${key}.json`)
     if (fs.existsSync(target)) continue
     const seed = path.join(SEED_DIR, `${key}.json`)
     if (fs.existsSync(seed)) {
@@ -62,19 +62,6 @@ function seedIfMissing() {
       console.warn(`[asknelson] no seed found for ${key} at ${seed}`)
     }
   }
-}
-
-function readDataset(key) {
-  return JSON.parse(fs.readFileSync(dataPath(key), 'utf8'))
-}
-
-// Atomic write: write to a temp file in the same directory, then rename over
-// the target, so a crash mid-write never leaves a corrupt dataset behind.
-function writeDataset(key, value) {
-  const target = dataPath(key)
-  const tmp = `${target}.${crypto.randomBytes(6).toString('hex')}.tmp`
-  fs.writeFileSync(tmp, JSON.stringify(value, null, 2))
-  fs.renameSync(tmp, target)
 }
 
 // Every host the content links to — the only sites the embed checker will
@@ -101,6 +88,12 @@ function collectHosts(node, hosts) {
   }
 }
 
+// contentHosts reads the datasets straight off disk rather than through the
+// content router: it only wants the URLs, drafts included.
+function readDataset(key) {
+  return JSON.parse(fs.readFileSync(path.join(DATA_DIR, `${key}.json`), 'utf8'))
+}
+
 function contentHosts() {
   if (Date.now() - hostCache.at < 60_000) return hostCache.hosts
   const hosts = new Set(EMBED_EXTRA_HOSTS)
@@ -115,85 +108,16 @@ function contentHosts() {
   return hosts
 }
 
-// --- uploads ------------------------------------------------------------------
-
-// Raster formats only. SVG is deliberately excluded: it can carry script, and
-// these files are served from the app's own origin.
-const IMAGE_TYPES = [
-  { ext: 'png', mime: 'image/png', match: (b) => b.length > 8 && b.subarray(0, 8).equals(Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a])) },
-  { ext: 'jpg', mime: 'image/jpeg', match: (b) => b.length > 3 && b[0] === 0xff && b[1] === 0xd8 && b[2] === 0xff },
-  { ext: 'gif', mime: 'image/gif', match: (b) => b.length > 6 && b.subarray(0, 4).toString('latin1') === 'GIF8' },
-  {
-    ext: 'webp',
-    mime: 'image/webp',
-    match: (b) =>
-      b.length > 12 &&
-      b.subarray(0, 4).toString('latin1') === 'RIFF' &&
-      b.subarray(8, 12).toString('latin1') === 'WEBP',
-  },
-]
-
-// Trust the bytes, not the Content-Type header a client claims.
-function sniffImage(buf) {
-  return IMAGE_TYPES.find((t) => t.match(buf)) || null
-}
-
-// Keep a readable slug of the original filename so the media library is
-// browsable, and suffix a content hash so re-uploading the same file is a
-// no-op rather than a duplicate.
-function uploadFilename(originalName, buf, ext) {
-  const base =
-    path
-      .basename(String(originalName || 'image'), path.extname(String(originalName || '')))
-      .toLowerCase()
-      .replace(/[^a-z0-9]+/g, '-')
-      .replace(/^-+|-+$/g, '')
-      .slice(0, 40) || 'image'
-  const hash = crypto.createHash('sha256').update(buf).digest('hex').slice(0, 8)
-  return `${base}-${hash}.${ext}`
-}
-
-// Guard against `..` and nested paths in user-supplied names.
-function resolveUpload(name) {
-  const safe = path.basename(String(name || ''))
-  if (!safe || safe.startsWith('.')) return null
-  const full = path.join(UPLOAD_DIR, safe)
-  if (path.dirname(full) !== UPLOAD_DIR) return null
-  return { name: safe, full }
-}
-
-function listUploads() {
-  if (!fs.existsSync(UPLOAD_DIR)) return []
-  return fs
-    .readdirSync(UPLOAD_DIR)
-    .filter((name) => IMAGE_TYPES.some((t) => name.toLowerCase().endsWith(`.${t.ext}`)))
-    .map((name) => {
-      const stat = fs.statSync(path.join(UPLOAD_DIR, name))
-      return { name, url: `/uploads/${name}`, size: stat.size, modified: stat.mtimeMs }
-    })
-    .sort((a, b) => b.modified - a.modified)
-}
-
-// --- auth ---------------------------------------------------------------------
-
-function safeEqual(a, b) {
-  const ha = crypto.createHash('sha256').update(String(a)).digest()
-  const hb = crypto.createHash('sha256').update(String(b)).digest()
-  return crypto.timingSafeEqual(ha, hb)
-}
-
-function requireAdmin(req, res, next) {
-  const header = req.get('authorization') || ''
-  const token = header.startsWith('Bearer ') ? header.slice(7) : ''
-  if (!token || !safeEqual(token, ADMIN_PASSWORD)) {
-    return res.status(401).json({ error: 'Unauthorized' })
-  }
-  next()
-}
-
 // --- app ----------------------------------------------------------------------
 
 seedIfMissing()
+
+// Admin accounts live in Postgres where there is one, and in a 0600 JSON file
+// next to the content otherwise — the portal still has to work in the
+// no-database mode, which is how the content editor is run locally.
+const adminStore = analyticsEnabled
+  ? createPostgresAdminStore({ query })
+  : createFileAdminStore(path.join(DATA_DIR, 'admin-accounts.json'))
 
 const app = express()
 app.disable('x-powered-by')
@@ -222,9 +146,19 @@ app.use((req, res, next) => {
 
 app.use(express.json({ limit: '5mb' }))
 
+// Resolves the admin session cookie onto req.admin for everything below. It
+// never rejects on its own — requirePermission() decides what an
+// unauthenticated or half-authenticated (password but no second factor)
+// request may do.
+app.use(createAdminSessionMiddleware({ store: adminStore }))
+
+// Admin sign-in, second factor and account management.
+app.use('/api/admin/auth', createAdminAuthRouter({ store: adminStore, audit }))
+app.use('/api/admin/users', createAdminUsersRouter({ store: adminStore, audit }))
+
 // Event tracking. Mounted before the static handler so /api wins, and a no-op
 // when DATABASE_URL is unset.
-app.use('/api/analytics', createAnalyticsRouter({ requireAdmin }))
+app.use('/api/analytics', createAnalyticsRouter({ requirePermission }))
 
 // Accounts, OTP verification and sessions. Also requires a database; the app
 // stays fully browsable without one, it just can't offer sign-in.
@@ -237,75 +171,17 @@ app.use('/api/progress', createProgressRouter())
 // Whether an external article can be shown inside the in-app viewer.
 app.use('/api/embed', createEmbedRouter({ allowedHosts: contentHosts }))
 
-// Content is fetched by the PWA; keep it out of the HTTP cache so edits show up
-// on the next load (the service worker applies its own NetworkFirst strategy).
-app.get('/api/content/:key', (req, res) => {
-  const { key } = req.params
-  if (!DATASETS[key]) return res.status(404).json({ error: 'Unknown dataset' })
-  try {
-    res.set('Cache-Control', 'no-store')
-    res.json(readDataset(key))
-  } catch (err) {
-    console.error(`[asknelson] failed to read ${key}:`, err)
-    res.status(500).json({ error: 'Failed to read dataset' })
-  }
-})
+// Reader view: the article itself, extracted and sanitised, for publishers
+// that refuse to be framed.
+app.use('/api/reader', createReaderRouter({ allowedHosts: contentHosts }))
 
-app.post('/api/admin/login', (req, res) => {
-  const { password } = req.body || {}
-  if (!password || !safeEqual(password, ADMIN_PASSWORD)) {
-    return res.status(401).json({ error: 'Wrong password' })
-  }
-  res.json({ ok: true })
-})
+// Content: read by the PWA (published items only), written from the admin
+// portal. Editing needs content:write; changing what members can see needs
+// content:publish as well — see server/contentRoutes.js.
+app.use('/api/content', createContentRouter({ dataDir: DATA_DIR, seedDir: SEED_DIR, audit }))
 
-app.put('/api/content/:key', requireAdmin, (req, res) => {
-  const { key } = req.params
-  const dataset = DATASETS[key]
-  if (!dataset) return res.status(404).json({ error: 'Unknown dataset' })
-
-  const body = req.body
-  const root = body?.[dataset.rootKey]
-  // Light shape check: the top-level key must exist and hold the expected
-  // container (explore -> object with themes[], others -> array).
-  const validShape =
-    key === 'explore' ? Array.isArray(root?.themes) : Array.isArray(root)
-  if (!validShape) {
-    return res.status(400).json({
-      error: `Invalid payload: expected a top-level "${dataset.rootKey}" ${
-        key === 'explore' ? 'object with a themes array' : 'array'
-      }.`,
-    })
-  }
-
-  try {
-    writeDataset(key, body)
-    res.json({ ok: true })
-  } catch (err) {
-    console.error(`[asknelson] failed to write ${key}:`, err)
-    res.status(500).json({ error: 'Failed to save dataset' })
-  }
-})
-
-// Reset a dataset back to the JSON shipped with the app.
-app.post('/api/content/:key/reset', requireAdmin, (req, res) => {
-  const { key } = req.params
-  if (!DATASETS[key]) return res.status(404).json({ error: 'Unknown dataset' })
-  const seed = path.join(SEED_DIR, `${key}.json`)
-  try {
-    const value = JSON.parse(fs.readFileSync(seed, 'utf8'))
-    writeDataset(key, value)
-    res.json({ ok: true, data: value })
-  } catch (err) {
-    console.error(`[asknelson] failed to reset ${key}:`, err)
-    res.status(500).json({ error: 'Failed to reset dataset' })
-  }
-})
-
-// --- uploaded media -----------------------------------------------------------
-
-// Public read: the PWA renders these straight from <img src>. Filenames carry a
-// content hash, so a long immutable cache is safe.
+// Public read of uploaded media: the PWA renders these straight from <img
+// src>. Filenames carry a content hash, so a long immutable cache is safe.
 app.use(
   '/uploads',
   express.static(UPLOAD_DIR, {
@@ -316,68 +192,24 @@ app.use(
   })
 )
 
-app.get('/api/admin/uploads', requireAdmin, (_req, res) => {
-  try {
-    res.set('Cache-Control', 'no-store')
-    res.json({ uploads: listUploads() })
-  } catch (err) {
-    console.error('[asknelson] failed to list uploads:', err)
-    res.status(500).json({ error: 'Failed to list uploads' })
-  }
-})
-
-// The image arrives as a raw body rather than multipart, which keeps the
-// server dependency-free; the original filename rides along as ?name=.
-app.post(
-  '/api/admin/uploads',
-  requireAdmin,
-  express.raw({ type: () => true, limit: MAX_UPLOAD_BYTES }),
-  (req, res) => {
-    const buf = req.body
-    if (!Buffer.isBuffer(buf) || buf.length === 0) {
-      return res.status(400).json({ error: 'Empty upload' })
-    }
-    const kind = sniffImage(buf)
-    if (!kind) {
-      return res
-        .status(415)
-        .json({ error: 'Unsupported file — use a PNG, JPG, WEBP or GIF image.' })
-    }
-
-    const name = uploadFilename(req.query.name, buf, kind.ext)
-    const target = path.join(UPLOAD_DIR, name)
-    try {
-      // Same bytes, same name — an existing file is already correct, so skip
-      // the rewrite and just hand back the URL.
-      if (!fs.existsSync(target)) {
-        const tmp = `${target}.${crypto.randomBytes(6).toString('hex')}.tmp`
-        fs.writeFileSync(tmp, buf)
-        fs.renameSync(tmp, target)
-      }
-      res.json({ ok: true, name, url: `/uploads/${name}`, size: buf.length })
-    } catch (err) {
-      console.error('[asknelson] failed to save upload:', err)
-      res.status(500).json({ error: 'Failed to save upload' })
-    }
-  }
-)
-
-app.delete('/api/admin/uploads/:name', requireAdmin, (req, res) => {
-  const resolved = resolveUpload(req.params.name)
-  if (!resolved) return res.status(400).json({ error: 'Invalid filename' })
-  try {
-    if (!fs.existsSync(resolved.full)) return res.status(404).json({ error: 'Not found' })
-    fs.unlinkSync(resolved.full)
-    res.json({ ok: true })
-  } catch (err) {
-    console.error('[asknelson] failed to delete upload:', err)
-    res.status(500).json({ error: 'Failed to delete upload' })
-  }
-})
+// The media library behind the admin editor's image fields.
+app.use('/api/admin/uploads', createUploadRouter({ uploadDir: UPLOAD_DIR, audit }))
 
 app.get('/api/health', (_req, res) =>
   res.json({ ok: true, analytics: analyticsEnabled, encryption: encryptionConfigured })
 )
+
+// An oversized upload arrives as a PayloadTooLargeError from express.raw
+// rather than as a rejected request, so turn it into the same message the
+// size check gives.
+app.use((err, _req, res, next) => {
+  if (err?.type === 'entity.too.large') {
+    return res.status(413).json({
+      error: `That file is too large — the limit is ${formatBytes(MAX_UPLOAD_BYTES)}.`,
+    })
+  }
+  return next(err)
+})
 
 // --- static frontend ------------------------------------------------------------
 
@@ -413,9 +245,12 @@ if (analyticsEnabled) {
     startSessionSweeper()
     startAuthSweeper()
     // Daily, plus once now: raw analytics and audit rows past their
-    // retention window are deleted (POPIA s14).
+    // retention window are deleted (POPIA s14), and expired admin sessions
+    // are dropped rather than left to accumulate.
     const sweep = () =>
-      sweepRetention().catch((err) => console.error('[asknelson] retention sweep failed:', err.message))
+      Promise.all([sweepRetention(), sweepExpiredAdminSessions()]).catch((err) =>
+        console.error('[asknelson] retention sweep failed:', err.message)
+      )
     sweep()
     setInterval(sweep, 24 * 60 * 60 * 1000).unref()
     console.log('[asknelson] analytics + accounts enabled — schema up to date, encryption on')
@@ -427,9 +262,44 @@ if (analyticsEnabled) {
   }
 } else {
   console.log('[asknelson] analytics disabled — set DATABASE_URL to enable event tracking')
+  if (!encryptionConfigured) {
+    console.warn(
+      '[asknelson] WARNING: DATA_ENCRYPTION_KEYS is not set — admin emails and ' +
+        'two-factor secrets are stored in the clear in the account file. ' +
+        'Generate a key with `npm run keys:generate` before using this anywhere real.'
+    )
+  }
 }
 
-app.listen(PORT, () => {
+// The first owner, from the environment, and only ever into an empty account
+// store — this cannot be used to re-take an installation that already has
+// admins. The account starts with no second factor, so its first sign-in has
+// to enrol one before it can do anything.
+const bootstrap = await ensureBootstrapAdmin(adminStore, {
+  email: process.env.ADMIN_BOOTSTRAP_EMAIL,
+  password: process.env.ADMIN_PASSWORD,
+})
+if (bootstrap.created) {
+  console.log(`[asknelson] created the first admin account: ${bootstrap.email} (owner)`)
+  console.log('[asknelson] its first sign-in must enrol two-factor authentication')
+} else if (bootstrap.reason === 'not-configured' && (await adminStore.countAdmins()) === 0) {
+  console.warn(
+    '[asknelson] WARNING: no admin accounts exist and ADMIN_BOOTSTRAP_EMAIL / ADMIN_PASSWORD ' +
+      'are not both set — nobody can sign in to /admin. See .env.example.'
+  )
+}
+
+const server = app.listen(PORT, () => {
   console.log(`[asknelson] listening on http://localhost:${PORT}`)
   console.log(`[asknelson] data dir: ${DATA_DIR}`)
 })
+
+// Close the pool on the way out so a rolling deploy doesn't leave the database
+// holding connections for a process that has already gone.
+for (const signal of ['SIGTERM', 'SIGINT']) {
+  process.on(signal, () => {
+    server.close(() => {
+      pool?.end().catch(() => {})
+    })
+  })
+}

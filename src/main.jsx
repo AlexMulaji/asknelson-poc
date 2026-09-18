@@ -3,6 +3,7 @@ import ReactDOM from 'react-dom/client'
 import { BrowserRouter } from 'react-router-dom'
 import App from './App.jsx'
 import { AuthProvider } from './hooks/useAuth.jsx'
+import { ThemeProvider } from './hooks/useTheme.jsx'
 import { initAnalytics } from './lib/analytics.js'
 import './index.css'
 
@@ -16,9 +17,11 @@ if (!window.location.pathname.startsWith('/admin')) {
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
     <BrowserRouter>
-      <AuthProvider>
-        <App />
-      </AuthProvider>
+      <ThemeProvider>
+        <AuthProvider>
+          <App />
+        </AuthProvider>
+      </ThemeProvider>
     </BrowserRouter>
   </React.StrictMode>
 )

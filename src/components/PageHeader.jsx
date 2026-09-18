@@ -18,7 +18,7 @@ export default function PageHeader({ title, subtitle, logo, action, className = 
             <img src={logo} alt={title} className="h-8 w-auto" />
           </h1>
         ) : (
-          <h1 className="font-display text-[30px] font-extrabold leading-tight text-navy lg:text-[38px]">
+          <h1 className="font-display text-[30px] font-extrabold leading-tight text-ink lg:text-[38px]">
             {title}
           </h1>
         )}

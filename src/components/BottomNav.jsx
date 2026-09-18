@@ -6,7 +6,7 @@ import { navTabs as tabs } from './navTabs.js'
 // the Sidebar takes over.
 export default function BottomNav() {
   return (
-    <nav className="fixed bottom-0 inset-x-0 z-40 border-t border-line bg-white safe-bottom lg:hidden">
+    <nav className="fixed bottom-0 inset-x-0 z-40 border-t border-line bg-surface safe-bottom lg:hidden">
       <ul className="mx-auto flex max-w-md items-stretch justify-around">
         {tabs.map(({ to, label, Icon }) => (
           <li key={to} className="flex-1">
@@ -17,7 +17,7 @@ export default function BottomNav() {
                   // min-h ensures a 44px touch target (Apple HIG / WCAG 2.5.5).
                   'flex min-h-[44px] flex-col items-center justify-center gap-1 px-1 py-2.5',
                   'transition-colors duration-150',
-                  isActive ? 'text-navy' : 'text-muted',
+                  isActive ? 'text-ink' : 'text-muted',
                 ].join(' ')
               }
             >

@@ -49,7 +49,7 @@ export default function MeditationPlayer({ m, onClose }) {
       aria-label="Meditation session"
       className="fixed inset-0 z-[60] overflow-hidden bg-navy"
     >
-      <CoverImage src={scene.image} className="absolute inset-0 h-full w-full" />
+      <CoverImage src={scene.image} priority width={16} height={9} className="absolute inset-0 h-full w-full" />
       <div aria-hidden className="absolute inset-0 bg-navy/70" />
 
       <div
@@ -97,7 +97,7 @@ export default function MeditationPlayer({ m, onClose }) {
               type="button"
               onClick={m.isRunning ? m.pause : m.start}
               aria-label={m.isRunning ? 'Pause' : 'Play'}
-              className="grid h-[72px] w-[72px] place-items-center rounded-full bg-white text-navy shadow-lift transition active:scale-90"
+              className="grid h-[72px] w-[72px] place-items-center rounded-full bg-surface text-ink shadow-lift transition active:scale-90"
             >
               {m.isRunning ? (
                 <PauseIcon className="h-7 w-7" />
@@ -129,7 +129,7 @@ export default function MeditationPlayer({ m, onClose }) {
               className="h-1.5 w-full cursor-pointer appearance-none rounded-full bg-white/30 accent-white
                          [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:w-4
                          [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:rounded-full
-                         [&::-webkit-slider-thumb]:bg-white"
+                         [&::-webkit-slider-thumb]:bg-surface"
             />
             <VolumeMaxIcon className="h-5 w-5 shrink-0 text-white/80" />
           </div>
@@ -147,7 +147,7 @@ export default function MeditationPlayer({ m, onClose }) {
             <button
               type="button"
               onClick={onClose}
-              className="mt-8 min-h-[48px] rounded-btn bg-brand px-10 text-[15px] font-extrabold text-white transition hover:bg-brand-dark active:scale-[0.98]"
+              className="mt-8 min-h-[48px] rounded-btn bg-brand px-10 text-[15px] font-extrabold text-on-brand transition hover:bg-brand-dark active:scale-[0.98]"
             >
               Done
             </button>

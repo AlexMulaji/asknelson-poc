@@ -1,15 +1,23 @@
 import { useEffect, useRef, useState } from 'react'
 import { deleteUpload, listUploads, uploadImage } from '../../lib/adminApi.js'
+import { compressImage, formatBytes } from '../../lib/imageCompression.js'
 
 // Image picker used by any schema field of `type: 'image'`. The stored value is
 // always just a URL string — an uploaded `/uploads/…` path or an external link
 // pasted by hand — so nothing about the JSON shape depends on this component.
+//
+// Uploads are downscaled and re-encoded in the browser first
+// (lib/imageCompression.js), which is what makes the cards in the app load
+// quickly: a 3 MB camera JPEG becomes a ~150 KB WebP at the size it is
+// actually displayed, and the original never crosses the network. The server
+// enforces the same limits regardless — a browser can be bypassed.
 
 const ACCEPT = 'image/png,image/jpeg,image/webp,image/gif'
 
 // The uploads listing is shared by every picker on the page and rarely changes,
 // so it's fetched once per session and refreshed on write.
 let uploadsCache = null
+let limitsCache = null
 const subscribers = new Set()
 
 function publishUploads(next) {
@@ -18,7 +26,9 @@ function publishUploads(next) {
 }
 
 async function refreshUploads() {
-  publishUploads(await listUploads())
+  const { uploads, limits } = await listUploads()
+  limitsCache = limits
+  publishUploads(uploads)
 }
 
 function useUploads() {
@@ -66,8 +76,9 @@ function Thumb({ url, alt, className = '' }) {
 export default function ImageField({ field, value, onChange }) {
   const { uploads, error: listError, setError: setListError } = useUploads()
   const [browsing, setBrowsing] = useState(false)
-  const [busy, setBusy] = useState(false)
+  const [busy, setBusy] = useState(null) // null | 'optimising' | 'uploading'
   const [error, setError] = useState(null)
+  const [note, setNote] = useState(null)
   const fileRef = useRef(null)
 
   const shownError = error || listError
@@ -75,18 +86,26 @@ export default function ImageField({ field, value, onChange }) {
   const handleFiles = async (files) => {
     const file = files?.[0]
     if (!file) return
-    setBusy(true)
     setError(null)
+    setNote(null)
     setListError(null)
     try {
-      const { url } = await uploadImage(file)
-      onChange(url)
+      setBusy('optimising')
+      const optimised = await compressImage(file)
+      setBusy('uploading')
+      const result = await uploadImage(optimised.file)
+      onChange(result.url)
+      setNote(
+        optimised.compressed
+          ? `Optimised: ${formatBytes(optimised.originalSize)} → ${formatBytes(optimised.size)} at ${optimised.width}×${optimised.height}.`
+          : result.warning || null
+      )
       await refreshUploads()
       setBrowsing(false)
     } catch (err) {
       setError(err.message)
     } finally {
-      setBusy(false)
+      setBusy(null)
       if (fileRef.current) fileRef.current.value = ''
     }
   }
@@ -106,7 +125,7 @@ export default function ImageField({ field, value, onChange }) {
     <label className="block">
       <span className="mb-1 block text-xs font-semibold text-gray-500">{field.label}</span>
 
-      <div className="rounded-lg border border-gray-200 bg-white p-2.5">
+      <div className="rounded-lg border border-gray-200 bg-surface p-2.5">
         <div className="flex items-start gap-3">
           {value ? (
             <Thumb url={value} alt="" className="h-16 w-24 shrink-0 rounded-md" />
@@ -120,11 +139,11 @@ export default function ImageField({ field, value, onChange }) {
             <div className="flex flex-wrap gap-1.5">
               <button
                 type="button"
-                disabled={busy}
+                disabled={Boolean(busy)}
                 onClick={() => fileRef.current?.click()}
                 className="rounded-md bg-brand/10 px-2.5 py-1 text-xs font-semibold text-brand transition hover:bg-brand/20 disabled:opacity-40"
               >
-                {busy ? 'Uploading…' : 'Upload'}
+                {busy === 'optimising' ? 'Optimising…' : busy === 'uploading' ? 'Uploading…' : 'Upload'}
               </button>
               <button
                 type="button"
@@ -164,6 +183,13 @@ export default function ImageField({ field, value, onChange }) {
         />
 
         {shownError ? <p className="mt-2 text-xs text-red-600">{shownError}</p> : null}
+        {note ? <p className="mt-2 text-xs text-gray-500">{note}</p> : null}
+        {limitsCache ? (
+          <p className="mt-2 text-[11px] text-gray-400">
+            Images are resized to fit 1600px and re-encoded before upload. Hard limits:{' '}
+            {formatBytes(limitsCache.maxBytes)}, {limitsCache.maxDimension}px on the longest side.
+          </p>
+        ) : null}
 
         {browsing ? (
           uploads.length === 0 ? (
@@ -194,7 +220,7 @@ export default function ImageField({ field, value, onChange }) {
                       type="button"
                       title="Delete from library"
                       onClick={() => remove(up.name)}
-                      className="absolute right-1 top-1 hidden h-5 w-5 place-items-center rounded-full bg-white/90 text-[10px] text-red-500 shadow-sm group-hover:grid"
+                      className="absolute right-1 top-1 hidden h-5 w-5 place-items-center rounded-full bg-surface/90 text-[10px] text-red-500 shadow-sm group-hover:grid"
                     >
                       ✕
                     </button>

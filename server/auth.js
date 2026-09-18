@@ -1,11 +1,12 @@
 import express from 'express'
 import crypto from 'node:crypto'
-import { promisify } from 'node:util'
 import { isEnabled, query, withTransaction } from './db.js'
 import { aad, blindIndex, open, pepperConfigured, seal } from './crypto.js'
 import { DEVICE_COOKIE, linkDeviceFromRequest, memberActivity, upsertMember } from './analytics.js'
 import { maskDestination, otpEcho, sendOtp, sendResetLink } from './otp.js'
 import { audit } from './audit.js'
+import { allocateUsername } from './username.js'
+import { hashPassword, passwordProblem, verifyPassword } from './passwords.js'
 import { baseUrl, noStore, rateLimiter, readCookie, str } from './http.js'
 import {
   SESSION_COOKIE,
@@ -35,14 +36,11 @@ import { progressSnapshot } from './progress.js'
 // Every contact detail and name is sealed with AES-256-GCM (see crypto.js)
 // and found again through a keyed hash (email_hash, phone_hash).
 
-const scrypt = promisify(crypto.scrypt)
-
 const OTP_TTL_MINUTES = 10
 const OTP_MAX_ATTEMPTS = 5
 const RESET_TTL_MINUTES = 30
 const MAX_FAILED_LOGINS = 8
 const LOCKOUT_MINUTES = 15
-const MIN_PASSWORD = 8
 
 // Consent is recorded against this version; bump it when the notice changes.
 export const PRIVACY_NOTICE_VERSION = process.env.PRIVACY_NOTICE_VERSION || '2026-09'
@@ -65,42 +63,6 @@ if (isEnabled && !pepperConfigured) {
     '[asknelson] WARNING: AUTH_PEPPER is not set — contact hashes fall back to an ' +
       'unkeyed digest, which is brute-forceable. Set it before going live.'
   )
-}
-
-// --- hashing ------------------------------------------------------------------
-
-// scrypt from node:crypto rather than argon2/bcrypt: both of those are native
-// addons that complicate the Alpine build for no security gain here. Params
-// follow the OWASP scrypt guidance (N=2^15, r=8, p=1).
-const SCRYPT = { N: 32768, r: 8, p: 1, keylen: 64 }
-
-async function hashPassword(password) {
-  const salt = crypto.randomBytes(16)
-  const key = await scrypt(password, salt, SCRYPT.keylen, {
-    N: SCRYPT.N,
-    r: SCRYPT.r,
-    p: SCRYPT.p,
-    maxmem: 256 * 1024 * 1024,
-  })
-  return `scrypt$${SCRYPT.N}$${SCRYPT.r}$${SCRYPT.p}$${salt.toString('base64')}$${key.toString('base64')}`
-}
-
-async function verifyPassword(password, stored) {
-  try {
-    const [scheme, N, r, p, saltB64, keyB64] = String(stored).split('$')
-    if (scheme !== 'scrypt') return false
-    const salt = Buffer.from(saltB64, 'base64')
-    const expected = Buffer.from(keyB64, 'base64')
-    const actual = await scrypt(password, salt, expected.length, {
-      N: Number(N),
-      r: Number(r),
-      p: Number(p),
-      maxmem: 256 * 1024 * 1024,
-    })
-    return crypto.timingSafeEqual(actual, expected)
-  } catch {
-    return false
-  }
 }
 
 // Contact and ID hashes use the original, un-namespaced scheme so hashes
@@ -294,7 +256,8 @@ export function createAuthRouter() {
       const bad = (message) => res.status(400).json({ error: message })
 
       if (b.consent !== true) return bad('Please accept the privacy notice to continue.')
-      if (password.length < MIN_PASSWORD) return bad(`Password must be at least ${MIN_PASSWORD} characters.`)
+      const weak = passwordProblem(password)
+      if (weak) return bad(weak)
       if (!company) return bad('Company name is required.')
       if (email && !isEmail(email)) return bad('That email address looks wrong.')
       if (phone && !isPhone(phone)) return bad('That mobile number looks wrong.')
@@ -312,6 +275,8 @@ export function createAuthRouter() {
         const { rows } = await query('SELECT 1 FROM auth_users WHERE lower(username) = lower($1)', [username])
         if (rows.length) return res.status(409).json({ error: 'That username is taken.' })
       } else {
+        // Identified accounts do not choose a handle; one is generated for them
+        // in the transaction below.
         firstName = str(b.firstName, 80)
         lastName = str(b.lastName, 80)
         const idNumber = String(b.idNumber || '').replace(/\D/g, '')
@@ -347,6 +312,12 @@ export function createAuthRouter() {
           await db.query('DELETE FROM auth_users WHERE id = ANY($1::uuid[])', [clashes.map((r) => r.id)])
         }
         const organisationId = await upsertOrganisation(db, company)
+        // The handle the app shows wherever a name is needed. Before this,
+        // that fell back to the member's own mobile number, which then sat on
+        // the home screen for anyone glancing at the phone to read. Allocated
+        // in here so the uniqueness check and the INSERT see one snapshot; the
+        // UNIQUE index catches the race if two sign-ups land on the same one.
+        if (!anonymous) username = await allocateUsername(db)
         await db.query(
           `INSERT INTO auth_users
              (id, is_anonymous, username, password_hash, email_enc, phone_enc, first_name_enc,
@@ -446,7 +417,13 @@ export function createAuthRouter() {
         // external_ref prefers the employer's own staff number; otherwise the
         // account id, so reporting still has a stable handle.
         const label = [userField(user, 'first_name'), userField(user, 'last_name')].filter(Boolean).join(' ')
-        const memberId = await upsertMember(userField(user, 'employee_no') || `user:${userId}`, label || null)
+        // The employer rides along so per-company reporting can group events
+        // without joining back through the encrypted account tables.
+        const memberId = await upsertMember(
+          userField(user, 'employee_no') || `user:${userId}`,
+          label || user.username,
+          user.organisation_id
+        )
         await query(
           "UPDATE auth_users SET status = 'active', verified_at = now(), member_id = $2 WHERE id = $1",
           [userId, memberId]
@@ -649,9 +626,8 @@ export function createAuthRouter() {
     try {
       const token = String(req.body?.token || '')
       const password = String(req.body?.password || '')
-      if (password.length < MIN_PASSWORD) {
-        return res.status(400).json({ error: `Password must be at least ${MIN_PASSWORD} characters.` })
-      }
+      const weak = passwordProblem(password)
+      if (weak) return res.status(400).json({ error: weak })
       const expired = () =>
         res.status(400).json({ error: 'This reset link has expired or was already used. Request a new one.' })
       if (!token) return expired()

@@ -24,12 +24,12 @@ const MAX_REDIRECTS = 4
 const TIMEOUT_MS = 6000
 // A browser UA: several publishers answer bots with a different page (or a
 // 403) whose headers wouldn't reflect what the member's browser receives.
-const UA =
+export const UA =
   'Mozilla/5.0 (Linux; Android 14) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0 Mobile Safari/537.36'
 
 const cache = new Map() // url -> { at, verdict }
 
-function isPrivateAddress(ip) {
+export function isPrivateAddress(ip) {
   if (net.isIPv4(ip)) {
     const [a, b] = ip.split('.').map(Number)
     return (
@@ -45,7 +45,7 @@ function isPrivateAddress(ip) {
   return v6 === '::' || v6 === '::1' || v6.startsWith('fc') || v6.startsWith('fd') || v6.startsWith('fe80')
 }
 
-async function assertPublicHost(hostname) {
+export async function assertPublicHost(hostname) {
   if (net.isIP(hostname)) throw new Error('IP literals are not checked')
   const addresses = await dns.lookup(hostname, { all: true })
   if (addresses.length === 0 || addresses.some((a) => isPrivateAddress(a.address))) {

@@ -13,7 +13,7 @@ export default function AssessmentCard({ assessment, record, retake, onOpen }) {
     <button
       type="button"
       onClick={() => onOpen(assessment.id)}
-      className="card-press flex w-full items-center gap-4 rounded-card bg-white p-5 text-left shadow-card"
+      className="card-press flex w-full items-center gap-4 rounded-card bg-surface p-5 text-left shadow-card"
     >
       <span
         aria-hidden
@@ -24,7 +24,7 @@ export default function AssessmentCard({ assessment, record, retake, onOpen }) {
       </span>
 
       <div className="min-w-0 flex-1">
-        <h3 className="font-display text-[18px] font-extrabold leading-snug text-navy">
+        <h3 className="font-display text-[18px] font-extrabold leading-snug text-ink">
           {assessment.title}
         </h3>
         <p className="mt-1 text-[13px] leading-relaxed text-slate-500">

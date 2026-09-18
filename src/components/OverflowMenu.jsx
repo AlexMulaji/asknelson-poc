@@ -33,7 +33,7 @@ export default function OverflowMenu({ items, tone = 'navy', label = 'More optio
         onClick={() => setOpen((o) => !o)}
         className={[
           'grid h-10 w-10 place-items-center rounded-full transition',
-          tone === 'white' ? 'text-white hover:bg-white/15' : 'text-navy hover:bg-canvas',
+          tone === 'white' ? 'text-white hover:bg-white/15' : 'text-ink hover:bg-canvas',
         ].join(' ')}
       >
         <DotsVerticalIcon className="h-5 w-5" />
@@ -42,7 +42,7 @@ export default function OverflowMenu({ items, tone = 'navy', label = 'More optio
       {open ? (
         <div
           role="menu"
-          className="absolute right-0 top-full z-50 mt-1 w-56 overflow-hidden rounded-card bg-white py-1.5 shadow-lift ring-1 ring-black/5"
+          className="absolute right-0 top-full z-50 mt-1 w-56 overflow-hidden rounded-card bg-surface py-1.5 shadow-lift ring-1 ring-line"
         >
           {items.map(({ label: itemLabel, Icon, onSelect, danger }) => (
             <button
@@ -55,7 +55,7 @@ export default function OverflowMenu({ items, tone = 'navy', label = 'More optio
               }}
               className={[
                 'flex w-full items-center gap-3 px-4 py-3 text-left text-[15px] font-bold transition',
-                danger ? 'text-danger hover:bg-pill-red' : 'text-navy hover:bg-canvas',
+                danger ? 'text-danger hover:bg-pill-red' : 'text-ink hover:bg-canvas',
               ].join(' ')}
             >
               {Icon ? <Icon className="h-5 w-5 shrink-0 text-brand" /> : null}

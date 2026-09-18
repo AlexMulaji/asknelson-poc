@@ -9,7 +9,7 @@ const TONES = {
   lime: 'bg-pill-lime text-pill-lime-fg',
   red: 'bg-pill-red text-pill-red-fg',
   blue: 'bg-pill-blue text-pill-blue-fg',
-  neutral: 'bg-canvas text-navy',
+  neutral: 'bg-canvas text-ink',
 }
 
 // Journey/theme categories and day types each map to a fixed tone so the same

@@ -1,5 +1,25 @@
-﻿--
+--
 -- PostgreSQL database dump
+--
+-- NOT HAND-MAINTAINED. This is pg_dump output, kept as a readable snapshot of
+-- the shape server/db.js produces. It is a record, never the source of truth:
+-- the schema is built by the migrations in server/migrations/, applied on
+-- startup, and editing this file changes nothing.
+--
+-- This snapshot was taken BEFORE migrations 004-006 and so does not yet show:
+--
+--   004_admin_rbac        admin_users, admin_sessions, admin_recovery_codes —
+--                         named admin accounts with roles and TOTP, replacing
+--                         the single shared ADMIN_PASSWORD
+--   005_org_analytics     organisation_id on analytics_members, _devices,
+--                         _sessions and _events, so reporting can group by
+--                         employer without decrypting anything
+--   006_member_usernames  auth_users.username backfilled and made NOT NULL,
+--                         with a case-insensitive unique index
+--
+-- Refresh it after a deploy that applies new migrations:
+--
+--   pg_dump --schema-only --no-owner --no-privileges "$DATABASE_URL" > docs/schema.sql
 --
 
 \restrict 582Jivlk2PFdPrRVDfDHIpfnirWxKUCeE6t1tbvAqYc9kdp3QTuBilKVL6gZWxP

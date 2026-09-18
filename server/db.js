@@ -1,6 +1,9 @@
 import fs from 'node:fs'
 import pg from 'pg'
 import m003 from './migrations/003_popia_encryption.js'
+import m004 from './migrations/004_admin_rbac.js'
+import m005 from './migrations/005_org_analytics.js'
+import m006 from './migrations/006_member_usernames.js'
 
 // Postgres connection + schema migrations for accounts, progress and analytics.
 //
@@ -304,6 +307,13 @@ const MIGRATIONS = [
   // Encrypts personal information at rest and adds consent, audit, password
   // reset and progress tables. See server/migrations/003_popia_encryption.js.
   m003,
+  // Named admin accounts, two-factor auth and roles, replacing ADMIN_PASSWORD.
+  m004,
+  // The employer as a reportable dimension on members, sessions and events.
+  m005,
+  // A generated display handle for every account, so the app never shows a
+  // member their own mobile number as a name.
+  m006,
 ]
 
 export async function migrate() {
@@ -370,6 +380,12 @@ export async function sweepRetention() {
 // Close sessions that stopped sending events. Without this, a session the user
 // abandoned (closed the tab mid-visit, phone died) would stay open forever and
 // inflate "active now" style numbers.
+export async function sweepExpiredAdminSessions() {
+  if (!pool) return 0
+  const { rowCount } = await pool.query('DELETE FROM admin_sessions WHERE expires_at < now()')
+  return rowCount
+}
+
 export async function sweepStaleSessions(idleMinutes = 30) {
   if (!pool) return 0
   const { rowCount } = await pool.query(

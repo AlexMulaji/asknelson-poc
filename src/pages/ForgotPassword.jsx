@@ -29,7 +29,7 @@ const CALL_ICON = (
   <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
     <path
       d="M15.5 21a1.5 1.5 0 001.5-1.5v-3.2a1.5 1.5 0 00-1.18-1.47l-2.3-.5a1.5 1.5 0 00-1.46.5l-.9 1.06a13.6 13.6 0 01-4.05-4.05l1.06-.9a1.5 1.5 0 00.5-1.46l-.5-2.3A1.5 1.5 0 007.7 5H4.5A1.5 1.5 0 003 6.5C3 14.5 8.5 21 15.5 21Z"
-      stroke="#637885"
+      stroke="currentColor"
       strokeWidth="2"
       strokeLinecap="round"
       strokeLinejoin="round"
@@ -41,14 +41,14 @@ const EMAIL_ICON = (
   <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
     <path
       d="M4 5h16a2 2 0 012 2v10a2 2 0 01-2 2H4a2 2 0 01-2-2V7a2 2 0 012-2Z"
-      stroke="#637885"
+      stroke="currentColor"
       strokeWidth="2"
       strokeLinecap="round"
       strokeLinejoin="round"
     />
     <path
       d="M2.5 7.2l8.42 5.62a2 2 0 002.16 0L21.5 7.2"
-      stroke="#637885"
+      stroke="currentColor"
       strokeWidth="2"
       strokeLinecap="round"
       strokeLinejoin="round"

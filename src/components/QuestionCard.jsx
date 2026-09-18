@@ -46,7 +46,7 @@ export default function QuestionCard({
       </div>
 
       {/* Question */}
-      <h2 className="mt-8 font-display text-[24px] font-extrabold leading-snug text-navy">
+      <h2 className="mt-8 font-display text-[24px] font-extrabold leading-snug text-ink">
         {question.text}
       </h2>
 
@@ -63,7 +63,7 @@ export default function QuestionCard({
               className={[
                 'flex min-h-[58px] w-full items-center justify-between gap-3 rounded-card border px-5 py-4 text-left',
                 'text-[15px] font-bold transition-all duration-150 active:scale-[0.99]',
-                isSelected ? '' : 'border-line bg-white text-slate-600 hover:border-slate-300',
+                isSelected ? '' : 'border-line bg-surface text-slate-600 hover:border-slate-300',
               ].join(' ')}
               style={
                 isSelected
@@ -78,7 +78,7 @@ export default function QuestionCard({
                 style={
                   isSelected
                     ? { backgroundColor: color, borderColor: color, color: '#fff' }
-                    : { borderColor: '#D7DEE2' }
+                    : { borderColor: 'rgb(var(--line))' }
                 }
               >
                 {isSelected ? <CheckIcon className="h-3.5 w-3.5" strokeWidth={3} /> : null}

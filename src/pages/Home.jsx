@@ -1,6 +1,7 @@
 import { useMemo } from 'react'
 import { Link } from 'react-router-dom'
 import AccountBadge from '../components/AccountBadge.jsx'
+import ThemeToggle from '../components/ThemeToggle.jsx'
 import CoverImage from '../components/CoverImage.jsx'
 import PrivacyBand from '../components/PrivacyBand.jsx'
 import ConfidentialityStamp from '../components/ConfidentialityStamp.jsx'
@@ -69,7 +70,7 @@ export default function Home() {
       {/* ── Greeting hero ──────────────────────────────────────────────────── */}
       <div className="relative">
         <div className="relative h-[188px] overflow-hidden lg:h-[345px] lg:rounded-none">
-          <CoverImage src={HERO_IMAGE} className="absolute inset-0 h-full w-full" />
+          <CoverImage src={HERO_IMAGE} priority width={16} height={9} className="absolute inset-0 h-full w-full" />
           {/* Navy wash keeps the white greeting legible over any crop. */}
           <div
             aria-hidden
@@ -89,8 +90,13 @@ export default function Home() {
                   Start your journey to better wellbeing and build healthier habits.
                 </p>
               </div>
-              {/* Sign in (or the signed-in chip) on mobile; desktop has it in the sidebar. */}
-              <AccountBadge className="shrink-0 lg:hidden" />
+              {/* Appearance and account on mobile; desktop has both in the
+                  sidebar. The hero behind this is dark in either theme, so the
+                  toggle runs in its white tone regardless. */}
+              <div className="flex shrink-0 items-center gap-2 lg:hidden">
+                <ThemeToggle variant="icon" tone="white" />
+                <AccountBadge />
+              </div>
             </div>
           </div>
         </div>
@@ -98,8 +104,8 @@ export default function Home() {
         {/* ── Continue your journey ────────────────────────────────────────── */}
         <div className="relative -mt-16 px-5 lg:-mt-24 lg:px-10">
           {activeJourney && todaysDay ? (
-            <div className="rounded-card bg-white p-5 shadow-card lg:p-7">
-              <h2 className="font-display text-[17px] font-extrabold text-navy lg:hidden">
+            <div className="rounded-card bg-surface p-5 shadow-card lg:p-7">
+              <h2 className="font-display text-[17px] font-extrabold text-ink lg:hidden">
                 Continue Your Journey
               </h2>
               <div className="mt-3 flex flex-col gap-4 lg:mt-0 lg:flex-row lg:items-center lg:gap-6">
@@ -108,7 +114,7 @@ export default function Home() {
                 </span>
                 <div className="min-w-0 flex-1">
                   <p className="text-[13px] font-extrabold text-brand">Day {todaysDay.day}</p>
-                  <h3 className="mt-0.5 font-display text-[19px] font-extrabold leading-snug text-navy lg:text-[22px]">
+                  <h3 className="mt-0.5 font-display text-[19px] font-extrabold leading-snug text-ink lg:text-[22px]">
                     {todaysDay.title}
                   </h3>
                   <p className="mt-1.5 text-[14px] leading-relaxed text-slate-500">
@@ -117,15 +123,15 @@ export default function Home() {
                 </div>
                 <Link
                   to="/my-wellness"
-                  className="grid min-h-[48px] shrink-0 place-items-center rounded-btn bg-brand px-7 text-[15px] font-extrabold text-white transition hover:bg-brand-dark active:scale-[0.98]"
+                  className="grid min-h-[48px] shrink-0 place-items-center rounded-btn bg-brand px-7 text-[15px] font-extrabold text-on-brand transition hover:bg-brand-dark active:scale-[0.98]"
                 >
                   Continue Journey
                 </Link>
               </div>
             </div>
           ) : (
-            <div className="rounded-card bg-white p-5 shadow-card lg:p-7">
-              <h2 className="font-display text-[17px] font-extrabold text-navy lg:text-[20px]">
+            <div className="rounded-card bg-surface p-5 shadow-card lg:p-7">
+              <h2 className="font-display text-[17px] font-extrabold text-ink lg:text-[20px]">
                 Start Your Journey
               </h2>
               <p className="mt-1.5 text-[14px] leading-relaxed text-slate-500">
@@ -133,7 +139,7 @@ export default function Home() {
               </p>
               <Link
                 to="/my-wellness"
-                className="mt-4 grid min-h-[48px] w-full place-items-center rounded-btn bg-brand px-7 text-[15px] font-extrabold text-white transition hover:bg-brand-dark active:scale-[0.98] lg:w-auto lg:max-w-[240px]"
+                className="mt-4 grid min-h-[48px] w-full place-items-center rounded-btn bg-brand px-7 text-[15px] font-extrabold text-on-brand transition hover:bg-brand-dark active:scale-[0.98] lg:w-auto lg:max-w-[240px]"
               >
                 Choose a Journey
               </Link>
@@ -144,7 +150,7 @@ export default function Home() {
 
       {/* ── Quick actions ──────────────────────────────────────────────────── */}
       <section className="px-5 pt-7 lg:px-10 lg:pt-10">
-        <h2 className="font-display text-[20px] font-extrabold text-navy lg:text-[24px]">
+        <h2 className="font-display text-[20px] font-extrabold text-ink lg:text-[24px]">
           What would you like to do?
         </h2>
 
@@ -153,13 +159,13 @@ export default function Home() {
           to="/my-wellness?tab=meditation"
           className="card-press relative mt-4 block overflow-hidden rounded-card lg:hidden"
         >
-          <CoverImage src={MEDITATE_IMAGE} className="h-[150px] w-full" />
+          <CoverImage src={MEDITATE_IMAGE} width={16} height={9} className="h-[150px] w-full" />
           <div aria-hidden className="absolute inset-0 bg-navy/60" />
           <div className="absolute inset-0 flex flex-col justify-center px-5">
             <p className="font-display text-[20px] font-extrabold text-white">Start Meditating</p>
             <p className="mt-1 text-[14px] text-white/85">Take a mindful break.</p>
           </div>
-          <span className="absolute bottom-4 right-4 grid h-9 w-9 place-items-center rounded-full bg-brand text-white">
+          <span className="absolute bottom-4 right-4 grid h-9 w-9 place-items-center rounded-full bg-brand text-on-brand">
             <ChevronRightIcon className="h-5 w-5" />
           </span>
         </Link>
@@ -170,10 +176,10 @@ export default function Home() {
             <Link
               key={to}
               to={to}
-              className="card-press flex flex-col items-center gap-2.5 rounded-card border border-line bg-white px-2 py-4 text-center"
+              className="card-press flex flex-col items-center gap-2.5 rounded-card border border-line bg-surface px-2 py-4 text-center"
             >
               <Icon className="h-7 w-7 text-brand" />
-              <span className="whitespace-pre-line text-[12px] font-extrabold leading-tight text-navy">
+              <span className="whitespace-pre-line text-[12px] font-extrabold leading-tight text-ink">
                 {short ?? title}
               </span>
             </Link>
@@ -186,12 +192,12 @@ export default function Home() {
             <Link
               key={to}
               to={to}
-              className="card-press flex flex-col rounded-card border border-line bg-white p-5"
+              className="card-press flex flex-col rounded-card border border-line bg-surface p-5"
             >
               <span className="grid h-12 w-12 place-items-center rounded-btn bg-brand-tint text-brand">
                 <Icon className="h-6 w-6" />
               </span>
-              <h3 className="mt-4 font-display text-[18px] font-extrabold leading-snug text-navy">
+              <h3 className="mt-4 font-display text-[18px] font-extrabold leading-snug text-ink">
                 {title}
               </h3>
               <p className="mt-1.5 flex-1 text-[14px] leading-relaxed text-slate-500">

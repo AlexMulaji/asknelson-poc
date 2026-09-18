@@ -7,7 +7,7 @@ export default function JourneyHero({ journey, day, onStart, finished, dayCount 
 
   return (
     <div className="relative overflow-hidden rounded-hero bg-navy">
-      <CoverImage src={cover} className="absolute inset-0 h-full w-full" />
+      <CoverImage src={cover} priority width={16} height={9} className="absolute inset-0 h-full w-full" />
       {/* Copy sits on the left, so the wash is heaviest there and opens up over
           the photograph on the right. */}
       <div
@@ -39,7 +39,7 @@ export default function JourneyHero({ journey, day, onStart, finished, dayCount 
             <button
               type="button"
               onClick={() => onStart?.(day)}
-              className="mt-5 grid min-h-[48px] w-full place-items-center rounded-btn bg-brand px-8 text-[15px] font-extrabold text-white transition hover:bg-brand-dark active:scale-[0.98] lg:w-auto lg:min-w-[240px]"
+              className="mt-5 grid min-h-[48px] w-full place-items-center rounded-btn bg-brand px-8 text-[15px] font-extrabold text-on-brand transition hover:bg-brand-dark active:scale-[0.98] lg:w-auto lg:min-w-[240px]"
             >
               Start Todays Activity
             </button>

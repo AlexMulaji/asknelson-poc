@@ -1,5 +1,6 @@
 import { NavLink } from 'react-router-dom'
 import AccountBadge from './AccountBadge.jsx'
+import ThemeToggle from './ThemeToggle.jsx'
 import { navTabs } from './navTabs.js'
 import logoUrl from '../assets/logo-asknelson.png'
 
@@ -7,7 +8,7 @@ import logoUrl from '../assets/logo-asknelson.png'
 // Sticks to the top so it stays visible while the content column scrolls.
 export default function Sidebar() {
   return (
-    <aside className="hidden shrink-0 border-r border-line bg-white lg:sticky lg:top-0 lg:flex lg:h-screen lg:w-[320px] lg:flex-col">
+    <aside className="hidden shrink-0 border-r border-line bg-surface lg:sticky lg:top-0 lg:flex lg:h-screen lg:w-[320px] lg:flex-col">
       <div className="px-8 pt-10 pb-8">
         <img src={logoUrl} alt="AskNelson" className="h-9 w-auto" />
       </div>
@@ -23,7 +24,7 @@ export default function Sidebar() {
                     'flex items-center gap-3.5 rounded-btn px-4 py-3 text-[16px] transition-colors duration-150',
                     isActive
                       ? 'bg-brand-tint font-extrabold text-brand'
-                      : 'font-semibold text-muted hover:bg-canvas hover:text-navy',
+                      : 'font-semibold text-muted hover:bg-canvas hover:text-ink',
                   ].join(' ')
                 }
               >
@@ -39,8 +40,9 @@ export default function Sidebar() {
         </ul>
       </nav>
 
-      {/* Sign in / signed-in account, pinned to the bottom of the rail. */}
-      <div className="px-5 pb-8">
+      {/* Appearance and account, pinned to the bottom of the rail. */}
+      <div className="space-y-3 px-5 pb-8">
+        <ThemeToggle />
         <AccountBadge variant="full" />
       </div>
     </aside>

@@ -22,7 +22,7 @@ export default function DayCard({ day, status, onOpen, onMarkDone, onOpenResourc
     <div
       className={[
         'rounded-card border transition',
-        isCurrent ? 'border-brand bg-brand-wash' : 'border-line bg-white',
+        isCurrent ? 'border-brand bg-brand-wash' : 'border-line bg-surface',
         isLocked ? 'opacity-60' : '',
       ].join(' ')}
     >
@@ -47,7 +47,7 @@ export default function DayCard({ day, status, onOpen, onMarkDone, onOpenResourc
             <span className="text-[13px] font-extrabold text-brand">Day {day.day}</span>
             {day.type ? <Pill label={titleCase(day.type)} /> : null}
           </div>
-          <h3 className="mt-1.5 font-display text-[17px] font-extrabold leading-snug text-navy">
+          <h3 className="mt-1.5 font-display text-[17px] font-extrabold leading-snug text-ink">
             {day.title}
           </h3>
           {day.task ? (
@@ -84,7 +84,7 @@ export default function DayCard({ day, status, onOpen, onMarkDone, onOpenResourc
           ) : null}
 
           {day.reflection ? (
-            <p className="mt-2 rounded-btn bg-white px-3.5 py-3 text-[13px] italic leading-relaxed text-slate-500">
+            <p className="mt-2 rounded-btn bg-surface px-3.5 py-3 text-[13px] italic leading-relaxed text-slate-500">
               {day.reflection}
             </p>
           ) : null}
@@ -93,7 +93,7 @@ export default function DayCard({ day, status, onOpen, onMarkDone, onOpenResourc
             <button
               type="button"
               onClick={() => onMarkDone(day.day)}
-              className="mt-4 min-h-[48px] w-full rounded-btn bg-brand text-[15px] font-extrabold text-white transition hover:bg-brand-dark active:scale-[0.98]"
+              className="mt-4 min-h-[48px] w-full rounded-btn bg-brand text-[15px] font-extrabold text-on-brand transition hover:bg-brand-dark active:scale-[0.98]"
             >
               Mark as done
             </button>

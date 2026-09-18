@@ -29,7 +29,7 @@ export default function Assessments() {
       ) : (
         <>
           <div className="mt-7">
-            <h2 className="font-display text-[22px] font-extrabold text-navy lg:text-[26px]">
+            <h2 className="font-display text-[22px] font-extrabold text-ink lg:text-[26px]">
               Wellbeing Check-in
             </h2>
             <p className="mt-1 max-w-lg text-[14px] leading-relaxed text-slate-500">

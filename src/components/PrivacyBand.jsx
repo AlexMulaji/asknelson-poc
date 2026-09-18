@@ -10,7 +10,7 @@ export default function PrivacyBand() {
         <ShieldIcon className="h-5 w-5" />
       </span>
       <div className="min-w-0 flex-1">
-        <p className="text-[14px] font-extrabold text-navy">Your Privacy Matters</p>
+        <p className="text-[14px] font-extrabold text-ink">Your Privacy Matters</p>
         <p className="mt-0.5 text-[13px] leading-relaxed text-slate-500">
           We value your trust and privacy. Any information shared on the AskNelson wellness app is
           kept safe, secure, and confidential.

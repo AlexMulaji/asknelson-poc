@@ -2,7 +2,7 @@ import { withAlpha } from '../lib/colorUtils.js'
 
 // A tiny trend chart of past assessment scores (lever 6). Renders nothing until
 // there are at least two data points to connect.
-export default function Sparkline({ values, max, color = '#172B5C', width = 260, height = 56 }) {
+export default function Sparkline({ values, max, color = '#89BA16', width = 260, height = 56 }) {
   if (!Array.isArray(values) || values.length < 2) return null
 
   const pad = 6

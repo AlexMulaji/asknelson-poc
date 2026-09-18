@@ -128,7 +128,7 @@ export default function Journeys({ onMenuChange }) {
   if (!activeJourney) {
     return (
       <div className="pt-6">
-        <h2 className="font-display text-[22px] font-extrabold text-navy lg:text-[26px]">
+        <h2 className="font-display text-[22px] font-extrabold text-ink lg:text-[26px]">
           Start a Journey
         </h2>
         <p className="mt-1 text-[14px] text-slate-500">
@@ -176,7 +176,7 @@ export default function Journeys({ onMenuChange }) {
 
       <div className="mt-7">
         <div className="mb-3 flex items-baseline justify-between gap-3">
-          <h2 className="font-display text-[20px] font-extrabold text-navy lg:text-[24px]">
+          <h2 className="font-display text-[20px] font-extrabold text-ink lg:text-[24px]">
             Your {activeJourney.duration_days ?? days.length}-Day Journey
           </h2>
           <span className="text-[13px] font-bold text-slate-400">

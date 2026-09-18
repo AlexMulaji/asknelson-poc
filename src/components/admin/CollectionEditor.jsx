@@ -1,13 +1,20 @@
 import { useState } from 'react'
 import ImageField from './ImageField.jsx'
+import { childRef, isPublished, itemRef } from '../../lib/publishRef.js'
 
 // Generic structured editor driven by a schema from schemas.js: a list of
 // items (themes / journeys / assessments) with editable fields and an optional
 // nested child list (tiles / days / questions). Only schema fields are shown;
 // any other properties on an item pass through saves untouched.
+//
+// Items whose schema has a `publishKind` also carry a Live/Draft control.
+// Publishing is its own permission, so that control goes straight to the
+// server rather than through the draft — an editor without it can still write,
+// and an unsaved edit elsewhere in the document never rides along with a
+// publish. Without the permission the state is shown but not changeable.
 
 const inputClass =
-  'w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-800 ' +
+  'w-full rounded-lg border border-gray-200 bg-surface px-3 py-2 text-sm text-gray-800 ' +
   'placeholder:text-gray-300 focus:border-brand focus:outline-none'
 
 function Field({ field, value, onChange }) {
@@ -59,7 +66,7 @@ function Field({ field, value, onChange }) {
         <input
           type="color"
           value={/^#[0-9a-fA-F]{6}$/.test(value ?? '') ? value : '#888888'}
-          className="h-9 w-10 shrink-0 cursor-pointer rounded-md border border-gray-200 bg-white p-1"
+          className="h-9 w-10 shrink-0 cursor-pointer rounded-md border border-gray-200 bg-surface p-1"
           onChange={(e) => onChange(e.target.value)}
         />
         <input
@@ -112,6 +119,41 @@ function FieldGrid({ fields, item, onPatch }) {
   )
 }
 
+// Live / Draft for one item. Rendered only where the schema says the item is
+// independently publishable — a journey day or an assessment question is not.
+function PublishToggle({ published, canPublish, busy, onToggle }) {
+  const label = published ? 'Live' : 'Draft'
+  const tone = published
+    ? 'border-green-200 bg-green-50 text-green-700'
+    : 'border-amber-200 bg-amber-50 text-amber-700'
+
+  if (!canPublish) {
+    return (
+      <span
+        title={`${label} — your role cannot change this`}
+        className={`rounded-full border px-2 py-0.5 text-[11px] font-semibold ${tone}`}
+      >
+        {label}
+      </span>
+    )
+  }
+
+  return (
+    <button
+      type="button"
+      disabled={busy}
+      title={published ? 'Hide this from the app' : 'Make this visible in the app'}
+      onClick={(e) => {
+        e.stopPropagation()
+        onToggle(!published)
+      }}
+      className={`rounded-full border px-2 py-0.5 text-[11px] font-semibold transition hover:brightness-95 disabled:opacity-40 ${tone}`}
+    >
+      {label}
+    </button>
+  )
+}
+
 // Reorder / delete controls shown in every item header row.
 function RowControls({ index, count, onMove, onRemove, itemName }) {
   const btn =
@@ -153,7 +195,7 @@ function moveInList(list, index, dir) {
 }
 
 // Nested list (tiles / days / questions) inside an expanded parent item.
-function ChildList({ schema, list, onChange }) {
+function ChildList({ schema, list, onChange, parentRef, canPublish, busy, onTogglePublished }) {
   const [open, setOpen] = useState(() => new Set())
 
   const toggle = (i) =>
@@ -193,8 +235,20 @@ function ChildList({ schema, list, onChange }) {
                 className="flex w-full items-center justify-between gap-3 px-3 py-2 text-left"
                 onClick={() => toggle(i)}
               >
-                <span className="truncate text-sm font-medium text-gray-700">
-                  {schema.itemLabel(child)}
+                <span className="flex min-w-0 items-center gap-2">
+                  <span className="truncate text-sm font-medium text-gray-700">
+                    {schema.itemLabel(child)}
+                  </span>
+                  {schema.publishKind && parentRef ? (
+                    <PublishToggle
+                      published={isPublished(child)}
+                      canPublish={canPublish}
+                      busy={busy}
+                      onToggle={(next) =>
+                        onTogglePublished(childRef(parentRef, schema.publishKind, child, i), next)
+                      }
+                    />
+                  ) : null}
                 </span>
                 <RowControls
                   index={i}
@@ -223,7 +277,14 @@ function ChildList({ schema, list, onChange }) {
   )
 }
 
-export default function CollectionEditor({ schema, doc, onChange }) {
+export default function CollectionEditor({
+  schema,
+  doc,
+  onChange,
+  canPublish = false,
+  busy = false,
+  onTogglePublished = () => {},
+}) {
   const list = schema.getList(doc)
   const [open, setOpen] = useState(() => new Set())
 
@@ -246,7 +307,7 @@ export default function CollectionEditor({ schema, doc, onChange }) {
 
       <div className="space-y-3">
         {list.map((item, i) => (
-          <div key={i} className="rounded-xl border border-gray-200 bg-white shadow-sm">
+          <div key={i} className="rounded-xl border border-gray-200 bg-surface shadow-sm">
             <button
               type="button"
               className="flex w-full items-center justify-between gap-3 px-4 py-3 text-left"
@@ -254,13 +315,23 @@ export default function CollectionEditor({ schema, doc, onChange }) {
             >
               <span className="flex min-w-0 items-center gap-2.5">
                 <span
-                  className="h-3.5 w-3.5 shrink-0 rounded-full border border-black/10"
+                  className="h-3.5 w-3.5 shrink-0 rounded-full border border-line"
                   style={{ background: item?.color || '#ccc' }}
                   aria-hidden
                 />
                 <span className="truncate text-[15px] font-semibold text-gray-800">
                   {schema.itemLabel(item)}
                 </span>
+                {schema.publishKind ? (
+                  <PublishToggle
+                    published={isPublished(item)}
+                    canPublish={canPublish}
+                    busy={busy}
+                    onToggle={(next) =>
+                      onTogglePublished(itemRef(schema.publishKind, item, i), next)
+                    }
+                  />
+                ) : null}
               </span>
               <RowControls
                 index={i}
@@ -282,6 +353,10 @@ export default function CollectionEditor({ schema, doc, onChange }) {
                   <ChildList
                     schema={schema.children}
                     list={item?.[schema.children.key] ?? []}
+                    parentRef={schema.publishKind ? itemRef(schema.publishKind, item, i) : null}
+                    canPublish={canPublish}
+                    busy={busy}
+                    onTogglePublished={onTogglePublished}
                     onChange={(childList) =>
                       setList(
                         list.map((it, j) =>

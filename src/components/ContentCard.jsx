@@ -39,7 +39,7 @@ export default function ContentCard({ item }) {
       onPointerEnter={() => prefetchEmbeddable(item.url)}
       onTouchStart={() => prefetchEmbeddable(item.url)}
       // card-press gives a physical scale-down on tap (defined in index.css).
-      className="card-press flex overflow-hidden rounded-card bg-white shadow-card"
+      className="card-press flex overflow-hidden rounded-card bg-surface shadow-card"
     >
       <CoverImage src={item.image} alt="" className="w-[104px] shrink-0 self-stretch sm:w-[116px]" />
 
@@ -53,7 +53,7 @@ export default function ContentCard({ item }) {
           />
         ) : null}
 
-        <h3 className="mt-2 font-display text-[17px] font-extrabold leading-snug text-navy">
+        <h3 className="mt-2 font-display text-[17px] font-extrabold leading-snug text-ink">
           {item.title}
         </h3>
 

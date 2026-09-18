@@ -80,7 +80,7 @@ export default function AssessmentFlow() {
   // --- Assessment not found -------------------------------------------------
   if (!assessment) {
     return (
-      <div className="page-enter min-h-screen bg-white">
+      <div className="page-enter min-h-screen bg-surface">
         <FlowHeader title="Assessment" onClose={() => navigate('/assessments')} />
         <div className="px-5 pt-4">
           <EmptyState
@@ -147,7 +147,7 @@ export default function AssessmentFlow() {
   const retake = retakeInfo(record, assessment.retake_after_days)
 
   return (
-    <div className="page-enter relative min-h-screen bg-white">
+    <div className="page-enter relative min-h-screen bg-surface">
       {/* The intro leads with a full-bleed photo, so it carries its own floating
           close button instead of the titled header the other steps use. */}
       {step === 'intro' ? (
@@ -209,12 +209,12 @@ function FlowHeader({ title, onClose }) {
   return (
     <header
       className={[
-        'sticky top-0 z-30 flex items-center justify-between gap-2 bg-white px-5 pb-3',
+        'sticky top-0 z-30 flex items-center justify-between gap-2 bg-surface px-5 pb-3',
         'pt-[calc(1.5rem+env(safe-area-inset-top,0px))]',
         'lg:mx-auto lg:max-w-2xl lg:px-8',
       ].join(' ')}
     >
-      <h1 className="truncate font-display text-[26px] font-extrabold leading-tight text-navy">
+      <h1 className="truncate font-display text-[26px] font-extrabold leading-tight text-ink">
         {title}
       </h1>
       <button

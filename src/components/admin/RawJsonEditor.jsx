@@ -33,14 +33,14 @@ export default function RawJsonEditor({ doc, onChange }) {
           setText(e.target.value)
           setDirty(true)
         }}
-        className="h-[60vh] w-full rounded-xl border border-gray-200 bg-white p-4 font-mono text-xs leading-relaxed text-gray-800 focus:border-brand focus:outline-none"
+        className="h-[60vh] w-full rounded-xl border border-gray-200 bg-surface p-4 font-mono text-xs leading-relaxed text-gray-800 focus:border-brand focus:outline-none"
       />
       <div className="mt-3 flex items-center gap-3">
         <button
           type="button"
           disabled={!dirty}
           onClick={apply}
-          className="rounded-lg bg-brand px-4 py-2 text-sm font-semibold text-white transition disabled:opacity-40"
+          className="rounded-lg bg-brand px-4 py-2 text-sm font-semibold text-on-brand transition disabled:opacity-40"
         >
           Apply JSON
         </button>

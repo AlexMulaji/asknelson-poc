@@ -143,7 +143,7 @@ export default function App() {
     // Mobile: a single column. Desktop (lg+): a flex row with a fixed sidebar
     // on the left and a wide, centered content column on the right.
     <MotionConfig reducedMotion="user">
-    <div className="min-h-screen bg-canvas lg:flex lg:bg-white">
+    <div className="min-h-screen bg-canvas lg:flex lg:bg-surface">
       <ScrollToTop />
       <RouteTracker />
       <Sidebar />

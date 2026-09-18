@@ -13,7 +13,7 @@ export default function JourneyCard({ journey, onStart }) {
     <button
       type="button"
       onClick={() => onStart(journey.id)}
-      className="card-press flex w-full overflow-hidden rounded-card bg-white text-left shadow-card"
+      className="card-press flex w-full overflow-hidden rounded-card bg-surface text-left shadow-card"
     >
       <CoverImage
         src={journey.cover}
@@ -23,7 +23,7 @@ export default function JourneyCard({ journey, onStart }) {
 
       <div className="flex min-w-0 flex-1 items-center gap-2 px-4 py-4">
         <div className="min-w-0 flex-1">
-          <h3 className="font-display text-[18px] font-extrabold leading-snug text-navy">
+          <h3 className="font-display text-[18px] font-extrabold leading-snug text-ink">
             {journey.title}
           </h3>
           {/* Clamped so cards keep an even rhythm regardless of copy length. */}

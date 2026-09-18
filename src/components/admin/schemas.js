@@ -6,16 +6,24 @@
 
 const slug = (prefix) => `${prefix}-${Math.random().toString(36).slice(2, 8)}`
 
+// `publishKind` names the item to the publishing API, and must match the kind
+// the server uses for the same list (PUBLISHABLE in server/content.js).
+// Lists without one — journey days, assessment questions — are not
+// independently publishable: they belong to their parent.
+
 export const DATASET_SCHEMAS = {
   explore: {
     label: 'Explore',
     description: 'Themes and the article/video tiles shown on the Explore tab.',
+    publishKind: 'theme',
     getList: (doc) => doc?.explore?.themes ?? [],
     setList: (doc, list) => ({ ...doc, explore: { ...(doc?.explore ?? {}), themes: list } }),
     itemName: 'theme',
     itemLabel: (t) => t.title || t.id || 'Untitled theme',
+    // New items start as drafts, so creating one needs no publish permission.
     newItem: () => ({
       id: slug('theme'),
+      published: false,
       title: '',
       description: '',
       color: '#7F77DD',
@@ -48,10 +56,12 @@ export const DATASET_SCHEMAS = {
     children: {
       key: 'content',
       label: 'Tiles',
+      publishKind: 'tile',
       itemName: 'tile',
       itemLabel: (c) => c.title || c.id || 'Untitled tile',
       newItem: () => ({
         id: slug('item'),
+        published: false,
         type: 'article',
         title: '',
         description: '',
@@ -82,12 +92,14 @@ export const DATASET_SCHEMAS = {
   journeys: {
     label: 'Journeys',
     description: '30-day programmes and their daily tasks.',
+    publishKind: 'journey',
     getList: (doc) => doc?.journeys ?? [],
     setList: (doc, list) => ({ ...doc, journeys: list }),
     itemName: 'journey',
     itemLabel: (j) => j.title || j.id || 'Untitled journey',
     newItem: () => ({
       id: slug('journey'),
+      published: false,
       title: '',
       description: '',
       duration_days: 30,
@@ -153,6 +165,7 @@ export const DATASET_SCHEMAS = {
   assessments: {
     label: 'Assessments',
     description: 'Self-check questionnaires: card details, instructions and questions.',
+    publishKind: 'assessment',
     advancedNote:
       'Response scales, scoring bands, result texts and safety screens are clinical logic — edit those in the Raw JSON tab.',
     getList: (doc) => doc?.assessments ?? [],
@@ -161,6 +174,7 @@ export const DATASET_SCHEMAS = {
     itemLabel: (a) => a.title || a.id || 'Untitled assessment',
     newItem: () => ({
       id: slug('assessment'),
+      published: false,
       title: '',
       subtitle: '',
       description: '',

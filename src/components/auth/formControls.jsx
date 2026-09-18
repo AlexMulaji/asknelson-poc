@@ -27,7 +27,7 @@ export function Field({
       <Tag
         {...props}
         className={[
-          'w-full rounded-btn border bg-white px-3.5 py-3 text-[15px] text-black',
+          'w-full rounded-btn border bg-surface px-3.5 py-3 text-[15px] text-ink',
           'outline-none transition-colors placeholder:text-gray-300',
           'focus:border-brand',
           error ? 'border-red-500' : 'border-gray-200',
@@ -54,7 +54,7 @@ export function PasswordField({ label = 'Password', error, hint, value, onChange
           value={value}
           onChange={onChange}
           className={[
-            'w-full rounded-btn border bg-white py-3 pl-3.5 pr-16 text-[15px] text-black',
+            'w-full rounded-btn border bg-surface py-3 pl-3.5 pr-16 text-[15px] text-ink',
             'outline-none transition-colors placeholder:text-gray-300 focus:border-brand',
             error ? 'border-red-500' : 'border-gray-200',
           ].join(' ')}
@@ -83,7 +83,7 @@ export function PrimaryButton({ children, busy, className = '', ...props }) {
       {...props}
       disabled={busy || props.disabled}
       className={[
-        'min-h-[48px] w-full rounded-btn bg-brand px-5 text-[15px] font-semibold text-white',
+        'min-h-[48px] w-full rounded-btn bg-brand px-5 text-[15px] font-semibold text-on-brand',
         'transition-transform duration-100 active:scale-[0.98] disabled:opacity-40',
         'disabled:active:scale-100',
         className,
@@ -99,7 +99,7 @@ export function SecondaryButton({ children, className = '', ...props }) {
     <button
       {...props}
       className={[
-        'min-h-[48px] w-full rounded-btn border border-gray-200 bg-white px-5',
+        'min-h-[48px] w-full rounded-btn border border-gray-200 bg-surface px-5',
         'text-[15px] font-semibold text-gray-700 active:bg-gray-50',
         className,
       ].join(' ')}
@@ -110,12 +110,12 @@ export function SecondaryButton({ children, className = '', ...props }) {
 }
 
 /** A large tappable choice — used for anonymous/identified and OTP channel. */
-export function ChoiceCard({ title, description, onClick, accent = '#172B5C' }) {
+export function ChoiceCard({ title, description, onClick, accent = '#89BA16' }) {
   return (
     <button
       type="button"
       onClick={onClick}
-      className="card-press flex w-full items-center gap-3.5 rounded-card border border-gray-200 bg-white p-4 text-left active:bg-gray-50"
+      className="card-press flex w-full items-center gap-3.5 rounded-card border border-gray-200 bg-surface p-4 text-left active:bg-gray-50"
     >
       <span
         aria-hidden
@@ -123,7 +123,7 @@ export function ChoiceCard({ title, description, onClick, accent = '#172B5C' }) 
         style={{ backgroundColor: accent }}
       />
       <span className="min-w-0 flex-1">
-        <span className="block font-display text-[15px] font-semibold text-black">{title}</span>
+        <span className="block font-display text-[15px] font-semibold text-ink">{title}</span>
         <span className="mt-0.5 block text-[13px] leading-relaxed text-gray-500">{description}</span>
       </span>
       <ExternalLinkIcon className="h-4 w-4 shrink-0 -rotate-45 text-gray-300" />
@@ -139,7 +139,7 @@ export function Disclaimer({ tone = 'neutral', title, children }) {
       : 'border-gray-200 bg-gray-50'
   return (
     <div className={`rounded-card border px-4 py-3.5 ${styles}`}>
-      <p className="text-[13px] font-semibold text-black">{title}</p>
+      <p className="text-[13px] font-semibold text-ink">{title}</p>
       <p className="mt-1.5 text-[13px] leading-relaxed text-gray-600">{children}</p>
     </div>
   )

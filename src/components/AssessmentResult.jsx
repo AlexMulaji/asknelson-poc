@@ -43,7 +43,7 @@ export default function AssessmentResult({ assessment, result, history, onRetake
         <p className="mt-4 text-[11px] font-extrabold uppercase tracking-wide" style={{ color }}>
           {band?.band ?? 'Your result'}
         </p>
-        <h2 className="mt-1 font-display text-[24px] font-extrabold leading-tight text-navy">
+        <h2 className="mt-1 font-display text-[24px] font-extrabold leading-tight text-ink">
           {band?.headline ?? 'Thanks for checking in'}
         </h2>
         {band?.body ? (
@@ -61,7 +61,7 @@ export default function AssessmentResult({ assessment, result, history, onRetake
 
       {/* Trend over time (from saved history) */}
       {showTrend ? (
-        <motion.div variants={listItem} className="rounded-card bg-white p-5 shadow-card">
+        <motion.div variants={listItem} className="rounded-card bg-surface p-5 shadow-card">
           <div className="flex items-center justify-between">
             <p className="text-[11px] font-extrabold uppercase tracking-wide text-slate-400">
               Your trend
@@ -76,7 +76,7 @@ export default function AssessmentResult({ assessment, result, history, onRetake
 
       {/* Dimension breakdown (e.g. burnout) + flags */}
       {hasDimensions ? (
-        <motion.div variants={listItem} className="rounded-card bg-white p-5 shadow-card">
+        <motion.div variants={listItem} className="rounded-card bg-surface p-5 shadow-card">
           <p className="text-[11px] font-extrabold uppercase tracking-wide text-slate-400">
             What's driving it
           </p>
@@ -86,7 +86,7 @@ export default function AssessmentResult({ assessment, result, history, onRetake
               return (
                 <div key={dim.id}>
                   <div className="flex items-center justify-between text-[13px]">
-                    <span className="font-semibold text-navy">{dim.label}</span>
+                    <span className="font-semibold text-ink">{dim.label}</span>
                     <span className="text-slate-400">
                       {dim.subtotal}/{dim.max}
                       {dim.flagged ? (

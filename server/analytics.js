@@ -5,6 +5,8 @@ import { aad, blindIndex, open, openJson, seal, sealJson } from './crypto.js'
 import { audit } from './audit.js'
 import { baseUrl, isSecure, rateLimiter, readCookie } from './http.js'
 import { rollupDims } from './rollups.js'
+import { buildEventFilter, limitValue, offsetValue } from './analyticsFilters.js'
+import { PERMISSIONS as P } from './rbac.js'
 
 // Event tracking: ingest from the PWA, plus the admin read/export API.
 //
@@ -72,6 +74,11 @@ const EVENT_CATEGORIES = {
 }
 
 // --- helpers ------------------------------------------------------------------
+
+// Time spent in the app for one session, in seconds. A session still open
+// counts up to its last event; one closed by session_end or the idle sweeper
+// counts up to ended_at. Clamped at zero against clock oddities.
+const SESSION_SECONDS_SQL = `GREATEST(EXTRACT(EPOCH FROM (COALESCE(s.ended_at, s.last_seen_at) - s.started_at)), 0)`
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
 
@@ -159,19 +166,24 @@ function decryptEvent(row) {
  * Find or create the member for one of *your* identifiers (a staff number, a
  * CRM id). Returns the member id.
  */
-export async function upsertMember(externalRef, label = null) {
+export async function upsertMember(externalRef, label = null, organisationId = null) {
   const refHash = blindIndex(externalRef, 'member')
   const { rows } = await query(
-    `INSERT INTO analytics_members (id, external_ref_hash, external_ref_enc, label_enc)
-     VALUES ($1, $2, $3, $4)
+    `INSERT INTO analytics_members (id, external_ref_hash, external_ref_enc, label_enc, organisation_id)
+     VALUES ($1, $2, $3, $4, $5)
      ON CONFLICT (external_ref_hash)
-       DO UPDATE SET label_enc = COALESCE(EXCLUDED.label_enc, analytics_members.label_enc)
+       DO UPDATE SET label_enc       = COALESCE(EXCLUDED.label_enc, analytics_members.label_enc),
+                     -- A member who changed employer reports under the new one
+                     -- from now on; past events keep the company they happened
+                     -- under, which is what a per-company report should show.
+                     organisation_id = COALESCE(EXCLUDED.organisation_id, analytics_members.organisation_id)
      RETURNING id`,
     [
       crypto.randomUUID(),
       refHash,
       seal(externalRef, memberCtx('external_ref', refHash)),
       seal(label, memberCtx('label', refHash)),
+      organisationId,
     ]
   )
   return rows[0].id
@@ -204,19 +216,29 @@ async function linkDevice(deviceId, memberId) {
   const previous = rows[0]?.member_id ?? null
   if (previous === memberId) return
 
+  // The member's employer rides along, so per-company reporting never has to
+  // join back through the account tables (or decrypt anything) to group by it.
+  const { rows: memberRows } = await query(
+    'SELECT organisation_id FROM analytics_members WHERE id = $1',
+    [memberId]
+  )
+  const organisationId = memberRows[0]?.organisation_id ?? null
+
   await query(
-    'UPDATE analytics_devices SET member_id = $2, linked_at = now() WHERE id = $1',
-    [deviceId, memberId]
+    'UPDATE analytics_devices SET member_id = $2, organisation_id = $3, linked_at = now() WHERE id = $1',
+    [deviceId, memberId, organisationId]
   )
 
   if (previous == null) {
     await query(
-      'UPDATE analytics_sessions SET member_id = $2 WHERE device_id = $1 AND member_id IS NULL',
-      [deviceId, memberId]
+      `UPDATE analytics_sessions SET member_id = $2, organisation_id = $3
+        WHERE device_id = $1 AND member_id IS NULL`,
+      [deviceId, memberId, organisationId]
     )
     await query(
-      'UPDATE analytics_events SET member_id = $2 WHERE device_id = $1 AND member_id IS NULL',
-      [deviceId, memberId]
+      `UPDATE analytics_events SET member_id = $2, organisation_id = $3
+        WHERE device_id = $1 AND member_id IS NULL`,
+      [deviceId, memberId, organisationId]
     )
   }
 }
@@ -285,7 +307,7 @@ async function rollUp(events) {
 
 // --- router -------------------------------------------------------------------
 
-export function createAnalyticsRouter({ requireAdmin }) {
+export function createAnalyticsRouter({ requirePermission }) {
   const router = express.Router()
 
   // sendBeacon (used on pagehide, the only reliable moment to flush) posts a
@@ -380,20 +402,29 @@ export function createAnalyticsRouter({ requireAdmin }) {
         ])
         memberId = rows[0]?.member_id ?? null
       }
+      // Stamped on the session so per-company reporting is a plain WHERE
+      // rather than a join through the (encrypted) account tables.
+      const { rows: orgRows } = await query(
+        'SELECT organisation_id FROM analytics_devices WHERE id = $1',
+        [deviceId]
+      )
+      const organisationId = orgRows[0]?.organisation_id ?? null
 
       const { rows: sessionRows } = await query(
         `INSERT INTO analytics_sessions
-           (id, device_id, member_id, source, entry_path_enc, referrer_enc, utm_enc,
+           (id, device_id, member_id, organisation_id, source, entry_path_enc, referrer_enc, utm_enc,
             display_mode, user_agent_enc, is_whatsapp)
-         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)
+         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11)
          ON CONFLICT (id) DO UPDATE SET
-           last_seen_at = now(),
-           member_id    = COALESCE(EXCLUDED.member_id, analytics_sessions.member_id)
+           last_seen_at    = now(),
+           member_id       = COALESCE(EXCLUDED.member_id, analytics_sessions.member_id),
+           organisation_id = COALESCE(EXCLUDED.organisation_id, analytics_sessions.organisation_id)
          RETURNING (xmax = 0) AS created`,
         [
           sessionId,
           deviceId,
           memberId,
+          organisationId,
           str(ctx.source, 32) || (isWhatsapp ? 'whatsapp' : 'direct'),
           seal(path, sessionCtx('entry_path', sessionId)),
           seal(referrer, sessionCtx('referrer', sessionId)),
@@ -446,13 +477,14 @@ export function createAnalyticsRouter({ requireAdmin }) {
       // The session must already exist (created by POST /session). Rejecting
       // rather than creating one keeps orphaned/forged ids out of the store.
       const { rows: sessionRows } = await query(
-        'SELECT member_id FROM analytics_sessions WHERE id = $1 AND device_id = $2',
+        'SELECT member_id, organisation_id FROM analytics_sessions WHERE id = $1 AND device_id = $2',
         [sessionId, deviceId]
       )
       if (sessionRows.length === 0) {
         return res.status(409).json({ error: 'Unknown session' })
       }
       const memberId = sessionRows[0].member_id
+      const organisationId = sessionRows[0].organisation_id
 
       const values = []
       const params = []
@@ -466,12 +498,15 @@ export function createAnalyticsRouter({ requireAdmin }) {
         const props = sanitiseProps(event.props)
         const occurredAt = clampTimestamp(event.at)
         byUid.set(uid, { name, props, occurredAt })
-        values.push(`($${++i},$${++i},$${++i},$${++i},$${++i},$${++i},$${++i},$${++i},$${++i},$${++i})`)
+        values.push(
+          `($${++i},$${++i},$${++i},$${++i},$${++i},$${++i},$${++i},$${++i},$${++i},$${++i},$${++i})`
+        )
         params.push(
           uid,
           sessionId,
           deviceId,
           memberId,
+          organisationId,
           name,
           EVENT_CATEGORIES[name] || 'custom',
           seal(str(event.path, MAX_PATH_LEN), eventCtx('path', uid)),
@@ -485,7 +520,8 @@ export function createAnalyticsRouter({ requireAdmin }) {
 
       const { rows: inserted } = await query(
         `INSERT INTO analytics_events
-           (event_uid, session_id, device_id, member_id, name, category, path_enc, props_enc, occurred_at, client_seq)
+           (event_uid, session_id, device_id, member_id, organisation_id, name, category,
+            path_enc, props_enc, occurred_at, client_seq)
          VALUES ${values.join(',')}
          ON CONFLICT (event_uid) DO NOTHING
          RETURNING event_uid`,
@@ -521,73 +557,336 @@ export function createAnalyticsRouter({ requireAdmin }) {
 
   // --- admin: reporting -------------------------------------------------------
 
-  function windowDays(req) {
-    const days = Number(req.query.days)
-    return Number.isFinite(days) ? Math.min(Math.max(Math.trunc(days), 1), 365) : 30
+  // Every reporting route accepts the same filters — ?days= or ?from=&to=,
+  // ?organisationId=, ?name=, ?category= — parsed and bound in one place
+  // (analyticsFilters.js) so a company filter cannot reach the overview but
+  // quietly miss the CSV export.
+  function filtered(req, res, options) {
+    const filter = buildEventFilter(req.query, options)
+    if (filter.errors.length) {
+      res.status(400).json({ error: filter.errors[0] })
+      return null
+    }
+    return filter
   }
 
-  router.get('/admin/overview', requireAdmin, async (req, res) => {
-    try {
-      const days = windowDays(req)
-      const since = `${days} days`
+  // The same window (and company, where allowed) applied to sessions, whose
+  // time column is started_at. Event name/category don't narrow a session's
+  // length, so they are deliberately not applied here.
+  const sessionFilterFor = (req, options = {}) =>
+    buildEventFilter(req.query, { alias: 's', timeColumn: 'started_at', allowName: false, ...options })
 
-      const [totals, byName, daily, topContent, members] = await Promise.all([
+  /**
+   * The companies with activity, newest first by event volume. Drives the
+   * company picker in the admin UI and doubles as the top-level per-company
+   * report: one row per employer, no personal data in it at all.
+   */
+  router.get('/admin/organisations', requirePermission(P.ANALYTICS_READ), async (req, res) => {
+    try {
+      const filter = filtered(req, res, { alias: 'e', allowOrganisation: false })
+      if (!filter) return
+
+      const { rows } = await query(
+        `SELECT o.id, o.name,
+                count(e.id)::int                       AS events,
+                count(DISTINCT e.session_id)::int      AS sessions,
+                count(DISTINCT e.device_id)::int       AS devices,
+                count(DISTINCT e.member_id)::int       AS members,
+                max(e.occurred_at)                     AS last_seen_at
+           FROM organisations o
+           LEFT JOIN analytics_events e
+             ON e.organisation_id = o.id
+            AND ${filter.where.replace(/^WHERE /, '') || 'true'}
+          GROUP BY o.id, o.name
+          ORDER BY events DESC, o.name ASC`,
+        filter.params
+      )
+
+      // Activity that belongs to no company: anonymous accounts (by design)
+      // and anyone who arrived before their account was linked. Reported
+      // rather than hidden, so the per-company numbers are never mistaken for
+      // the whole picture.
+      const unattributed = await query(
+        `SELECT count(*)::int AS events FROM analytics_events e
+          ${filter.where ? `${filter.where} AND` : 'WHERE'} e.organisation_id IS NULL`,
+        filter.params
+      )
+
+      // Total time in app per company: the sum of its session lengths in the
+      // same window. Read from sessions, not events, so it is one row per visit.
+      const sessionFilter = sessionFilterFor(req, { allowOrganisation: false })
+      const time = await query(
+        `SELECT s.organisation_id,
+                round(sum(${SESSION_SECONDS_SQL}))::bigint AS time_spent_seconds
+           FROM analytics_sessions s
+           ${sessionFilter.where} AND s.organisation_id IS NOT NULL
+          GROUP BY s.organisation_id`,
+        sessionFilter.params
+      )
+      const timeByOrg = new Map(time.rows.map((r) => [r.organisation_id, Number(r.time_spent_seconds)]))
+
+      res.json({
+        applied: filter.applied,
+        organisations: rows.map((row) => ({
+          ...row,
+          time_spent_seconds: timeByOrg.get(row.id) ?? 0,
+        })),
+        unattributed: unattributed.rows[0],
+      })
+    } catch (err) {
+      console.error('[asknelson] organisations query failed:', err.message)
+      res.status(500).json({ error: 'Failed to load companies' })
+    }
+  })
+
+  /**
+   * Event volume broken down by company and event name — "which events, per
+   * company" in one request, so the UI does not have to fan out N queries.
+   */
+  router.get('/admin/by-company', requirePermission(P.ANALYTICS_READ), async (req, res) => {
+    try {
+      const filter = filtered(req, res, { alias: 'e' })
+      if (!filter) return
+      const limit = limitValue(req.query.limit, { fallback: 15, max: 50 })
+
+      const { rows } = await query(
+        `SELECT o.id AS organisation_id, o.name AS organisation,
+                e.name, e.category, count(*)::int AS count,
+                count(DISTINCT e.device_id)::int AS devices
+           FROM analytics_events e
+           JOIN organisations o ON o.id = e.organisation_id
+           ${filter.where}
+          GROUP BY o.id, o.name, e.name, e.category
+          ORDER BY o.name ASC, count DESC`,
+        filter.params
+      )
+
+      // Reshaped server-side: the client wants "per company, its top events",
+      // and doing it here keeps the same shape for the UI and any script that
+      // calls the endpoint directly.
+      const byCompany = new Map()
+      for (const row of rows) {
+        if (!byCompany.has(row.organisation_id)) {
+          byCompany.set(row.organisation_id, {
+            organisationId: row.organisation_id,
+            organisation: row.organisation,
+            events: 0,
+            topEvents: [],
+          })
+        }
+        const entry = byCompany.get(row.organisation_id)
+        entry.events += row.count
+        if (entry.topEvents.length < limit) {
+          entry.topEvents.push({
+            name: row.name,
+            category: row.category,
+            count: row.count,
+            devices: row.devices,
+          })
+        }
+      }
+
+      res.json({
+        applied: filter.applied,
+        companies: [...byCompany.values()].sort((a, b) => b.events - a.events),
+      })
+    } catch (err) {
+      console.error('[asknelson] by-company query failed:', err.message)
+      res.status(500).json({ error: 'Failed to load the per-company breakdown' })
+    }
+  })
+
+  /**
+   * One company in depth: its most popular events, the content its people
+   * open, and how that moves day to day.
+   *
+   * Content titles come from the raw event props, which are encrypted per
+   * event — so unlike the all-companies view (which reads the de-identified
+   * daily rollups) this one decrypts. It stays behind analytics:read because
+   * the output is aggregate, but the volume of decryption is why it is capped
+   * and why the ranking is built here rather than in SQL.
+   */
+  router.get('/admin/organisations/:id', requirePermission(P.ANALYTICS_READ), async (req, res) => {
+    try {
+      const { id } = req.params
+      if (!isUuid(id)) return res.status(400).json({ error: 'Invalid company id' })
+      const filter = filtered(req, res, { alias: 'e', allowOrganisation: false })
+      if (!filter) return
+
+      // The company filter is appended after the parsed filters, so its
+      // placeholder number follows theirs.
+      const params = [...filter.params, id]
+      const where = `${filter.where} AND e.organisation_id = $${params.length}::uuid`
+
+      const sessionFilter = sessionFilterFor(req, { allowOrganisation: false })
+      const sessionParams = [...sessionFilter.params, id]
+
+      const [org, totals, topEvents, daily, contentRows, time] = await Promise.all([
+        query('SELECT id, name FROM organisations WHERE id = $1', [id]),
+        query(
+          `SELECT count(*)::int AS events,
+                  count(DISTINCT e.session_id)::int AS sessions,
+                  count(DISTINCT e.device_id)::int  AS devices,
+                  count(DISTINCT e.member_id)::int  AS members
+             FROM analytics_events e ${where}`,
+          params
+        ),
+        query(
+          `SELECT e.name, e.category, count(*)::int AS count,
+                  count(DISTINCT e.device_id)::int AS devices
+             FROM analytics_events e ${where}
+            GROUP BY e.name, e.category
+            ORDER BY count DESC
+            LIMIT 25`,
+          params
+        ),
+        query(
+          `SELECT to_char(date_trunc('day', e.occurred_at), 'YYYY-MM-DD') AS day,
+                  count(*)::int AS events,
+                  count(DISTINCT e.device_id)::int AS devices
+             FROM analytics_events e ${where}
+            GROUP BY 1 ORDER BY 1`,
+          params
+        ),
+        query(
+          `SELECT e.event_uid, e.props_enc
+             FROM analytics_events e ${where} AND e.name = 'content_opened'
+            ORDER BY e.occurred_at DESC
+            LIMIT 5000`,
+          params
+        ),
+        query(
+          `SELECT coalesce(round(sum(${SESSION_SECONDS_SQL})), 0)::bigint AS time_spent_seconds
+             FROM analytics_sessions s
+             ${sessionFilter.where} AND s.organisation_id = $${sessionParams.length}::uuid`,
+          sessionParams
+        ),
+      ])
+
+      if (org.rows.length === 0) return res.status(404).json({ error: 'Unknown company' })
+
+      const opens = new Map()
+      for (const row of contentRows.rows) {
+        let props
+        try {
+          props = openJson(row.props_enc, eventCtx('props', row.event_uid)) ?? {}
+        } catch {
+          // One unreadable row (a key rotated out from under it) must not take
+          // the whole report down.
+          continue
+        }
+        const title = props.title
+        if (!title) continue
+        const key = `${title}|${props.theme ?? ''}`
+        const entry = opens.get(key) ?? { title, theme: props.theme ?? null, opens: 0 }
+        entry.opens += 1
+        opens.set(key, entry)
+      }
+
+      audit(req, {
+        actor: 'admin',
+        actorId: req.admin?.id ?? null,
+        action: 'admin_viewed_company_report',
+        targetType: 'organisation',
+        targetId: id,
+      })
+
+      res.json({
+        applied: filter.applied,
+        organisation: org.rows[0],
+        totals: {
+          ...totals.rows[0],
+          time_spent_seconds: Number(time.rows[0].time_spent_seconds),
+        },
+        topEvents: topEvents.rows,
+        daily: daily.rows,
+        topContent: [...opens.values()].sort((a, b) => b.opens - a.opens).slice(0, 15),
+      })
+    } catch (err) {
+      console.error('[asknelson] company report failed:', err.message)
+      res.status(500).json({ error: 'Failed to load the company report' })
+    }
+  })
+
+  router.get('/admin/overview', requirePermission(P.ANALYTICS_READ), async (req, res) => {
+    try {
+      const filter = filtered(req, res, { alias: 'e' })
+      if (!filter) return
+      const sessionFilter = sessionFilterFor(req)
+      const { where, params } = filter
+
+      const [totals, byName, daily, topContent, members, companies] = await Promise.all([
         query(
           `SELECT
-             (SELECT count(*) FROM analytics_events   WHERE occurred_at > now() - $1::interval) AS events,
-             (SELECT count(*) FROM analytics_sessions WHERE started_at  > now() - $1::interval) AS sessions,
-             (SELECT count(DISTINCT device_id) FROM analytics_sessions WHERE started_at > now() - $1::interval) AS devices,
-             (SELECT count(DISTINCT member_id) FROM analytics_sessions WHERE started_at > now() - $1::interval AND member_id IS NOT NULL) AS members,
-             (SELECT count(*) FROM analytics_sessions WHERE started_at > now() - $1::interval AND is_whatsapp) AS whatsapp_sessions,
-             (SELECT count(*) FROM analytics_devices) AS devices_all_time`,
-          [since]
+             (SELECT count(*) FROM analytics_events e ${where}) AS events,
+             (SELECT count(DISTINCT e.session_id) FROM analytics_events e ${where}) AS sessions,
+             (SELECT count(DISTINCT e.device_id) FROM analytics_events e ${where}) AS devices,
+             (SELECT count(DISTINCT e.member_id) FROM analytics_events e ${where}
+                AND e.member_id IS NOT NULL) AS members,
+             -- A person where the device is linked to one, else the device:
+             -- the closest honest count of "how many people" anonymous
+             -- traffic allows.
+             (SELECT count(DISTINCT coalesce(e.member_id::text, e.device_id::text))
+                FROM analytics_events e ${where})::int AS unique_users,
+             (SELECT count(DISTINCT e.organisation_id) FROM analytics_events e ${where}
+                AND e.organisation_id IS NOT NULL) AS companies`,
+          params
         ),
         query(
-          `SELECT name, category, count(*)::int AS count
-             FROM analytics_events
-            WHERE occurred_at > now() - $1::interval
-            GROUP BY name, category
+          `SELECT e.name, e.category, count(*)::int AS count
+             FROM analytics_events e ${where}
+            GROUP BY e.name, e.category
             ORDER BY count DESC`,
-          [since]
+          params
         ),
         query(
-          `SELECT to_char(date_trunc('day', occurred_at), 'YYYY-MM-DD') AS day,
+          `SELECT to_char(date_trunc('day', e.occurred_at), 'YYYY-MM-DD') AS day,
                   count(*)::int AS events,
-                  count(DISTINCT device_id)::int AS devices
-             FROM analytics_events
-            WHERE occurred_at > now() - $1::interval
+                  count(DISTINCT e.device_id)::int AS devices
+             FROM analytics_events e ${where}
             GROUP BY 1
             ORDER BY 1`,
-          [since]
+          params
         ),
-        // Props are encrypted per event, so content popularity comes from the
-        // de-identified rollups rather than a scan of the event stream.
-        query(
-          `SELECT dims->>'title' AS title,
-                  dims->>'theme' AS theme,
-                  sum(count)::int AS opens
-             FROM analytics_daily_counts
-            WHERE event_name = 'content_opened'
-              AND dims ? 'title'
-              AND day > (now() - $1::interval)::date
-            GROUP BY 1, 2
-            ORDER BY opens DESC
-            LIMIT 10`,
-          [since]
-        ),
+        topContentFor(filter),
         query(
           `SELECT count(*)::int AS total,
                   count(*) FILTER (WHERE member_id IS NOT NULL)::int AS linked
              FROM analytics_devices`
         ),
+        query(
+          `SELECT o.name, count(*)::int AS events, count(DISTINCT e.device_id)::int AS devices
+             FROM analytics_events e
+             JOIN organisations o ON o.id = e.organisation_id
+             ${where}
+            GROUP BY o.name
+            ORDER BY events DESC
+            LIMIT 10`,
+          params
+        ),
       ])
 
+      const sessionTotals = await query(
+        `SELECT count(*) FILTER (WHERE s.is_whatsapp)::int AS whatsapp_sessions,
+                coalesce(round(sum(${SESSION_SECONDS_SQL})), 0)::bigint AS time_spent_seconds
+           FROM analytics_sessions s ${sessionFilter.where}`,
+        sessionFilter.params
+      )
+      const { whatsapp_sessions, time_spent_seconds } = sessionTotals.rows[0]
+
       res.json({
-        days,
-        totals: totals.rows[0],
+        applied: filter.applied,
+        // Kept for the existing UI, which reads overview.days.
+        days: filter.applied.days ?? null,
+        totals: {
+          ...totals.rows[0],
+          whatsapp_sessions,
+          time_spent_seconds: Number(time_spent_seconds),
+        },
         byName: byName.rows,
         daily: daily.rows,
-        topContent: topContent.rows,
+        topContent,
+        topCompanies: companies.rows,
         deviceLinkage: members.rows[0],
       })
     } catch (err) {
@@ -596,21 +895,99 @@ export function createAnalyticsRouter({ requireAdmin }) {
     }
   })
 
-  router.get('/admin/sessions', requireAdmin, async (req, res) => {
+  /**
+   * Most-opened content. Without a company filter this reads the de-identified
+   * daily rollups, which survive the raw-event retention sweep and need no
+   * decryption. Rollups carry no company, so a filtered request falls back to
+   * the (encrypted, retention-limited) event stream instead — narrower data,
+   * but the only way to answer "what does this company read".
+   */
+  async function topContentFor(filter) {
+    if (!filter.applied.organisationId) {
+      // The rollups are keyed by day, so the window is expressed against
+      // `day` rather than reusing the event filter's timestamp clause. An
+      // explicit from/to is honoured as given; otherwise it is the rolling
+      // window the caller asked for.
+      const { from, to, days } = filter.applied
+      const clauses = []
+      const params = []
+      if (from || to) {
+        if (from) {
+          params.push(from)
+          clauses.push(`day >= $${params.length}::date`)
+        }
+        if (to) {
+          params.push(to)
+          clauses.push(`day <= $${params.length}::date`)
+        }
+      } else {
+        params.push(`${days ?? 30} days`)
+        clauses.push(`day > (now() - $${params.length}::interval)::date`)
+      }
+
+      const { rows } = await query(
+        `SELECT dims->>'title' AS title,
+                dims->>'theme' AS theme,
+                sum(count)::int AS opens
+           FROM analytics_daily_counts
+          WHERE event_name = 'content_opened'
+            AND dims ? 'title'
+            AND ${clauses.join(' AND ')}
+          GROUP BY 1, 2
+          ORDER BY opens DESC
+          LIMIT 10`,
+        params
+      )
+      return rows
+    }
+
+    const { rows } = await query(
+      `SELECT e.event_uid, e.props_enc FROM analytics_events e
+        ${filter.where} AND e.name = 'content_opened'
+        ORDER BY e.occurred_at DESC LIMIT 5000`,
+      filter.params
+    )
+    const opens = new Map()
+    for (const row of rows) {
+      let props
+      try {
+        props = openJson(row.props_enc, eventCtx('props', row.event_uid)) ?? {}
+      } catch {
+        continue
+      }
+      if (!props.title) continue
+      const key = `${props.title}|${props.theme ?? ''}`
+      const entry = opens.get(key) ?? { title: props.title, theme: props.theme ?? null, opens: 0 }
+      entry.opens += 1
+      opens.set(key, entry)
+    }
+    return [...opens.values()].sort((a, b) => b.opens - a.opens).slice(0, 10)
+  }
+
+  router.get('/admin/sessions', requirePermission(P.ANALYTICS_READ), async (req, res) => {
     try {
-      const limit = Math.min(Math.max(int(req.query.limit) || 50, 1), 200)
-      const offset = Math.max(int(req.query.offset) || 0, 0)
+      const limit = limitValue(req.query.limit)
+      const offset = offsetValue(req.query.offset)
+      const filter = sessionFilterFor(req)
+      if (filter.errors.length) return res.status(400).json({ error: filter.errors[0] })
+      const params = [...filter.params, limit, offset]
+
       const { rows } = await query(
         `SELECT s.id, s.device_id, s.started_at, s.last_seen_at, s.ended_at,
                 s.source, s.entry_path_enc, s.is_whatsapp, s.event_count,
+                round(${SESSION_SECONDS_SQL})::int AS duration_seconds,
+                o.name AS organisation,
                 m.external_ref_hash, m.external_ref_enc, m.label_enc
            FROM analytics_sessions s
            LEFT JOIN analytics_members m ON m.id = s.member_id
+           LEFT JOIN organisations o ON o.id = s.organisation_id
+           ${filter.where}
           ORDER BY s.started_at DESC
-          LIMIT $1 OFFSET $2`,
-        [limit, offset]
+          LIMIT $${params.length - 1} OFFSET $${params.length}`,
+        params
       )
       res.json({
+        applied: filter.applied,
         sessions: rows.map(({ entry_path_enc, external_ref_hash, external_ref_enc, label_enc, ...s }) => ({
           ...s,
           entry_path: open(entry_path_enc, sessionCtx('entry_path', s.id)),
@@ -627,8 +1004,9 @@ export function createAnalyticsRouter({ requireAdmin }) {
   })
 
   // Everything one device has ever done — the "what did this person see?" view.
-  // Opening it decrypts personal information, so it is audited.
-  router.get('/admin/devices/:id', requireAdmin, async (req, res) => {
+  // Opening it decrypts personal information, so it needs analytics:read_pii
+  // rather than plain analytics:read, and it is audited.
+  router.get('/admin/devices/:id', requirePermission(P.ANALYTICS_READ_PII), async (req, res) => {
     try {
       const { id } = req.params
       if (!isUuid(id)) return res.status(400).json({ error: 'Invalid device id' })
@@ -639,9 +1017,11 @@ export function createAnalyticsRouter({ requireAdmin }) {
                   d.user_agent_enc, d.platform, d.language, d.timezone, d.screen_w, d.screen_h,
                   d.display_mode, d.is_whatsapp, d.first_referrer_enc, d.first_landing_path_enc,
                   d.first_utm_enc, d.session_count, d.event_count,
+                  o.name AS organisation,
                   m.external_ref_hash, m.external_ref_enc, m.label_enc
              FROM analytics_devices d
              LEFT JOIN analytics_members m ON m.id = d.member_id
+             LEFT JOIN organisations o ON o.id = d.organisation_id
             WHERE d.id = $1`,
           [id]
         ),
@@ -675,7 +1055,13 @@ export function createAnalyticsRouter({ requireAdmin }) {
         ...d
       } = device.rows[0]
 
-      audit(req, { actor: 'admin', action: 'admin_viewed_device', targetType: 'device', targetId: id })
+      audit(req, {
+        actor: 'admin',
+        actorId: req.admin?.id ?? null,
+        action: 'admin_viewed_device',
+        targetType: 'device',
+        targetId: id,
+      })
       res.json({
         device: {
           ...d,
@@ -701,18 +1087,21 @@ export function createAnalyticsRouter({ requireAdmin }) {
     }
   })
 
-  router.get('/admin/events.csv', requireAdmin, async (req, res) => {
+  router.get('/admin/events.csv', requirePermission(P.ANALYTICS_EXPORT), async (req, res) => {
     try {
-      const days = windowDays(req)
+      const filter = filtered(req, res, { alias: 'e' })
+      if (!filter) return
       const { rows } = await query(
         `SELECT e.event_uid, e.occurred_at, e.received_at, e.name, e.category, e.path_enc,
-                e.device_id, e.session_id, e.props_enc, m.external_ref_hash, m.external_ref_enc
+                e.device_id, e.session_id, e.props_enc, o.name AS organisation,
+                m.external_ref_hash, m.external_ref_enc
            FROM analytics_events e
            LEFT JOIN analytics_members m ON m.id = e.member_id
-          WHERE e.occurred_at > now() - $1::interval
+           LEFT JOIN organisations o ON o.id = e.organisation_id
+           ${filter.where}
           ORDER BY e.occurred_at DESC
           LIMIT 100000`,
-        [`${days} days`]
+        filter.params
       )
 
       const escape = (v) => {
@@ -721,7 +1110,7 @@ export function createAnalyticsRouter({ requireAdmin }) {
         return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s
       }
       const header =
-        'occurred_at,received_at,name,category,path,device_id,session_id,member_ref,props\n'
+        'occurred_at,received_at,name,category,path,company,device_id,session_id,member_ref,props\n'
       const body = rows
         .map((r) => {
           const { path, props } = decryptEvent(r)
@@ -731,6 +1120,7 @@ export function createAnalyticsRouter({ requireAdmin }) {
             r.name,
             r.category,
             path,
+            r.organisation,
             r.device_id,
             r.session_id,
             memberRef(r),
@@ -741,11 +1131,18 @@ export function createAnalyticsRouter({ requireAdmin }) {
         })
         .join('\n')
 
-      // A CSV of decrypted events leaves the system: record that it happened.
-      audit(req, { actor: 'admin', action: 'admin_exported_events', details: { days, rows: rows.length } })
+      // A CSV of decrypted events leaves the system: record that it happened,
+      // and which slice of the data it was.
+      audit(req, {
+        actor: 'admin',
+        actorId: req.admin?.id ?? null,
+        action: 'admin_exported_events',
+        details: { ...filter.applied, rows: rows.length },
+      })
+      const stamp = filter.applied.days ? `${filter.applied.days}d` : `${filter.applied.from ?? 'start'}-to-${filter.applied.to ?? 'now'}`
       res.set('Content-Type', 'text/csv; charset=utf-8')
       res.set('Cache-Control', 'no-store')
-      res.set('Content-Disposition', `attachment; filename="asknelson-events-${days}d.csv"`)
+      res.set('Content-Disposition', `attachment; filename="asknelson-events-${stamp}.csv"`)
       res.send(header + body)
     } catch (err) {
       console.error('[asknelson] csv export failed:', err.message)
@@ -759,7 +1156,7 @@ export function createAnalyticsRouter({ requireAdmin }) {
    * Mint a link for one member. The raw token is returned exactly once — it is
    * stored only as a hash, so it cannot be recovered later, only re-minted.
    */
-  router.post('/admin/link-tokens', requireAdmin, async (req, res) => {
+  router.post('/admin/link-tokens', requirePermission(P.ANALYTICS_READ_PII), async (req, res) => {
     try {
       const externalRef = str(req.body?.externalRef, 128)
       const label = str(req.body?.label, 128)
@@ -792,7 +1189,7 @@ export function createAnalyticsRouter({ requireAdmin }) {
     }
   })
 
-  router.get('/admin/link-tokens', requireAdmin, async (_req, res) => {
+  router.get('/admin/link-tokens', requirePermission(P.ANALYTICS_READ_PII), async (_req, res) => {
     try {
       const { rows } = await query(
         `SELECT t.token_hash, t.label_enc, t.created_at, t.expires_at, t.revoked_at,
@@ -817,7 +1214,7 @@ export function createAnalyticsRouter({ requireAdmin }) {
     }
   })
 
-  router.post('/admin/link-tokens/:hash/revoke', requireAdmin, async (req, res) => {
+  router.post('/admin/link-tokens/:hash/revoke', requirePermission(P.ANALYTICS_READ_PII), async (req, res) => {
     try {
       const { rowCount } = await query(
         'UPDATE analytics_link_tokens SET revoked_at = now() WHERE token_hash = $1 AND revoked_at IS NULL',

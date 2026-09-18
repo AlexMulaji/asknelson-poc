@@ -21,7 +21,7 @@ export default function SafetyScreen({ safety, onExit }) {
       </div>
 
       <div>
-        <h2 className="font-display text-[26px] font-extrabold leading-tight text-navy">
+        <h2 className="font-display text-[26px] font-extrabold leading-tight text-ink">
           {safety.headline}
         </h2>
         <p className="mt-3 text-[15px] leading-relaxed text-slate-600">{safety.body}</p>
