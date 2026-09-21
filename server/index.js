@@ -17,7 +17,6 @@ import { createAnalyticsRouter, startSessionSweeper } from './analytics.js'
 import { createAuthRouter, startAuthSweeper } from './auth.js'
 import { createProgressRouter } from './progress.js'
 import { createEmbedRouter } from './embed.js'
-import { createReaderRouter } from './reader.js'
 import { isSecure } from './http.js'
 import {
   createAdminAuthRouter,
@@ -170,10 +169,6 @@ app.use('/api/progress', createProgressRouter())
 
 // Whether an external article can be shown inside the in-app viewer.
 app.use('/api/embed', createEmbedRouter({ allowedHosts: contentHosts }))
-
-// Reader view: the article itself, extracted and sanitised, for publishers
-// that refuse to be framed.
-app.use('/api/reader', createReaderRouter({ allowedHosts: contentHosts }))
 
 // Content: read by the PWA (published items only), written from the admin
 // portal. Editing needs content:write; changing what members can see needs

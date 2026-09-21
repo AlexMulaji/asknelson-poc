@@ -5,9 +5,8 @@
 //               each provider ships an embeddable player; we rewrite to it.
 //   everything else — whether it can be framed is the publisher's choice
 //               (X-Frame-Options / CSP frame-ancestors). The server checks
-//               once and caches the answer (/api/embed/check).
-//               Where the publisher refuses, the server extracts the
-//               article itself for the reader view (/api/reader).
+//               once and caches the answer (/api/embed/check). Where the
+//               publisher refuses, the page opens in a new tab instead.
 
 export const isExternalUrl = (raw) => /^https?:\/\//i.test(String(raw || ''))
 
@@ -99,52 +98,15 @@ export function checkEmbeddable(url) {
  */
 export function prefetchEmbeddable(url) {
   if (!isExternalUrl(url) || videoEmbedUrl(url)) return
-  // A page that refuses framing will be shown in reader view, so warm that
-  // too: by the time the member taps, the article is usually already here.
-  checkEmbeddable(url)
-    .then((verdict) => {
-      if (!verdict.embeddable) fetchReaderArticle(url).catch(() => {})
-    })
-    .catch(() => {})
+  checkEmbeddable(url).catch(() => {})
 }
 
-const articles = new Map() // url -> reader response
-const articlesInFlight = new Map()
-
 /**
- * True when it is already known that a link can be shown neither in a frame
- * nor in reader view. The tap can then open a new tab straight away, while it
- * still counts as a user gesture that popup blockers allow.
+ * True when it is already known that a link can't be framed. The tap can
+ * then open a new tab straight away, while it still counts as a user gesture
+ * that popup blockers allow.
  */
-export function knownToOpenOutside(url) {
+export function knownNotEmbeddable(url) {
   const verdict = verdicts.get(url)
-  const article = articles.get(url)
-  return Boolean(verdict && !verdict.embeddable && article && !article.readable)
-}
-
-/**
- * The reader-view article for a URL: { readable: true, title, content, … } or
- * { readable: false, reason }. content is HTML the server has already reduced
- * to an allowlist; it must still go through sanitiseReaderHtml before render.
- */
-export function fetchReaderArticle(url) {
-  if (articles.has(url)) return Promise.resolve(articles.get(url))
-  if (articlesInFlight.has(url)) return articlesInFlight.get(url)
-
-  const request = (async () => {
-    try {
-      const res = await fetch(`/api/reader?url=${encodeURIComponent(url)}`, {
-        credentials: 'same-origin',
-      })
-      const article = res.ok ? await res.json() : { readable: false, reason: `reader-${res.status}` }
-      if (res.ok) articles.set(url, article)
-      return article
-    } catch {
-      return { readable: false, reason: 'offline' }
-    } finally {
-      articlesInFlight.delete(url)
-    }
-  })()
-  articlesInFlight.set(url, request)
-  return request
+  return Boolean(verdict && !verdict.embeddable)
 }
