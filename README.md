@@ -29,7 +29,7 @@ docker compose up --build
 # Admin: http://localhost:8180/admin
 ```
 
-Compose starts two services: the app and a Postgres 16 database for event
+Compose starts two services: the app and a Postgres 15 database for event
 tracking. The app waits for the database to pass its health check, runs its
 migrations, and only then starts listening.
 

@@ -85,7 +85,12 @@ services:
   # standalone host needs. To run against the shared Odoo Postgres instead,
   # see docker-compose.shared-db.yml.
   db:
-    image: postgres:16-alpine
+    # Pinned to match the Odoo Postgres this app is merged into (see
+    # docs/SHARED_DATABASE.md) — moving existing data across dumps with
+    # `pg_dump`/`pg_restore`, and pg_restore can't read an archive produced by
+    # a newer major version than the one restoring it. Keep this pin in step
+    # with whatever major version the shared Postgres actually runs.
+    image: postgres:15-alpine
     environment:
       POSTGRES_USER: asknelson
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-asknelson}
