@@ -12,6 +12,10 @@ const SESSION_DAYS = Number(process.env.AUTH_SESSION_DAYS || 30)
 // "Remember me" unticked: a browser-session cookie, and a short server-side
 // lifetime so a forgotten shared computer doesn't stay signed in for a month.
 const SHORT_SESSION_HOURS = Number(process.env.AUTH_SHORT_SESSION_HOURS || 12)
+// Applies to every session regardless of "remember me" — a browser-session
+// cookie isn't reliably dropped on close (installed/mobile PWAs keep it
+// alive), so this is the real backstop against staying signed in forever.
+const IDLE_TIMEOUT_MINUTES = Number(process.env.AUTH_IDLE_TIMEOUT_MINUTES || 120)
 
 export const sha256 = (value) => crypto.createHash('sha256').update(String(value)).digest('hex')
 
@@ -59,8 +63,9 @@ export async function currentUser(req) {
       WHERE s.token_hash = $1
         AND s.revoked_at IS NULL
         AND s.expires_at > now()
+        AND s.last_seen_at > now() - ($2 * interval '1 minute')
         AND u.status = 'active'`,
-    [tokenHash]
+    [tokenHash, IDLE_TIMEOUT_MINUTES]
   )
   if (!rows[0]) return null
   // Rolling expiry: an active user stays signed in. Throttled to one write per

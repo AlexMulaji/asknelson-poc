@@ -14,6 +14,73 @@ import { clearLocalProgress, setSyncEnabled, syncOnSignIn } from '../lib/progres
 
 const AuthContext = createContext(null)
 
+// Kept in sync with the server's AUTH_IDLE_TIMEOUT_MINUTES default
+// (server/session.js) — the server is the real enforcement, this just signs
+// out an open tab immediately instead of waiting for its next API call.
+const IDLE_TIMEOUT_MS = 2 * 60 * 60 * 1000
+const LAST_ACTIVITY_KEY = 'asknelson.lastActivityAt'
+const ACTIVITY_EVENTS = ['mousemove', 'keydown', 'click', 'scroll', 'touchstart']
+
+// Never throws: Safari private mode, WhatsApp webviews, etc.
+function readLastActivity() {
+  try {
+    return Number(localStorage.getItem(LAST_ACTIVITY_KEY)) || Date.now()
+  } catch {
+    return Date.now()
+  }
+}
+
+function writeLastActivity(at) {
+  try {
+    localStorage.setItem(LAST_ACTIVITY_KEY, String(at))
+  } catch {
+    /* quota or privacy mode */
+  }
+}
+
+// Signs `signOut` out after IDLE_TIMEOUT_MS with no activity in any tab.
+// Last-activity is shared via localStorage so one active tab keeps a
+// backgrounded one signed in, and a tab that was closed/idle picks up the
+// real elapsed time (not just its own idle clock) when it's next focused.
+function useIdleTimeout(active, signOut) {
+  useEffect(() => {
+    if (!active) return undefined
+
+    let timer = null
+
+    const scheduleFromLastActivity = () => {
+      const elapsed = Date.now() - readLastActivity()
+      if (elapsed >= IDLE_TIMEOUT_MS) {
+        signOut()
+        return
+      }
+      window.clearTimeout(timer)
+      timer = window.setTimeout(scheduleFromLastActivity, IDLE_TIMEOUT_MS - elapsed)
+    }
+
+    const onActivity = () => {
+      writeLastActivity(Date.now())
+      window.clearTimeout(timer)
+      timer = window.setTimeout(scheduleFromLastActivity, IDLE_TIMEOUT_MS)
+    }
+
+    const onVisible = () => {
+      if (document.visibilityState === 'visible') scheduleFromLastActivity()
+    }
+
+    writeLastActivity(Date.now())
+    scheduleFromLastActivity()
+    ACTIVITY_EVENTS.forEach((event) => window.addEventListener(event, onActivity, { passive: true }))
+    document.addEventListener('visibilitychange', onVisible)
+
+    return () => {
+      window.clearTimeout(timer)
+      ACTIVITY_EVENTS.forEach((event) => window.removeEventListener(event, onActivity))
+      document.removeEventListener('visibilitychange', onVisible)
+    }
+  }, [active, signOut])
+}
+
 // Pull the account's progress onto this device (merging anything made while
 // signed out). Resolves to the route the member was last on, or null.
 async function restoreProgress() {
@@ -83,6 +150,8 @@ export function AuthProvider({ children }) {
       track('signed_out', {})
     }
   }, [])
+
+  useIdleTimeout(Boolean(user), signOut)
 
   // Called by the registration flow once the code is verified. Anything done
   // before signing up is saved to the new account.

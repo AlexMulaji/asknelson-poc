@@ -371,6 +371,11 @@ affected tables, so the old values are physically removed from the table files
 backup taken before the upgrade still contain plaintext.** After upgrading:
 take a fresh base backup, then delete older backups and archived WAL.
 
+**Sharing a database with Odoo**: set `DATABASE_SCHEMA` and every table lives
+in that schema instead of `public`. The role and schema are created by hand;
+the procedure, including moving existing data, is in
+[SHARED_DATABASE.md](SHARED_DATABASE.md).
+
 **Querying sealed data**: use the admin console or the API — `psql` shows
 `bytea`. De-identified numbers need no key:
 

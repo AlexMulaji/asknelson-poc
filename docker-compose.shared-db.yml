@@ -7,19 +7,31 @@
 #
 #   COMPOSE_FILE=docker-compose.yml:docker-compose.shared-db.yml
 #   SHARED_DB_NETWORK=<odoo project>_default
-#   ASKNELSON_DATABASE_URL=postgres://user:pw@<odoo db container>:5432/<database>
+#   ASKNELSON_DATABASE_URL=postgres://asknelson_app:pw@<odoo db container>:5432/<database>
+#   ASKNELSON_DATABASE_SCHEMA=asknelson
+#
+# The role and schema must exist first. They are created by hand, by a
+# superuser on the Odoo database: follow docs/SHARED_DATABASE.md.
+#
+# Requires Docker Compose v2.24+ (for `!reset` below; check `docker compose version`).
 #
 # Without this file nothing here applies, so a host that never sets it up is
 # unaffected by the Odoo stack entirely.
 services:
   asknelson:
+    environment:
+      # Pins search_path to this schema alone, so the app's tables can never
+      # land in, or collide with, Odoo's `public`. The app refuses to start if
+      # the schema is missing or not usable by its role.
+      DATABASE_SCHEMA: ${ASKNELSON_DATABASE_SCHEMA:-asknelson}
     # Reach the Odoo project's Postgres over its network.
     networks:
       - default
       - shared-db
     # That container belongs to another compose project, so it cannot be waited
-    # on from here; the app retries its first connection at boot. This cancels
-    # the base file's wait on the local db, which is switched off below.
+    # on from here; instead the app waits up to DATABASE_CONNECT_TIMEOUT_SECONDS
+    # for its first connection at boot. This cancels the base file's wait on the
+    # local db, which is switched off below.
     depends_on: !reset null
 
   # Switched off: the shared database is in use. Kept as the rollback path —

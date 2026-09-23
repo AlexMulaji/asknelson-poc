@@ -223,8 +223,9 @@ if (fs.existsSync(DIST_DIR)) {
 }
 
 // Run migrations before accepting traffic, so the first request can never hit a
-// half-built schema. A database that is configured but unreachable is fatal —
-// failing loudly beats silently dropping every event.
+// half-built schema. migrate() waits up to DATABASE_CONNECT_TIMEOUT_SECONDS for
+// the database to come up; one still unreachable after that is fatal — failing
+// loudly beats silently dropping every event.
 if (analyticsEnabled) {
   // Personal information is sealed before it reaches Postgres. Refusing to
   // start beats silently writing plaintext, or writing data nobody can read.

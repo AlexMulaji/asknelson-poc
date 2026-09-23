@@ -28,11 +28,15 @@ services:
       MAX_IMAGE_DIMENSION: ${MAX_IMAGE_DIMENSION:-2400}
       # Event tracking. Remove this line to run without analytics: the app works
       # exactly as before and the tracking endpoints become no-ops.
-      # Points at the shared Postgres container (the Odoo one), where the
-      # app's tables live in their own `asknelson` schema. Unset it and the
-      # app falls back to the local `db` service below, which is the rollback
-      # path: `docker compose --profile legacy-db up -d db`.
+      # ASKNELSON_DATABASE_URL points it at the shared Postgres container (the
+      # Odoo one); docker-compose.shared-db.yml then keeps the app's tables in
+      # their own `asknelson` schema (DATABASE_SCHEMA). Unset it and the app
+      # falls back to the local `db` service below, which is the rollback path:
+      # `docker compose --profile legacy-db up -d db`.
       DATABASE_URL: ${ASKNELSON_DATABASE_URL:-postgres://asknelson:${POSTGRES_PASSWORD:-asknelson}@db:5432/asknelson}
+      # How long boot waits for the database to accept connections before
+      # giving up (the container then exits, and restarts per the policy below).
+      DATABASE_CONNECT_TIMEOUT_SECONDS: ${DATABASE_CONNECT_TIMEOUT_SECONDS:-60}
       # Plaintext is acceptable only because app and db share compose's private
       # network. Against a hosted database use verify-full (see .env.example).
       DATABASE_SSL: ${DATABASE_SSL:-disable}
@@ -70,8 +74,8 @@ services:
       # Admin content edits survive rebuilds and restarts.
       - asknelson-data:/app/data
     # Only needed for the bundled `db` below; when ASKNELSON_DATABASE_URL
-    # points somewhere else this is a no-op, and the app retries its first
-    # connection at boot either way.
+    # points somewhere else this is a no-op, and the app waits up to
+    # DATABASE_CONNECT_TIMEOUT_SECONDS for its first connection either way.
     depends_on:
       db:
         condition: service_healthy

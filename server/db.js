@@ -19,6 +19,30 @@ const SSL_MODE = (process.env.DATABASE_SSL || '').toLowerCase()
 
 export const isEnabled = Boolean(DATABASE_URL)
 
+// The schema every table lives in. Unset keeps Postgres' default search_path
+// ("$user", public) — right for this project's own database, where public is
+// ours. Set it when sharing a database with another application (the Odoo
+// Postgres, see docs/SHARED_DATABASE.md): search_path is then pinned to that
+// schema alone, so nothing can land in, or read from, the other app's public.
+// The schema itself is created by hand, by a superuser; the app never needs
+// the privilege to create one.
+const SCHEMA_NAME = /^[a-z_][a-z0-9_]{0,62}$/
+
+/** A lower-case Postgres identifier, safe to put in a connection option. */
+export function validateSchemaName(name) {
+  if (!SCHEMA_NAME.test(name)) {
+    throw new Error(
+      `DATABASE_SCHEMA="${name}" is not a valid schema name ` +
+        '(lower-case letters, digits and underscores, starting with a letter or underscore, at most 63).'
+    )
+  }
+  return name
+}
+
+export const DATABASE_SCHEMA = process.env.DATABASE_SCHEMA
+  ? validateSchemaName(process.env.DATABASE_SCHEMA)
+  : ''
+
 // Encryption in transit between the app and Postgres (POPIA s19).
 //   verify-full  TLS, and the server certificate is checked against the system
 //                roots or DATABASE_SSL_CA_FILE. Use this in production.
@@ -47,10 +71,15 @@ if (isEnabled && SSL_MODE === 'require') {
 
 // `timestamptz` comes back as a JS Date by default, which JSON-serialises to
 // UTC ISO strings — exactly what the admin UI and CSV export want.
+//
+// `options` is sent at connection startup, so every pooled connection —
+// requests, sweepers, migrations and their VACUUMs alike — resolves unqualified
+// table names in DATABASE_SCHEMA without a single query having to say so.
 export const pool = isEnabled
   ? new Pool({
       connectionString: DATABASE_URL,
       ssl: sslConfig(),
+      ...(DATABASE_SCHEMA ? { options: `-c search_path=${DATABASE_SCHEMA}` } : {}),
       max: Number(process.env.DATABASE_POOL_MAX || 10),
       idleTimeoutMillis: 30_000,
       connectionTimeoutMillis: 10_000,
@@ -84,6 +113,59 @@ export async function withTransaction(fn) {
     throw err
   } finally {
     client.release()
+  }
+}
+
+// --- first connection -------------------------------------------------------------
+
+// At boot the database may simply not be up yet: a container still starting,
+// or the shared Odoo Postgres, which belongs to another compose project and so
+// can't be waited on with depends_on. Those errors are retried until the
+// deadline; anything else (wrong password, missing database) fails at once,
+// because waiting will not fix it.
+const CONNECT_TIMEOUT_MS = Number(process.env.DATABASE_CONNECT_TIMEOUT_SECONDS ?? 60) * 1000
+
+const TRANSIENT_CONNECT_CODES = new Set([
+  'ECONNREFUSED',
+  'ECONNRESET',
+  'ENOTFOUND', // the container's DNS name isn't registered until it starts
+  'EAI_AGAIN',
+  'ETIMEDOUT',
+  '57P03', // cannot_connect_now: "the database system is starting up"
+])
+
+export function isTransientConnectError(err) {
+  // A host with several addresses reports a refusal as an AggregateError with
+  // an empty message, one inner error per address.
+  const errors = err?.errors?.length ? err.errors : [err]
+  return errors.some(
+    (e) => TRANSIENT_CONNECT_CODES.has(e?.code) || /connection timeout/i.test(e?.message ?? '')
+  )
+}
+
+const describeError = (err) => err?.code || err?.errors?.[0]?.code || err?.message || String(err)
+
+/** Resolve once the database answers, retrying transient failures until the deadline. */
+export async function waitForDatabase({
+  ping = () => pool.query('SELECT 1'),
+  timeoutMs = CONNECT_TIMEOUT_MS,
+  sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms)),
+  now = Date.now,
+  log = console.warn,
+} = {}) {
+  const deadline = now() + timeoutMs
+  for (let attempt = 1, delay = 1000; ; attempt++, delay = Math.min(delay * 2, 5000)) {
+    try {
+      await ping()
+      return
+    } catch (err) {
+      if (!isTransientConnectError(err) || now() + delay > deadline) throw err
+      log(
+        `[asknelson] database not reachable yet (${describeError(err)}), ` +
+          `attempt ${attempt} — retrying in ${delay / 1000}s`
+      )
+      await sleep(delay)
+    }
   }
 }
 
@@ -316,8 +398,69 @@ const MIGRATIONS = [
   m006,
 ]
 
+// Every table the migrations above create. Keep in step when a migration adds
+// one: it is what the collision guard in migrate() checks a fresh target for.
+export const OWNED_TABLES = [
+  'admin_recovery_codes',
+  'admin_sessions',
+  'admin_users',
+  'analytics_daily_counts',
+  'analytics_devices',
+  'analytics_events',
+  'analytics_link_tokens',
+  'analytics_members',
+  'analytics_sessions',
+  'audit_log',
+  'auth_otp_codes',
+  'auth_password_resets',
+  'auth_sessions',
+  'auth_users',
+  'organisations',
+  'user_app_state',
+  'user_assessment_results',
+  'user_consents',
+  'user_content_activity',
+  'user_journey_progress',
+  'user_meditation_sessions',
+]
+
+/** Which of `existingTables` the migrations would otherwise create themselves. */
+export function findCollisions(existingTables) {
+  const owned = new Set(OWNED_TABLES)
+  return existingTables.filter((name) => owned.has(name)).sort()
+}
+
+// With DATABASE_SCHEMA set, the connection must actually resolve to it. If the
+// schema is missing, or the role has no USAGE on it, Postgres quietly makes
+// current_schema() NULL and CREATE TABLE fails with a message that doesn't
+// name the cause — so check up front and say what to do.
+async function assertSchema() {
+  if (!DATABASE_SCHEMA) return
+  const { rows } = await pool.query(
+    `SELECT current_schema() AS schema,
+            has_schema_privilege(current_schema(), 'CREATE') AS can_create`
+  )
+  const { schema, can_create: canCreate } = rows[0]
+  if (schema !== DATABASE_SCHEMA) {
+    throw new Error(
+      `DATABASE_SCHEMA is "${DATABASE_SCHEMA}" but the connection resolves to ` +
+        `${schema ? `"${schema}"` : 'no schema'}: the schema does not exist, or this role ` +
+        'has no USAGE on it. It is created by hand — see docs/SHARED_DATABASE.md.'
+    )
+  }
+  if (!canCreate) {
+    throw new Error(
+      `This role cannot create tables in schema "${DATABASE_SCHEMA}". It should own the ` +
+        'schema — see docs/SHARED_DATABASE.md.'
+    )
+  }
+}
+
 export async function migrate() {
   if (!pool) return
+
+  await waitForDatabase()
+  await assertSchema()
 
   await pool.query(`
     CREATE TABLE IF NOT EXISTS _analytics_migrations (
@@ -328,6 +471,25 @@ export async function migrate() {
 
   const { rows } = await pool.query('SELECT name FROM _analytics_migrations')
   const applied = new Set(rows.map((r) => r.name))
+
+  // A target with no migration history must also have none of our tables.
+  // 001 and 002 use CREATE TABLE IF NOT EXISTS, so a same-named table left by
+  // another application would be silently adopted and then altered by every
+  // later migration. Refuse instead. Databases this app already migrated have
+  // history, so this never runs for them.
+  if (applied.size === 0) {
+    const { rows: existing } = await pool.query(
+      'SELECT tablename FROM pg_tables WHERE schemaname = current_schema()'
+    )
+    const collisions = findCollisions(existing.map((r) => r.tablename))
+    if (collisions.length) {
+      throw new Error(
+        `Refusing to migrate: schema "${DATABASE_SCHEMA || 'current'}" has no migration history ` +
+          `but already contains ${collisions.join(', ')}. These were not created by this app. ` +
+          'Point DATABASE_SCHEMA at an empty schema (see docs/SHARED_DATABASE.md).'
+      )
+    }
+  }
 
   for (const migration of MIGRATIONS) {
     if (applied.has(migration.name)) continue
@@ -350,7 +512,12 @@ export async function migrate() {
     for (const statement of migration.after ?? []) {
       await pool
         .query(statement)
-        .catch((err) => console.warn(`[asknelson] "${statement}" failed:`, err.message))
+        .catch((err) =>
+          console.warn(
+            `[asknelson] "${statement}" failed (VACUUM FULL needs the role to own the table):`,
+            err.message
+          )
+        )
     }
   }
 }

@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth.jsx'
 import { track } from '../lib/analytics.js'
@@ -11,6 +11,30 @@ import '../assets/auth/auth_style.css'
 // email address or, for anonymous accounts, a username. "Remember Me" unticked
 // gives a session that ends with the browser (and after 12 hours at most).
 // On success the member lands where they left off, on whichever device that was.
+//
+// "Remember Me" only ever remembers the identifier, never the password — a
+// client-stored password would be plaintext for any XSS bug to steal. The
+// password field's autoComplete="current-password" already lets the
+// browser's own password manager offer to fill/save it securely.
+
+const REMEMBERED_IDENTIFIER_KEY = 'asknelson.rememberedIdentifier'
+
+function readRememberedIdentifier() {
+  try {
+    return localStorage.getItem(REMEMBERED_IDENTIFIER_KEY) || ''
+  } catch {
+    return ''
+  }
+}
+
+function writeRememberedIdentifier(value) {
+  try {
+    if (value) localStorage.setItem(REMEMBERED_IDENTIFIER_KEY, value)
+    else localStorage.removeItem(REMEMBERED_IDENTIFIER_KEY)
+  } catch {
+    /* quota or privacy mode */
+  }
+}
 
 export default function Login() {
   const navigate = useNavigate()
@@ -19,9 +43,17 @@ export default function Login() {
 
   const [identifier, setIdentifier] = useState('')
   const [password, setPassword] = useState('')
-  const [remember, setRemember] = useState(true)
+  const [remember, setRemember] = useState(false)
   const [error, setError] = useState(null)
   const [busy, setBusy] = useState(false)
+
+  useEffect(() => {
+    const remembered = readRememberedIdentifier()
+    if (remembered) {
+      setIdentifier(remembered)
+      setRemember(true)
+    }
+  }, [])
 
   // Set by the reset screen: "Password updated — sign in with your new one."
   const notice = location.state?.notice
@@ -37,6 +69,7 @@ export default function Login() {
     setError(null)
     try {
       const { lastRoute } = await signIn(identifier.trim(), password, remember)
+      writeRememberedIdentifier(remember ? identifier.trim() : '')
       // Where they were going before the gate, else where they left off.
       navigate(location.state?.from || lastRoute || '/home', { replace: true })
     } catch (err) {

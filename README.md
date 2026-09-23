@@ -434,6 +434,8 @@ open forever.
 | `AUDIT_RETENTION_DAYS` | `1825` | Audit-log retention. |
 | `FORCE_HTTPS` | `false` | Redirect HTTP to HTTPS (set once TLS terminates in front of the app). |
 | `DATABASE_POOL_MAX` | `10` | Connection pool size. |
+| `DATABASE_SCHEMA` | *(unset)* | Schema the tables live in; pins `search_path` to it alone. Unset uses Postgres' default (`public`). Set by `docker-compose.shared-db.yml` when sharing the Odoo database — see [docs/SHARED_DATABASE.md](docs/SHARED_DATABASE.md). |
+| `DATABASE_CONNECT_TIMEOUT_SECONDS` | `60` | How long boot waits for the database to accept connections before exiting. Wrong passwords and missing databases fail at once. |
 | `PUBLIC_BASE_URL` | request host | Base for the minted WhatsApp links. |
 | `TRUST_PROXY_HOPS` | `1` | Proxy hops to trust for client IP and HTTPS detection. |
 
