@@ -305,9 +305,14 @@ export default function Register() {
               setErrors((prev) => ({ ...prev, consent: null }))
             }}
           >
-            I agree that AskNelson may store my details and my wellbeing check-in results to
-            provide this service, as described in the privacy notice. My employer only ever sees
-            anonymous, combined statistics.
+            We use cookies for this app {' '}
+            <a href="/Kaelo_Cookie_Policy.pdf">
+            cookie policy
+            </a>
+            . Your data is anonymous and only ever used according to our {''}
+            <a href="/Kaelo-Privacy-Policy_V2.pdf">
+            privacy notice
+            </a>.
           </Check>
           {errors.consent ? <p className="field__error">{errors.consent}</p> : null}
 

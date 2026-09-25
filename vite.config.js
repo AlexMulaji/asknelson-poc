@@ -44,8 +44,12 @@ export default defineConfig({
         // large (multiple MB each) and would bloat the install. They're cached
         // on first play instead, via the CacheFirst runtimeCaching rule below.
         globPatterns: ['**/*.{js,css,html,svg,png,ico,json,woff,woff2}'],
-        // Never serve index.html for API calls or admin-uploaded media.
-        navigateFallbackDenylist: [/^\/api\//, /^\/uploads\//],
+        // Never serve index.html for API calls, admin-uploaded media, or
+        // anything that looks like a file (e.g. the policy PDFs in /public).
+        // Without the last rule, opening /Kaelo_Cookie_Policy.pdf boots the
+        // app instead, and the auth guard bounces it to /login. Workbox tests
+        // pathname + search, so the dot must come before any "?".
+        navigateFallbackDenylist: [/^\/api\//, /^\/uploads\//, /^[^?]*\.[a-z0-9]+(\?.*)?$/i],
         runtimeCaching: [
           {
             // Editorial imagery: the seed photography in /media plus anything

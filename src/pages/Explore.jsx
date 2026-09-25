@@ -6,13 +6,18 @@ import PageHeader from '../components/PageHeader.jsx'
 import ContentCard from '../components/ContentCard.jsx'
 import EmptyState from '../components/EmptyState.jsx'
 import { SearchIcon } from '../components/Icons.jsx'
-import { useContent } from '../hooks/useContent.js'
+import { useContentState } from '../hooks/useContent.js'
 import { track } from '../lib/analytics.js'
 
 function buildItems(themeList) {
   const items = []
-  for (const theme of themeList) {
-    for (const c of theme.content ?? []) {
+
+  const maxContent = Math.max(0, ...themeList.map(theme => theme.content?.length ?? 0));
+  for (let i = 0; i < maxContent; i++){
+    for (const theme of themeList) {
+      const c = theme.content?.[i] ?? 0
+      if (!c) { continue }
+
       const isVideo = (c.type || '').toLowerCase() === 'video'
       const mins = isVideo ? c.duration_mins : c.read_time_mins
       const duration = mins != null ? `${mins} min${isVideo ? ' watch' : ' read'}` : undefined
@@ -29,11 +34,31 @@ function buildItems(themeList) {
       })
     }
   }
+  
   return items
 }
 
+// Stand-in cards shown while the first server fetch is in flight, shaped like
+// ContentCard (portrait thumbnail left, copy right) so nothing jumps when the
+// real cards land.
+function ContentCardSkeleton() {
+  return (
+    <div aria-hidden className="flex overflow-hidden rounded-card bg-surface shadow-card motion-safe:animate-pulse">
+      <div className="media-bg aspect-[3/4] w-[104px] shrink-0 sm:w-[116px]" />
+      <div className="flex flex-1 flex-col gap-2 px-4 py-4">
+        <div className="media-bg h-5 w-20 rounded-pill" />
+        <div className="media-bg h-4 w-4/5 rounded" />
+        <div className="media-bg h-3 w-full rounded" />
+        <div className="media-bg h-3 w-2/3 rounded" />
+      </div>
+    </div>
+  )
+}
+
 export default function Explore() {
-  const exploreData = useContent('explore')
+  // Server-first: on a first visit this waits for the server copy rather than
+  // painting the bundled one, whose images would then be swapped in place.
+  const { data: exploreData, loading } = useContentState('explore')
   const themes = useMemo(() => exploreData?.explore?.themes ?? [], [exploreData])
   const themeIds = useMemo(() => new Set(themes.map((t) => t.id)), [themes])
 
@@ -141,7 +166,13 @@ export default function Explore() {
 
       {/* Content list */}
       <div className="mt-5">
-        {!hasData ? (
+        {loading ? (
+          <div role="status" aria-label="Loading resources" className="grid grid-cols-1 gap-4 lg:grid-cols-2 lg:gap-5">
+            {Array.from({ length: 4 }, (_, i) => (
+              <ContentCardSkeleton key={i} />
+            ))}
+          </div>
+        ) : !hasData ? (
           <EmptyState
             title="Your content is on its way"
             message="Content loads from explore.json. Once it's added, you'll find articles and videos here, sorted by what you need today."

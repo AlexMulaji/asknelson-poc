@@ -38,6 +38,7 @@ import {
 // open looks identical to a blocked one - the opener is cut by hand instead.
 function openInNewTab(url) {
   try {
+    if (window.matchMedia('(max-width: 767px)').matches) return null
     const tab = window.open(url, '_blank')
     if (tab) tab.opener = null
     return tab

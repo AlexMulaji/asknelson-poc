@@ -213,9 +213,12 @@ if (fs.existsSync(DIST_DIR)) {
   // SPA fallback: any non-API GET serves index.html so client-side routes
   // (/explore, /admin, ...) work on hard refresh. /uploads is excluded so a
   // deleted or mistyped image 404s honestly instead of returning HTML with a
-  // 200, which would defeat the <img> onError fallback on the cards.
+  // 200, which would defeat the <img> onError fallback on the cards. The same
+  // goes for any path with a file extension (e.g. a policy PDF missing from
+  // the build): 404 it rather than boot the app and bounce to /login.
   app.get('*', (req, res, next) => {
     if (req.path.startsWith('/api/') || req.path.startsWith('/uploads/')) return next()
+    if (path.extname(req.path)) return next()
     res.sendFile(path.join(DIST_DIR, 'index.html'))
   })
 } else {

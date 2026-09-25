@@ -11,3 +11,6 @@ dev-dist
 # Runtime content store written by server/index.js (local, non-Docker runs)
 data-store/
 backups/
+
+#Notes kept for reference as a junior dev
+LEARNING.md
