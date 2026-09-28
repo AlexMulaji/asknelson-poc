@@ -3,16 +3,16 @@
     {
       "id": "anxiety",
       "title": "Anxiety Check",
-      "subtitle": "A quick, validated screen for anxiety symptoms.",
-      "description": "A couple of minutes to check in on how anxious or on edge you've been feeling lately. Seven short questions about the past two weeks — answer honestly and you'll get a clear, private sense of where things stand, with a gentle next step if you want one. It's based on the GAD-7, a screening questionnaire used widely by health professionals.",
+      "subtitle": "A quick, validated screening for anxiety symptoms.",
+      "description": "Take a few minutes to check in on how anxious or on edge you’ve been feeling recently. \n\nThis brief, seven question assessment is based on the validated GAD-7 questionnaire used widely by health professionals and provides helpful insights into your anxiety symptoms. ",
       "instrument": "GAD-7 (public domain)",
       "color": "#FF751C",
       "bg": "#FFEADD",
       "icon": "ti-heart-rate-monitor",
       "time_mins": 2,
       "retake_after_days": 14,
-      "disclaimer": "This is a self-check, not a diagnosis. Only a qualified professional can diagnose an anxiety disorder.",
-      "instructions": "Over the last 2 weeks, how often have you been bothered by the following?",
+      "disclaimer": "This is a self-check assessment, not a diagnosis. Only qualified professionals can diagnose an anxiety disorder.",
+      "instructions": "",
       "response_scale": [
         {
           "label": "Not at all",
@@ -34,27 +34,27 @@
       "questions": [
         {
           "id": "q1",
-          "text": "Feeling nervous, anxious, or on edge"
+          "text": "Over the last 2 weeks how often have you felt nervous, anxious, or on edge?"
         },
         {
           "id": "q2",
-          "text": "Not being able to stop or control worrying"
+          "text": "Over the last 2 weeks how often have not been able to stop or control worrying?"
         },
         {
           "id": "q3",
-          "text": "Worrying too much about different things"
+          "text": "Over the last 2 weeks how often have you felt you have been worrying too much about different things?"
         },
         {
           "id": "q4",
-          "text": "Trouble relaxing"
+          "text": "Over the last 2 weeks how often have you had trouble relaxing?"
         },
         {
           "id": "q5",
-          "text": "Being so restless that it's hard to sit still"
+          "text": "Over the last 2 weeks how often have you felt you are so restless that it's hard to sit still?"
         },
         {
           "id": "q6",
-          "text": "Becoming easily annoyed or irritable"
+          "text": "Over the last 2 weeks how often have you become easily annoyed or irritable?"
         },
         {
           "id": "q7",
@@ -119,16 +119,16 @@
     {
       "id": "depression",
       "title": "Mood Check",
-      "subtitle": "A validated screen for low mood and depression.",
-      "description": "A short, private check-in on how your mood has been over the past two weeks. Nine questions, with no right or wrong answers — just answer as honestly as you can, and you'll see a clear picture of how you've been doing, along with support that fits. It's based on the PHQ-9, used widely by health professionals.",
+      "subtitle": "A brief, validated screening to assess low mood and depression.",
+      "description": "A quick, private check-in on how you've been feeling over the past two weeks. There are nine simple questions with no right or wrong answers—just answer as honestly as you can. \n\nYou'll receive a clear overview of your current mood, along with personalised guidance and support if needed. The assessment is based on the PHQ-9, a questionnaire widely used by healthcare professionals.",
       "instrument": "PHQ-9 (public domain)",
       "color": "#3D7A3F",
       "bg": "#E2EFE1",
       "icon": "ti-cloud",
       "time_mins": 3,
       "retake_after_days": 14,
-      "disclaimer": "This is a self-check, not a diagnosis. Only a qualified professional can diagnose depression.",
-      "instructions": "Over the last 2 weeks, how often have you been bothered by any of the following?",
+      "disclaimer": "This is a self-check assessment, not a diagnosis. Only qualified professionals can diagnose depression.",
+      "instructions": "",
       "response_scale": [
         {
           "label": "Not at all",
@@ -150,39 +150,39 @@
       "questions": [
         {
           "id": "q1",
-          "text": "Little interest or pleasure in doing things"
+          "text": "Over the last 2 weeks how often have you had little interest or pleasure in doing things?"
         },
         {
           "id": "q2",
-          "text": "Feeling down, depressed, or hopeless"
+          "text": "Over the last 2 weeks how often have you felt down, depressed, or hopeless?"
         },
         {
           "id": "q3",
-          "text": "Trouble falling or staying asleep, or sleeping too much"
+          "text": "Over the last 2 weeks how often have you had trouble falling or staying asleep, or sleeping too much?"
         },
         {
           "id": "q4",
-          "text": "Feeling tired or having little energy"
+          "text": "Over the last 2 weeks how often have you felt tired or had little energy?"
         },
         {
           "id": "q5",
-          "text": "Poor appetite or overeating"
+          "text": "Over the last 2 weeks how often have you had a poor appetite or have been overeating?"
         },
         {
           "id": "q6",
-          "text": "Feeling bad about yourself, or that you are a failure, or that you have let yourself or your family down"
+          "text": "Over the last 2 weeks how often have you felt bad about yourself, or that you are a failure, or that you have let yourself or your family down?"
         },
         {
           "id": "q7",
-          "text": "Trouble concentrating on things, such as reading or watching television"
+          "text": "Over the last 2 weeks how often have you had trouble concentrating on things, such as reading or watching television?"
         },
         {
           "id": "q8",
-          "text": "Moving or speaking so slowly that other people could have noticed — or the opposite, being so fidgety or restless that you've been moving around a lot more than usual"
+          "text": "Over the last 2 weeks how often have you been moving or speaking so slowly that other people could have noticed — or the opposite, being so fidgety or restless that you've been moving around a lot more than usual?"
         },
         {
           "id": "q9",
-          "text": "Thoughts that you would be better off dead, or of hurting yourself in some way",
+          "text": "Over the last 2 weeks how often have you had thoughts that you would be better off dead, or of hurting yourself in some way?",
           "safety_item": true
         }
       ],
@@ -267,16 +267,16 @@
     {
       "id": "burnout",
       "title": "Burnout Check",
-      "subtitle": "Measure exhaustion, cynicism, and sense of effectiveness.",
-      "description": "Feeling worn down? These twelve questions look at the past month across the three sides of burnout — how drained you feel, how connected you are to your work, and how effective you feel doing it. You'll see not just whether you're running low, but what's driving it, so you know where to start.",
+      "subtitle": "Measure signs of burnout, including exhaustion, cynicism, and reduced effectiveness.",
+      "description": "Feeling worn down? This quick 12-question check-in explores the three key aspects of burnout over the past month: exhaustion, connection to your work, and your sense of effectiveness. \n\nYou'll gain a clearer understanding of what's contributing to burnout and receive insights to help you take the next step.",
       "instrument": "Original (Maslach three-dimension model)",
       "color": "#E1231F",
       "bg": "#FCE9E9",
       "icon": "ti-flame",
       "time_mins": 4,
       "retake_after_days": 30,
-      "disclaimer": "This is a self-check to help you reflect, not a clinical diagnosis.",
-      "instructions": "Thinking about the past month, how often have you felt each of the following?",
+      "disclaimer": "This is a self-check assessment to help you reflect, not a diagnosis.",
+      "instructions": "",
       "response_scale": [
         {
           "label": "Never",
@@ -302,65 +302,65 @@
       "questions": [
         {
           "id": "q1",
-          "text": "I feel emotionally drained by my work or daily responsibilities",
+          "text": "Over the past month how often have you felt emotionally drained by yout work or daily responsibilities?",
           "dimension": "exhaustion"
         },
         {
           "id": "q2",
-          "text": "I feel used up at the end of the day",
+          "text": "Over the past month how often have you felt used up at the end of the day?",
           "dimension": "exhaustion"
         },
         {
           "id": "q3",
-          "text": "I feel tired when I wake up and have to face another day",
+          "text": "Over the past month how often have you felt tired when you wake up and have to face another day?",
           "dimension": "exhaustion"
         },
         {
           "id": "q4",
-          "text": "I have little energy left for the people and things outside of work",
+          "text": "Over the past month how often have you felt you have little energy left for the people and things outside of work?",
           "dimension": "exhaustion"
         },
         {
           "id": "q5",
-          "text": "I feel less interested in my work than I used to",
+          "text": "Over the past month how often have you felt less interested in your work than you are used to?",
           "dimension": "cynicism"
         },
         {
           "id": "q6",
-          "text": "I've become more cynical about whether what I do matters",
+          "text": "Over the past month how often have you become more cynical about whether what you do matters?",
           "dimension": "cynicism"
         },
         {
           "id": "q7",
-          "text": "I feel detached or distant from the people I work with",
+          "text": "Over the past month how often have you felt detached or distant from the people you work with?",
           "dimension": "cynicism"
         },
         {
           "id": "q8",
-          "text": "I just want to get through the day rather than do things well",
+          "text": "Over the past month how often have you felt you just want to get through the day rather than do things well?",
           "dimension": "cynicism"
         },
         {
           "id": "q9",
-          "text": "I feel confident that I'm effective at what I do",
+          "text": "Over the past month how often have you felt confident that you are effective at what you do?",
           "dimension": "efficacy",
           "reverse": true
         },
         {
           "id": "q10",
-          "text": "I feel I'm making a meaningful contribution",
+          "text": "Over the past month how often have you felt you are making a meaningful contribution?",
           "dimension": "efficacy",
           "reverse": true
         },
         {
           "id": "q11",
-          "text": "I can deal well with the problems that come up",
+          "text": "Over the past month how often have you felt you can deal well with the problems that come up?",
           "dimension": "efficacy",
           "reverse": true
         },
         {
           "id": "q12",
-          "text": "I feel a sense of accomplishment from what I do",
+          "text": "Over the past month how often have you felt a sense of accomplishment from what you do?",
           "dimension": "efficacy",
           "reverse": true
         }
@@ -473,21 +473,21 @@
     {
       "id": "sleep",
       "title": "Sleep Quality Check",
-      "subtitle": "See how well you're really sleeping.",
-      "description": "A quick, honest look at how you've really been sleeping over the past two weeks — how long you take to drop off, how often you wake, and how it's shaping your days. Eight questions to help you see what's working and what might need a little attention.",
+      "subtitle": "A quick assessment on your quality of sleep.",
+      "description": "Take a moment to reflect on how you've been sleeping over the past two weeks. These eight questions explore how easily you fall asleep, how well you stay asleep, and how your sleep is affecting your daily life. You'll gain a better understanding of your sleep patterns and where small improvements could make a difference.",
       "instrument": "Original (sleep-hygiene & insomnia informed)",
       "color": "#2F6288",
       "bg": "#DDEBF5",
       "icon": "ti-moon",
       "time_mins": 2,
       "retake_after_days": 14,
-      "disclaimer": "This is a self-check, not a diagnosis. Persistent sleep problems are worth discussing with a doctor.",
-      "instructions": "Thinking about the past two weeks, answer as honestly as you can.",
+      "disclaimer": "This is a self-check assessment, not a diagnosis. Persistent sleep problems are worth discussing with a doctor.",
+      "instructions": "",
       "response_scale": null,
       "questions": [
         {
           "id": "q1",
-          "text": "How long does it usually take you to fall asleep?",
+          "text": "Over the last 2 weeks how long does it usually take you to fall asleep?",
           "options": [
             {
               "label": "Less than 15 minutes",
@@ -509,7 +509,7 @@
         },
         {
           "id": "q2",
-          "text": "On an average night, how many hours of sleep do you actually get?",
+          "text": "Over the last 2 weeks, on an average night, how many hours of sleep do you actually get?",
           "options": [
             {
               "label": "7 or more",
@@ -531,7 +531,7 @@
         },
         {
           "id": "q3",
-          "text": "How often do you wake during the night and struggle to fall back asleep?",
+          "text": "Over the last 2 weeks how often do you wake during the night and struggle to fall back asleep?",
           "options": [
             {
               "label": "Rarely or never",
@@ -553,7 +553,7 @@
         },
         {
           "id": "q4",
-          "text": "How often do you wake earlier than you want to and can't get back to sleep?",
+          "text": "Over the last 2 weeks how often do you wake earlier than you want to and can't get back to sleep?",
           "options": [
             {
               "label": "Rarely or never",
@@ -575,7 +575,7 @@
         },
         {
           "id": "q5",
-          "text": "How would you rate your overall sleep quality lately?",
+          "text": "Over the last 2 weeks how would you rate your overall sleep quality lately?",
           "options": [
             {
               "label": "Very good",
@@ -597,7 +597,7 @@
         },
         {
           "id": "q6",
-          "text": "How often does poor sleep affect your mood, focus, or energy during the day?",
+          "text": "Over the last 2 weeks how often does poor sleep affect your mood, focus, or energy during the day?",
           "options": [
             {
               "label": "Rarely or never",
@@ -619,7 +619,7 @@
         },
         {
           "id": "q7",
-          "text": "How consistent are your sleep and wake times from day to day?",
+          "text": "Over the last 2 weeks how consistent are your sleep and wake times from day to day?",
           "options": [
             {
               "label": "Very consistent",
@@ -641,7 +641,7 @@
         },
         {
           "id": "q8",
-          "text": "How often do racing thoughts or worry keep you awake?",
+          "text": "Over the last 2 weeks how often do racing thoughts or worry keep you awake?",
           "options": [
             {
               "label": "Rarely or never",
@@ -730,7 +730,7 @@
       "icon": "ti-heart-handshake",
       "time_mins": 3,
       "retake_after_days": 60,
-      "disclaimer": "This is a reflection tool, not a verdict on your relationship. It can't capture everything — trust your own judgement.",
+      "disclaimer": "This is a reflection tool, not a verdict of your relationship. It can't capture every part of your experience, so trust your own judgement.",
       "instructions": "Thinking about your relationship over the past while, how much do you agree with each statement?",
       "response_scale": [
         {
@@ -757,54 +757,54 @@
       "questions": [
         {
           "id": "q1",
-          "text": "I can be open and honest with my partner",
+          "text": "I can be open and honest with my partner.",
           "dimension": "communication"
         },
         {
           "id": "q2",
-          "text": "My partner really listens when I talk about what matters to me",
+          "text": "My partner really listens when I talk about what matters to me.",
           "dimension": "communication"
         },
         {
           "id": "q3",
-          "text": "I trust my partner",
+          "text": "I trust my partner.",
           "dimension": "trust"
         },
         {
           "id": "q4",
-          "text": "When we disagree, we're able to work through it respectfully",
+          "text": "When we disagree, we're able to work through it respectfully.",
           "dimension": "conflict"
         },
         {
           "id": "q5",
-          "text": "Our arguments often leave me feeling hurt or disrespected",
+          "text": "Our arguments often leave me feeling hurt or disrespected.",
           "dimension": "conflict",
           "reverse": true
         },
         {
           "id": "q6",
-          "text": "I feel emotionally close to my partner",
+          "text": "I feel emotionally close to my partner.",
           "dimension": "connection"
         },
         {
           "id": "q7",
-          "text": "I feel supported by my partner during stressful times",
+          "text": "I feel supported by my partner during stressful times.",
           "dimension": "support"
         },
         {
           "id": "q8",
-          "text": "I often feel lonely even when we're together",
+          "text": "I often feel lonely even when we're together.",
           "dimension": "connection",
           "reverse": true
         },
         {
           "id": "q9",
-          "text": "I feel valued and respected in this relationship",
+          "text": "I feel valued and respected in this relationship.",
           "dimension": "respect"
         },
         {
           "id": "q10",
-          "text": "Overall, I'm satisfied with this relationship",
+          "text": "Overall, I'm satisfied with this relationship.",
           "dimension": "satisfaction"
         }
       ],
@@ -866,7 +866,7 @@
           "safety_note": "If you ever feel unsafe, controlled, or afraid in your relationship, that is different from relationship difficulty — and confidential support is available."
         }
       ],
-      "cover": "/media/article-relationships.jpg"
+      "cover": "/media/african-american-couple-cuddling-at-airport.png"
     }
   ]
 }

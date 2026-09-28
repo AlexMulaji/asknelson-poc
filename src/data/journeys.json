@@ -5,7 +5,7 @@
       "title": "Understanding Your Anxiety",
       "description": "A 30-day guided journey to understand, manage, and reduce anxiety in everyday life.",
       "duration_days": 30,
-      "color": "#746bd6",
+      "color": "#FF761C",
       "icon": "ti-heart-rate-monitor",
       "days": [
         {
@@ -277,26 +277,18 @@
           "source_title": null,
           "source_url": null,
           "reflection": "You showed up for 30 days. That matters."
-        },
-        {
-          "day": 31,
-          "type": "read",
-          "title": "Day 31 what is the benefits of communicating your stress and anxiety",
-          "task": "Carpe diem",
-          "source_title": null,
-          "source_url": null,
-          "reflection": null
         }
       ],
-      "cover": "/media/journey-anxiety.jpg",
-      "category": "Anxiety & Stress"
+      "cover": "/media/Anxiety5.png",
+      "category": "Anxiety & Stress",
+      "cover_hero": "/media/pexels-mikhail-nilov-7929268-d60407b9.jpg"
     },
     {
       "id": "loneliness",
       "title": "Finding Connection",
       "description": "A 30-day journey to understand loneliness, rebuild connection, and feel less alone — starting from where you are right now.",
       "duration_days": 30,
-      "color": "#1D9E75",
+      "color": "#7941A4",
       "icon": "ti-users",
       "days": [
         {
@@ -570,15 +562,16 @@
           "reflection": "Showing up for 30 days takes courage. You did it."
         }
       ],
-      "cover": "/media/journey-connection.jpg",
-      "category": "Connection"
+      "cover": "/media/Connection.png",
+      "category": "Connection",
+      "cover_hero": "/media/pexels-tiger-lily-8260576-520ef4f2.jpg"
     },
     {
       "id": "burnout",
       "title": "Recovering from Burnout",
       "description": "A 30-day journey to understand burnout, recover your energy, and rebuild a sustainable relationship with work and life.",
       "duration_days": 30,
-      "color": "#D85A30",
+      "color": "#E1231F",
       "icon": "ti-flame",
       "days": [
         {
@@ -592,11 +585,11 @@
         },
         {
           "day": 2,
-          "type": "watch",
+          "type": "read",
           "title": "How burnout builds — and how to spot it",
-          "task": "Watch this clear talk on how burnout creeps up gradually and why it's so hard to see coming.",
-          "source_title": "The cure for burnout — TED (Emily & Amelia Nagoski)",
-          "source_url": "https://www.ted.com/talks/emily_nagoski_and_amelia_nagoski_the_cure_for_burnout_hint_it_isn_t_self_care",
+          "task": "The Stages of Burnout: How to Spot It Early",
+          "source_title": "The Shifting Tides ",
+          "source_url": "https://www.shiftingtidestherapyny.com/post/stages-of-burnout",
           "reflection": null
         },
         {
@@ -852,15 +845,16 @@
           "reflection": "Recovery takes time. But you started. That's not nothing."
         }
       ],
-      "cover": "/media/journey-burnout.jpg",
-      "category": "Work & Purpose"
+      "cover": "/media/Work4.png",
+      "category": "Work & Purpose",
+      "cover_hero": "/media/Work4.png"
     },
     {
       "id": "grief",
       "title": "Moving Through Grief",
       "description": "A 30-day companion for people navigating loss — of a person, a relationship, a job, or anything that mattered.",
       "duration_days": 30,
-      "color": "#534AB7",
+      "color": "#40973C",
       "icon": "ti-leaf",
       "days": [
         {
@@ -1064,10 +1058,10 @@
         {
           "day": 23,
           "type": "watch",
-          "title": "We don't 'move on' — we move forward",
+          "title": "What makes life worth living in the face of dearth",
           "task": "Watch this powerful short talk reframing what it means to live after loss.",
-          "source_title": "We don't move on, we move forward — Nora McInerny (TED)",
-          "source_url": "https://www.ted.com/talks/nora_mcinerny_we_don_t_move_on_from_grief_we_move_forward_with_it",
+          "source_title": "Lucy Kalanithi",
+          "source_url": "https://www.ted.com/talks/lucy_kalanithi_what_makes_life_worth_living_in_the_face_of_death",
           "reflection": null
         },
         {
@@ -1134,9 +1128,9 @@
           "reflection": "You showed up every day. That takes real strength."
         }
       ],
-      "cover": "/media/journey-grief.jpg",
+      "cover": "/media/Grief.png",
       "category": "Grief & Loss",
-      "cover_hero": "/media/journey-grief-hero.jpg"
+      "cover_hero": "/media/pexels-liza-summer-6382642-6578e802.jpg"
     }
   ]
 }

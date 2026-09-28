@@ -3,7 +3,7 @@ import { listContainer, listItem } from '../lib/motion.js'
 import ServiceCard from '../components/ServiceCard.jsx'
 import { isPlainClick, useOpenExternal } from '../components/InAppBrowser.jsx'
 import { BookIcon, CallIcon, ChatIcon, CoinIcon, ScaleIcon } from '../components/Icons.jsx'
-import logoUrl from '../assets/logo-asknelson.png'
+import BrandLogo from '../components/BrandLogo.jsx'
 import { track } from '../lib/analytics.js'
 
 const KAELO_URL = 'https://www.kaelo.co.za/request-a-session/'
@@ -50,7 +50,7 @@ export default function AskNelson() {
   return (
     <div className="page-enter px-5 pb-8 lg:px-0">
       <div className="pt-[calc(1.5rem+env(safe-area-inset-top,0px))] lg:pt-0">
-        <img src={logoUrl} alt="AskNelson" className="h-9 w-auto" />
+        <BrandLogo />
       </div>
 
       <div className="mt-7">

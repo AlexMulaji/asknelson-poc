@@ -5,10 +5,8 @@
         "id": "anxiety",
         "title": "Anxiety & Stress",
         "description": "Understand and manage anxiety in everyday life.",
-        "color": "#7F77DD",
-        "bg": "#EEEDFE",
-        "pill_bg": "#EEEDFE",
-        "pill_fg": "#7F77DD",
+        "color": "#FF761C",
+        "bg": "#F6E2D4",
         "icon": "ti-heart-rate-monitor",
         "content": [
           {
@@ -16,10 +14,10 @@
             "type": "article",
             "title": "What is anxiety and why do we feel it?",
             "description": "A plain-language guide to what anxiety is, why it exists, and when it becomes a problem.",
-            "source": "Mind UK",
-            "url": "https://www.mind.org.uk/information-support/types-of-mental-health-problems/anxiety-and-panic-attacks/about-anxiety/",
-            "read_time_mins": 8,
-            "image": "/media/article-anxiety-what.jpg"
+            "source": "Baker Centre ",
+            "url": "https://www.bakercenter.org/anxiety2",
+            "read_time_mins": null,
+            "image": "/media/Anxiety7.png"
           },
           {
             "id": "ax-02",
@@ -28,38 +26,38 @@
             "description": "Neuroscientist Wendy Suzuki explains two evidence-based tools — breathing and movement — that calm the body's stress response.",
             "source": "TED-Ed",
             "url": "https://www.psychologytoday.com/za/blog/the-addiction-connection/202301/grounding-techniques-for-trauma-and-anxiety",
-            "duration_mins": 5,
-            "image": "/media/article-anxiety-calm.jpg"
+            "duration_mins": null,
+            "image": "/media/Anxiety1.png"
           },
           {
             "id": "ax-03",
             "type": "article",
             "title": "Breathing exercises that reduce anxiety fast",
             "description": "Practical breathing techniques — box breathing, 4-7-8, and more — with step-by-step instructions.",
-            "source": "Calm",
-            "url": "https://www.calm.com/blog/breathing-exercises-for-anxiety",
-            "read_time_mins": 6,
-            "image": "/media/article-breathing.jpg"
+            "source": "PrioryGroup",
+            "url": "https://www.priorygroup.com/blog/breathing-exercises-for-anxiety",
+            "read_time_mins": null,
+            "image": "/media/Anxiety3.png"
           },
           {
             "id": "ax-04",
             "type": "article",
             "title": "Cognitive distortions — the thinking traps that fuel anxiety",
             "description": "The 15 most common ways our minds catastrophise — and how to challenge each one.",
-            "source": "Psych Central",
-            "url": "https://psychcentral.com/lib/15-common-cognitive-distortions",
-            "read_time_mins": 10,
-            "image": "/media/article-anxiety-what.jpg"
+            "source": "Sera ",
+            "url": "https://www.trysera.io/articles/understanding-cognitive-distortions",
+            "read_time_mins": null,
+            "image": "/media/Anxiety5.png"
           },
           {
             "id": "ax-05",
             "type": "article",
             "title": "Exercise as medicine for anxiety",
             "description": "The science behind why physical movement is one of the most effective anxiety treatments available.",
-            "source": "Harvard Health",
-            "url": "https://www.health.harvard.edu/mind-and-mood/exercising-to-relax",
-            "read_time_mins": 5,
-            "image": "/media/article-exercise.jpg"
+            "source": "Mayo Clinic",
+            "url": "https://www.mayoclinic.org/diseases-conditions/depression/in-depth/depression-and-exercise/art-20046495",
+            "read_time_mins": null,
+            "image": "/media/Physical7.png"
           },
           {
             "id": "ax-06",
@@ -68,8 +66,8 @@
             "description": "Science-backed breathing techniques — including breath awareness and humming — that calm the nervous system and can be used anywhere to ease stress and anxiety.",
             "source": "Dr Ela Manga (Lenmed)",
             "url": "https://www.lenmed.co.za/breathing-techniques-stress-anxiety/",
-            "read_time_mins": 7,
-            "image": "/media/article-anxiety-what.jpg"
+            "read_time_mins": null,
+            "image": "/media/Anxiety4.png"
           },
           {
             "id": "ax-07",
@@ -78,8 +76,8 @@
             "description": "Self-compassion researcher Kristin Neff on why treating yourself kindly — not harshly — reduces anxiety and builds resilience.",
             "source": "TEDx",
             "url": "https://www.youtube.com/watch?v=IvtZBUSplr4",
-            "duration_mins": 9,
-            "image": "/media/article-self-compassion.jpg"
+            "duration_mins": 19,
+            "image": "/media/Anxiety2.png"
           },
           {
             "id": "ax-08",
@@ -88,8 +86,8 @@
             "description": "A Kaelo webinar on becoming stress-literate — learning to read your stress like a dashboard instead of suffering through it. Unmanaged stress, not stress itself, is the enemy.",
             "source": "Kaelo",
             "url": "https://www.youtube.com/watch?v=CJ1ZXQdrges",
-            "duration_mins": 45,
-            "image": "/media/article-anxiety-what.jpg"
+            "duration_mins": 62,
+            "image": "/media/Anxiety8.png"
           },
           {
             "id": "ax-09",
@@ -98,19 +96,20 @@
             "description": "A Kaelo Mental Health Awareness Month webinar on spotting the early signs of burnout, running an energy audit, and building daily rituals that restore balance, focus, and vitality.",
             "source": "Kaelo",
             "url": "https://www.youtube.com/watch?v=BPluTQVvuq4",
-            "duration_mins": 45,
-            "image": "/media/article-anxiety-what.jpg"
+            "duration_mins": 60,
+            "image": "/media/Anxiety6.png",
+            "read_time_mins": 0
           }
-        ]
+        ],
+        "pill_bg": "#f3e0d3",
+        "pill_fg": "#FF761C"
       },
       {
         "id": "sleep",
         "title": "Sleep",
         "description": "Rest better, recover faster, and understand what sleep actually does for you.",
-        "color": "#185FA5",
-        "bg": "#E6F1FB",
-        "pill_bg": "#E6F1FB",
-        "pill_fg": "#185FA5",
+        "color": "#1171b2",
+        "bg": "#D3E1EB",
         "icon": "ti-moon",
         "content": [
           {
@@ -120,8 +119,8 @@
             "description": "The science of what happens to your brain and body during sleep — and what's lost when you skip it.",
             "source": "Sleep Foundation",
             "url": "https://www.sleepfoundation.org/how-sleep-works/why-do-we-need-sleep",
-            "read_time_mins": 8,
-            "image": "/media/article-sleep-matters.jpg"
+            "read_time_mins": null,
+            "image": "/media/Sleep6.png"
           },
           {
             "id": "sl-02",
@@ -131,7 +130,7 @@
             "source": "TED",
             "url": "https://www.ted.com/talks/matt_walker_sleep_is_your_superpower",
             "duration_mins": 19,
-            "image": "/media/article-sleep-superpower.jpg"
+            "image": "/media/Sleep4.png"
           },
           {
             "id": "sl-03",
@@ -140,8 +139,8 @@
             "description": "Practical, evidence-based steps to reset your circadian rhythm and build a consistent sleep routine.",
             "source": "Sleep Foundation",
             "url": "https://www.sleepfoundation.org/sleep-hygiene/how-to-reset-your-sleep-routine",
-            "read_time_mins": 9,
-            "image": "/media/article-sleep-matters.jpg"
+            "read_time_mins": null,
+            "image": "/media/Sleep3.png"
           },
           {
             "id": "sl-04",
@@ -150,8 +149,8 @@
             "description": "How anxiety disrupts sleep and how poor sleep worsens anxiety — and what breaks the cycle.",
             "source": "Sleep Foundation",
             "url": "https://www.sleepfoundation.org/sleep-hygiene/how-to-reset-your-sleep-routine",
-            "read_time_mins": 7,
-            "image": "/media/article-sleep-matters.jpg"
+            "read_time_mins": null,
+            "image": "/media/Sleep2.png"
           },
           {
             "id": "sl-05",
@@ -160,8 +159,8 @@
             "description": "Every evidence-backed habit that improves sleep quality, from light exposure to bedroom temperature.",
             "source": "Sleep Foundation",
             "url": "https://www.sleepfoundation.org/sleep-hygiene",
-            "read_time_mins": 10,
-            "image": "/media/article-sleep-matters.jpg"
+            "read_time_mins": null,
+            "image": "/media/Sleep7.png"
           },
           {
             "id": "sl-06",
@@ -170,8 +169,8 @@
             "description": "A detailed walkthrough of sleep stages, REM cycles, and what quality sleep actually looks like.",
             "source": "TED-Ed",
             "url": "https://www.youtube.com/watch?v=gedoSfZvBgE",
-            "duration_mins": 5,
-            "image": "/media/article-sleep-matters.jpg"
+            "duration_mins": 6,
+            "image": "/media/Sleep8.png"
           },
           {
             "id": "sl-07",
@@ -180,8 +179,8 @@
             "description": "Specific guidance for people who work irregular hours, nights, or rotating shifts.",
             "source": "Sleep Foundation",
             "url": "https://www.sleepfoundation.org/shift-work",
-            "read_time_mins": 8,
-            "image": "/media/article-sleep-matters.jpg"
+            "read_time_mins": null,
+            "image": "/media/Sleep1.png"
           },
           {
             "id": "sl-08",
@@ -190,40 +189,40 @@
             "description": "Why alcohol as a sleep aid backfires — what it does to your sleep architecture.",
             "source": "Sleep Foundation",
             "url": "https://www.sleepfoundation.org/nutrition/alcohol-and-sleep",
-            "read_time_mins": 6,
-            "image": "/media/article-sleep-matters.jpg"
+            "read_time_mins": null,
+            "image": "/media/Sleep5.png"
           }
-        ]
+        ],
+        "pill_bg": "#D3E1EB",
+        "pill_fg": "#1171b2"
       },
       {
         "id": "relationships",
         "title": "Relationships",
         "description": "Build stronger connections with the people who matter most.",
-        "color": "#D4537E",
-        "bg": "#FBEAF0",
-        "pill_bg": "#FBEAF0",
-        "pill_fg": "#D4537E",
+        "color": "#7941A4",
+        "bg": "#E2DAE9",
         "icon": "ti-users",
         "content": [
           {
             "id": "re-01",
             "type": "video",
             "title": "What makes a good life? Lessons from the longest study on happiness",
-            "description": "Harvard researcher Robert Waldinger reveals what 80 years of data says about what actually makes people happy.",
+            "description": "4 lessons from the longest-running study on happiness",
             "source": "TED",
-            "url": "https://www.ted.com/talks/robert_waldinger_what_makes_a_good_life_lessons_from_the_longest_study_on_happiness",
+            "url": "https://ideas.ted.com/4-lessons-from-the-longest-running-study-on-happiness/",
             "duration_mins": 13,
-            "image": "/media/article-relationships.jpg"
+            "image": "/media/Relationship4.png"
           },
           {
             "id": "re-02",
             "type": "video",
             "title": "The power of vulnerability",
             "description": "Brené Brown's landmark talk on why vulnerability is the foundation of genuine human connection.",
-            "source": "TED",
-            "url": "https://www.ted.com/talks/brene_brown_the_power_of_vulnerability",
-            "duration_mins": 20,
-            "image": "/media/article-relationships.jpg"
+            "source": "Pysch Universe",
+            "url": "https://psychuniverse.com/the-power-of-vulnerability/",
+            "duration_mins": null,
+            "image": "/media/Relationship1.png"
           },
           {
             "id": "re-03",
@@ -232,48 +231,48 @@
             "description": "Research-backed techniques for having deeper, more meaningful conversations with anyone.",
             "source": "Greater Good Magazine",
             "url": "https://greatergood.berkeley.edu/article/item/go_deep",
-            "read_time_mins": 7,
-            "image": "/media/article-relationships.jpg"
+            "read_time_mins": null,
+            "image": "/media/Relationship8.png"
           },
           {
             "id": "re-04",
             "type": "article",
             "title": "What makes a good friend, according to science",
-            "description": "The surprising simplicity of what research says creates lasting friendship.",
-            "source": "Greater Good Magazine",
-            "url": "https://greatergood.berkeley.edu/article/item/how_to_make_the_lasting_friendships_you_want",
-            "read_time_mins": 6,
-            "image": "/media/article-relationships.jpg"
+            "description": "How to Be a Good Friend: 10 Research-Backed Steps",
+            "source": "The Science of Good People ",
+            "url": "https://www.scienceofpeople.com/good-friend/",
+            "read_time_mins": null,
+            "image": "/media/Relationship7.png"
           },
           {
             "id": "re-05",
             "type": "article",
             "title": "Why making friends as an adult is so hard",
             "description": "The psychological and structural reasons adult friendships are difficult to form — and research-backed ways to build them.",
-            "source": "Greater Good Magazine",
-            "url": "https://greatergood.berkeley.edu/article/item/how_to_keep_your_friendships_strong",
-            "read_time_mins": 10,
-            "image": "/media/article-relationships.jpg"
+            "source": "UTS",
+            "url": "https://www.uts.edu.au/news/2022/01/why-do-we-find-making-new-friends-so-hard-adults?utm_source=chatgpt.com",
+            "read_time_mins": null,
+            "image": "/media/Relationship6.png"
           },
           {
             "id": "re-06",
             "type": "article",
             "title": "Micro-moments of love — how small interactions build connection",
             "description": "The science of how brief positive moments with others accumulate into genuine wellbeing.",
-            "source": "Greater Good Magazine",
-            "url": "https://greatergood.berkeley.edu/article/item/micro_moments_of_love",
-            "read_time_mins": 5,
-            "image": "/media/article-relationships.jpg"
+            "source": "Aaltogether",
+            "url": "https://www.aalto.fi/en/aaltogether/wish-well-to-a-stranger-wellbeing-through-everyday-interactions?utm_source=chatgpt.com",
+            "read_time_mins": null,
+            "image": "/media/Relationship2.png"
           },
           {
             "id": "re-07",
             "type": "article",
             "title": "How anxiety affects your relationships",
             "description": "How anxiety shows up in the way we relate to others — and what to do when it does.",
-            "source": "Verywell Mind",
-            "url": "https://www.verywellmind.com/how-anxiety-affects-relationships-5214441",
-            "read_time_mins": 7,
-            "image": "/media/article-relationships.jpg"
+            "source": "Gottman",
+            "url": "https://www.gottman.com/blog/how-to-deal-with-anxiety/?utm_source=chatgpt.com",
+            "read_time_mins": null,
+            "image": "/media/Relationship3.png"
           },
           {
             "id": "re-08",
@@ -282,30 +281,30 @@
             "description": "A Kaelo webinar on how good relationships with others begin with the relationship you have with yourself — practical areas to work on to enhance your capacity for strong, lasting connection.",
             "source": "Kaelo",
             "url": "https://www.youtube.com/watch?v=1djgS7Z_qFc",
-            "duration_mins": 45,
-            "image": "/media/article-relationships.jpg"
+            "duration_mins": 61,
+            "image": "/media/Relationship5.png"
           }
-        ]
+        ],
+        "pill_fg": "#7941A4",
+        "pill_bg": "#E2DAE9"
       },
       {
         "id": "mindfulness",
         "title": "Mindfulness",
         "description": "Practical mindfulness for people who think they're bad at it.",
-        "color": "#1D9E75",
-        "bg": "#E1F5EE",
-        "pill_bg": "#E1F5EE",
-        "pill_fg": "#1D9E75",
+        "color": "#40973C",
+        "bg": "#DAE7D9",
         "icon": "ti-leaf",
         "content": [
           {
             "id": "mn-01",
             "type": "article",
             "title": "Mindfulness — what it actually is and how to start",
-            "description": "A no-nonsense guide to mindfulness from the NHS — no retreat required.",
-            "source": "NHS",
-            "url": "https://www.nhs.uk/mental-health/self-help/tips-and-support/mindfulness/",
-            "read_time_mins": 7,
-            "image": "/media/home-meditate.jpg"
+            "description": "See how mindfulness helps you live in the moment.",
+            "source": "Mayo Clinic",
+            "url": "https://www.mayoclinic.org/tests-procedures/meditation/in-depth/mindfulness-exercises/art-20046356",
+            "read_time_mins": null,
+            "image": "/media/Mindful7.png"
           },
           {
             "id": "mn-02",
@@ -315,17 +314,17 @@
             "source": "TED-Ed",
             "url": "https://www.youtube.com/watch?v=mB_fEjt3QeA",
             "duration_mins": 5,
-            "image": "/media/home-meditate.jpg"
+            "image": "/media/Mindful5.png"
           },
           {
             "id": "mn-03",
             "type": "article",
             "title": "Mindfulness for people who hate meditating",
             "description": "Informal mindfulness practices that fit into everyday life without sitting cross-legged on a cushion.",
-            "source": "AZOZA",
-            "url": "https://azoza.co.za/health-and-medical/",
-            "read_time_mins": 6,
-            "image": "/media/home-meditate.jpg"
+            "source": "Time",
+            "url": "https://time.com/6249527/how-to-be-mindful-hate-meditating/?utm_source=chatgpt.com",
+            "read_time_mins": null,
+            "image": "/media/Mindful2.png"
           },
           {
             "id": "mn-04",
@@ -334,8 +333,8 @@
             "description": "Why gratitude is one of the most evidence-backed wellbeing practices — and how to make it stick.",
             "source": "Psychology Today",
             "url": "https://www.psychologytoday.com/za/blog/sense-of-belonging/202411/how-to-practice-gratitude-the-right-way",
-            "read_time_mins": 8,
-            "image": "/media/home-meditate.jpg"
+            "read_time_mins": null,
+            "image": "/media/Mindful3.png"
           },
           {
             "id": "mn-05",
@@ -345,7 +344,7 @@
             "source": "TED",
             "url": "https://www.ted.com/talks/andy_puddicombe_all_it_takes_is_10_mindful_minutes",
             "duration_mins": 10,
-            "image": "/media/home-meditate.jpg"
+            "image": "/media/Mindful4.png"
           },
           {
             "id": "mn-06",
@@ -354,18 +353,18 @@
             "description": "Step-by-step guide to one of the most accessible and effective mindfulness techniques.",
             "source": "Verywell Mind",
             "url": "https://www.verywellmind.com/body-scan-meditation-why-and-how-3144875",
-            "read_time_mins": 6,
-            "image": "/media/home-meditate.jpg"
+            "read_time_mins": null,
+            "image": "/media/Anxiety4.png"
           },
           {
             "id": "mn-07",
             "type": "article",
             "title": "The art of savouring — how to enjoy the good moments more",
-            "description": "Research on why we rush past positive experiences — and practices to slow down and absorb them.",
-            "source": "Greater Good Magazine",
-            "url": "https://greatergood.berkeley.edu/article/item/10_steps_to_savoring_the_good_things_in_life",
-            "read_time_mins": 7,
-            "image": "/media/home-meditate.jpg"
+            "description": "Savoring in Positive Psychology: 21 Tools to Appreciate Life",
+            "source": "Positive Psychology",
+            "url": "https://positivepsychology.com/savoring/",
+            "read_time_mins": null,
+            "image": "/media/Mindful6.png"
           },
           {
             "id": "mn-08",
@@ -374,19 +373,19 @@
             "description": "A practical video guide for building a consistent mindfulness habit without a major time commitment.",
             "source": "Headspace on YouTube",
             "url": "https://www.youtube.com/watch?v=w6T02g5hnT4",
-            "duration_mins": 8,
-            "image": "/media/home-meditate.jpg"
+            "duration_mins": 3,
+            "image": "/media/Mindful1.png"
           }
-        ]
+        ],
+        "pill_fg": "#40973C",
+        "pill_bg": "#DAE7D9"
       },
       {
         "id": "money",
         "title": "Money & Financial Stress",
         "description": "Handle financial pressure with clarity — and know where to get help.",
-        "color": "#BA7517",
-        "bg": "#FAEEDA",
-        "pill_bg": "#FAEEDA",
-        "pill_fg": "#BA7517",
+        "color": "#6D4000",
+        "bg": "#E0DAD0",
         "icon": "ti-coin",
         "content": [
           {
@@ -396,8 +395,8 @@
             "description": "The psychology of money shame, and how to separate your financial situation from your self-worth.",
             "source": "Simple Psychology",
             "url": "https://www.simplypsychology.com/articles/money-and-self-worth-connection",
-            "duration_mins": 11,
-            "image": "/media/article-coping.jpg"
+            "duration_mins": null,
+            "image": "/media/Money8.png"
           },
           {
             "id": "mo-01",
@@ -406,8 +405,8 @@
             "description": "South African research on how debt and money pressure drive anxiety and depression — and why it's so common locally.",
             "source": "Moneyweb",
             "url": "https://www.moneyweb.co.za/financial-advisor-views/modern-day-financial-slavery-unveiling-the-mental-health-crisis-in-sas-debt-trap/",
-            "read_time_mins": 7,
-            "image": "/media/article-coping.jpg"
+            "read_time_mins": null,
+            "image": "/media/Money6.png"
           },
           {
             "id": "mo-03",
@@ -416,8 +415,8 @@
             "description": "A practical South African guide to building a monthly budget, managing debt, and protecting your financial wellbeing.",
             "source": "NFOSA (National Foundation for Occupational Safety SA)",
             "url": "https://nfosa.co.za/financial-and-mental-wellbeing/",
-            "read_time_mins": 8,
-            "image": "/media/article-coping.jpg"
+            "read_time_mins": null,
+            "image": "/media/Money7.png"
           },
           {
             "id": "mo-04",
@@ -426,8 +425,8 @@
             "description": "Why debt feels so much heavier than the numbers suggest — and how to manage the emotional load.",
             "source": "Psychology Today",
             "url": "https://www.simplypsychology.com/articles/debt-shame-psychology",
-            "read_time_mins": 6,
-            "image": "/media/article-coping.jpg"
+            "read_time_mins": null,
+            "image": "/media/Money2.png"
           },
           {
             "id": "mo-05",
@@ -436,8 +435,8 @@
             "description": "Practical guidance on having difficult money conversations without damaging relationships.",
             "source": "Psychology Today",
             "url": "https://www.psychologytoday.com/us/blog/mental-wealth/202510/why-talking-about-money-is-the-last-great-taboo",
-            "read_time_mins": 7,
-            "image": "/media/article-coping.jpg"
+            "read_time_mins": null,
+            "image": "/media/Money3.png"
           },
           {
             "id": "mo-09",
@@ -446,8 +445,8 @@
             "description": "A Kaelo webinar on the connection between financial wellness and mental health — how money stress drives anxiety, overwhelm, and burnout, and simple tools for budgeting and reducing money-related anxiety.",
             "source": "Kaelo",
             "url": "https://www.youtube.com/watch?v=aUlyvQzFqPg",
-            "duration_mins": 45,
-            "image": "/media/article-coping.jpg"
+            "duration_mins": 61,
+            "image": "/media/Money1.png"
           },
           {
             "id": "mo-10",
@@ -456,8 +455,8 @@
             "description": "A Kaelo webinar on financial resilience as a 'muscle' that can be developed — how to strengthen it and cope with common financial roadblocks.",
             "source": "Kaelo",
             "url": "https://www.youtube.com/watch?v=O5j4EPLjshA",
-            "duration_mins": 45,
-            "image": "/media/article-coping.jpg"
+            "duration_mins": 60,
+            "image": "/media/Money4.png"
           },
           {
             "id": "mo-11",
@@ -466,19 +465,19 @@
             "description": "A Kaelo webinar on how financial habits, beliefs, and communication patterns shape relationships — and how to have healthier money conversations that build trust and alignment.",
             "source": "Kaelo",
             "url": "https://www.youtube.com/watch?v=Z17WVCLvEGM",
-            "duration_mins": 45,
-            "image": "/media/article-coping.jpg"
+            "duration_mins": 60,
+            "image": "/media/Money5.png"
           }
-        ]
+        ],
+        "pill_fg": "#6D4000",
+        "pill_bg": "#E0DAD0"
       },
       {
         "id": "work",
         "title": "Work & Purpose",
         "description": "Navigate work stress, find meaning, and build a career that doesn't cost your health.",
-        "color": "#533489",
-        "bg": "#EEEDFE",
-        "pill_bg": "#EEEDFE",
-        "pill_fg": "#533489",
+        "color": "#E1231F",
+        "bg": "#F2D5D5",
         "icon": "ti-briefcase",
         "content": [
           {
@@ -488,8 +487,9 @@
             "description": "Understanding Job Burnout - Dr Christina Maslach",
             "source": "IT Revolution",
             "url": "https://www.youtube.com/watch?v=gRPBkCW0R5E",
-            "read_time_mins": 8,
-            "image": "/media/journey-burnout.jpg"
+            "read_time_mins": null,
+            "image": "/media/Work4.png",
+            "duration_mins": 32
           },
           {
             "id": "wk-02",
@@ -499,7 +499,7 @@
             "source": "TED",
             "url": "https://www.ted.com/talks/scott_dinsmore_how_to_find_work_you_love",
             "duration_mins": 18,
-            "image": "/media/journey-burnout.jpg"
+            "image": "/media/Work2.png"
           },
           {
             "id": "wk-03",
@@ -508,8 +508,8 @@
             "description": "Practical guidance on protecting your time and energy at work without damaging your career.",
             "source": "Mind UK",
             "url": "https://www.mind.org.uk/workplace/my-mental-health-at-work/",
-            "read_time_mins": 7,
-            "image": "/media/journey-burnout.jpg"
+            "read_time_mins": null,
+            "image": "/media/Work5.png"
           },
           {
             "id": "wk-05",
@@ -519,7 +519,7 @@
             "source": "TED",
             "url": "https://www.ted.com/talks/dan_pink_the_puzzle_of_motivation",
             "duration_mins": 18,
-            "image": "/media/journey-burnout.jpg"
+            "image": "/media/Work1.png"
           },
           {
             "id": "wk-06",
@@ -528,8 +528,8 @@
             "description": "Evidence-backed strategies for leaving work at work — and actually switching off in the evening.",
             "source": "Greater Good Magazine",
             "url": "https://workleap.com/blog/recover-from-bad-day-at-work",
-            "read_time_mins": 7,
-            "image": "/media/journey-burnout.jpg"
+            "read_time_mins": null,
+            "image": "/media/Work6.png"
           },
           {
             "id": "wk-08",
@@ -538,8 +538,8 @@
             "description": "Simon Sinek on what creates psychological safety at work — and why it matters more than any other management practice.",
             "source": "TED",
             "url": "https://www.ted.com/talks/simon_sinek_why_good_leaders_make_you_feel_safe",
-            "duration_mins": 12,
-            "image": "/media/journey-burnout.jpg"
+            "duration_mins": 11,
+            "image": "/media/Work9.png"
           },
           {
             "id": "wk-09",
@@ -548,8 +548,8 @@
             "description": "A Kaelo webinar on why healthy boundaries lower burnout and build sustainable balance across work, family, and personal wellbeing — how to communicate them confidently and manage guilt or pushback.",
             "source": "Kaelo",
             "url": "https://www.youtube.com/watch?v=_mi3GUz7B98",
-            "duration_mins": 45,
-            "image": "/media/journey-burnout.jpg"
+            "duration_mins": 60,
+            "image": "/media/Work3.png"
           },
           {
             "id": "wk-10",
@@ -558,8 +558,8 @@
             "description": "A Kaelo panel discussion on the daily realities of mental health, financial stress, burnout, and 'quiet quitting' for South African employees — and how workplace support is evolving to meet them.",
             "source": "Kaelo",
             "url": "https://www.youtube.com/watch?v=j_svuawo5PQ",
-            "duration_mins": 45,
-            "image": "/media/journey-burnout.jpg"
+            "duration_mins": 44,
+            "image": "/media/Work7.png"
           },
           {
             "id": "wk-11",
@@ -568,19 +568,19 @@
             "description": "What South African law says about mental health in the workplace: the employer's duty of care under the Occupational Health and Safety Act, protection from unfair discrimination under the Employment Equity Act, and your right to reasonable accommodation.",
             "source": "Labour Law with Luzan",
             "url": "https://www.luzan.co.za/mental-health-in-the-workplace-what-the-law-says-for-employers/",
-            "read_time_mins": 8,
-            "image": "/media/journey-burnout.jpg"
+            "read_time_mins": null,
+            "image": "/media/Work8.png"
           }
-        ]
+        ],
+        "pill_bg": "#F2D5D5",
+        "pill_fg": "#E1231F"
       },
       {
         "id": "self",
         "title": "Self-Esteem & Identity",
         "description": "Build a stronger, more honest relationship with yourself.",
-        "color": "#993556",
-        "bg": "#FBEAF0",
-        "pill_bg": "#FBEAF0",
-        "pill_fg": "#993556",
+        "color": "#F04081",
+        "bg": "#F4DAE3",
         "icon": "ti-user",
         "content": [
           {
@@ -590,8 +590,8 @@
             "description": "A clear, grounded explanation of self-esteem — what it is, what it isn't, and how it shapes your life.",
             "source": "Mind UK",
             "url": "https://www.mind.org.uk/information-support/types-of-mental-health-problems/self-esteem/",
-            "read_time_mins": 8,
-            "image": "/media/article-self-compassion.jpg"
+            "read_time_mins": null,
+            "image": "/media/Identity1.png"
           },
           {
             "id": "se-02",
@@ -601,7 +601,7 @@
             "source": "TED",
             "url": "https://www.ted.com/talks/dan_gilbert_the_surprising_science_of_happiness",
             "duration_mins": 21,
-            "image": "/media/article-self-compassion.jpg"
+            "image": "/media/Identity2.png"
           },
           {
             "id": "se-03",
@@ -610,8 +610,8 @@
             "description": "Dr Kristin Neff's research on why treating yourself with the same kindness you'd offer a friend is a clinical intervention.",
             "source": "Self-Compassion Institute",
             "url": "https://self-compassion.org/what-is-self-compassion/",
-            "read_time_mins": 7,
-            "image": "/media/article-self-compassion.jpg"
+            "read_time_mins": null,
+            "image": "/media/Identity3.png"
           },
           {
             "id": "se-04",
@@ -620,8 +620,8 @@
             "description": "The psychological origins of self-critical thinking and practical ways to change the conversation in your head.",
             "source": "Verywell Mind",
             "url": "https://www.verywellmind.com/negative-self-talk-and-how-it-affects-us-4161304",
-            "read_time_mins": 7,
-            "image": "/media/article-self-compassion.jpg"
+            "read_time_mins": null,
+            "image": "/media/Anxiety2.png"
           },
           {
             "id": "se-05",
@@ -630,8 +630,8 @@
             "description": "Carol Dweck's landmark talk on the difference between believing abilities are fixed versus developable — the growth mindset.",
             "source": "TED",
             "url": "https://www.ted.com/talks/carol_dweck_the_power_of_believing_that_you_can_improve",
-            "duration_mins": 10,
-            "image": "/media/article-self-compassion.jpg"
+            "duration_mins": null,
+            "image": "/media/Identity5.png"
           },
           {
             "id": "se-06",
@@ -640,19 +640,19 @@
             "description": "Evidence-based steps for building genuine confidence — not the fake-it variety.",
             "source": "Psychology Today",
             "url": "https://www.psychologytoday.com/us/basics/confidence",
-            "read_time_mins": 8,
-            "image": "/media/article-self-compassion.jpg"
+            "read_time_mins": null,
+            "image": "/media/Identity4.png"
           }
-        ]
+        ],
+        "pill_fg": "#F04081",
+        "pill_bg": "#F4DAE3"
       },
       {
         "id": "body",
         "title": "Physical Wellbeing",
         "description": "Your body and mind are one system. Take care of both.",
-        "color": "#3B6D11",
-        "bg": "#EAF3DE",
-        "pill_bg": "#EAF3DE",
-        "pill_fg": "#3B6D11",
+        "color": "#46B394",
+        "bg": "#DAEBE6",
         "icon": "ti-run",
         "content": [
           {
@@ -662,8 +662,8 @@
             "description": "A clear summary of what the research actually says about physical activity and mental health.",
             "source": "Mind UK",
             "url": "https://www.mind.org.uk/information-support/tips-for-everyday-living/physical-activity-and-your-mental-health/",
-            "read_time_mins": 8,
-            "image": "/media/article-exercise.jpg"
+            "read_time_mins": null,
+            "image": "/media/Physical7.png"
           },
           {
             "id": "bo-02",
@@ -672,8 +672,8 @@
             "description": "The neuroscience of why a simple daily walk has measurable effects on mood, creativity, and stress.",
             "source": "Big Think ",
             "url": "https://www.youtube.com/watch?v=8f0U0Nr6s6Q",
-            "duration_mins": 5,
-            "image": "/media/article-exercise.jpg"
+            "duration_mins": 76,
+            "image": "/media/Physical5.png"
           },
           {
             "id": "bo-03",
@@ -682,8 +682,8 @@
             "description": "The gut-brain connection explained — and practical dietary shifts that support mental health.",
             "source": "Harvard Health",
             "url": "https://www.health.harvard.edu/blog/nutritional-psychiatry-your-brain-on-food-201511168626",
-            "read_time_mins": 7,
-            "image": "/media/article-exercise.jpg"
+            "read_time_mins": null,
+            "image": "/media/Physical6.png"
           },
           {
             "id": "bo-05",
@@ -693,7 +693,7 @@
             "source": "TED",
             "url": "https://www.youtube.com/watch?v=L4N1q4RNi9I",
             "duration_mins": 12,
-            "image": "/media/article-exercise.jpg"
+            "image": "/media/Physical1.png"
           },
           {
             "id": "bo-07",
@@ -702,8 +702,9 @@
             "description": "Why rest is not laziness — the physiology of recovery and how to actually recharge.",
             "source": "Harvard Health",
             "url": "https://www.ted.com/talks/saundra_dalton_smith_the_real_reason_why_we_are_tired_and_what_to_do_about_it",
-            "read_time_mins": 6,
-            "image": "/media/article-exercise.jpg"
+            "read_time_mins": null,
+            "image": "/media/Physical8.png",
+            "duration_mins": 10
           },
           {
             "id": "bo-08",
@@ -712,8 +713,8 @@
             "description": "Science journalist James Nestor on how breathing patterns affect everything from anxiety to athletic performance.",
             "source": "Big Think",
             "url": "https://www.youtube.com/watch?v=rkZl2gsLUp4",
-            "duration_mins": 9,
-            "image": "/media/article-exercise.jpg"
+            "duration_mins": 17,
+            "image": "/media/Physical3.png"
           },
           {
             "id": "bo-09",
@@ -722,10 +723,12 @@
             "description": "A Kaelo webinar on how alcohol affects stress, sleep, concentration, and workplace performance — the mental health connection, and practical strategies to take back control.",
             "source": "Kaelo",
             "url": "https://www.youtube.com/watch?v=vGpY1E7bjzg",
-            "duration_mins": 45,
-            "image": "/media/article-exercise.jpg"
+            "duration_mins": 52,
+            "image": "/media/Physical4.png"
           }
-        ]
+        ],
+        "pill_fg": "#46B394",
+        "pill_bg": "#DAEBE6"
       }
     ]
   }

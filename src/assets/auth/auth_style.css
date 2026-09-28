@@ -84,6 +84,12 @@ a{color:inherit}
 }
 .logo{display:block;height:42px;width:auto;margin:0 auto 43px}
 .screen--login .logo{margin-bottom:53px}
+/* theme-aware logo (see Logo in authPrims.jsx): both marks are in the DOM,
+   only the one matching <html>.dark is displayed. display:none also removes
+   the hidden one from the accessibility tree, so its alt isn't read twice. */
+.logo--dark{display:none}
+.dark .logo--light{display:none}
+.dark .logo--dark{display:block}
 
 /* login: photo + navy wash ------------------------------------------- */
 .screen--login{
