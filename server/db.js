@@ -4,6 +4,7 @@ import m003 from './migrations/003_popia_encryption.js'
 import m004 from './migrations/004_admin_rbac.js'
 import m005 from './migrations/005_org_analytics.js'
 import m006 from './migrations/006_member_usernames.js'
+import m007 from './migrations/007_username_acknowledged.js'
 
 // Postgres connection + schema migrations for accounts, progress and analytics.
 //
@@ -314,6 +315,8 @@ const MIGRATIONS = [
   // A generated display handle for every account, so the app never shows a
   // member their own mobile number as a name.
   m006,
+  // When the member was shown that handle, so the explainer appears only once.
+  m007,
 ]
 
 export async function migrate() {

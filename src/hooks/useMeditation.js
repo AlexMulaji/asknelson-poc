@@ -186,6 +186,16 @@ export function useMeditation() {
     }
   }, [clearTick, stopAudio, durationMin])
 
+  // Back to the full duration without ending the session: a running timer
+  // keeps running (and the soundscape keeps playing) from the top; a paused
+  // one returns to Ready. The run's clock restarts too, so a later Stop
+  // reports time spent in this attempt, not since the first Play.
+  const restart = useCallback(() => {
+    setIsComplete(false)
+    setRemaining(durationMin * 60)
+    if (runRef.current) runRef.current.startedAt = Date.now()
+  }, [durationMin])
+
   const dismissComplete = useCallback(() => {
     setIsComplete(false)
     setRemaining(durationMin * 60)
@@ -217,6 +227,7 @@ export function useMeditation() {
     start,
     pause,
     stop,
+    restart,
     dismissComplete,
   }
 }

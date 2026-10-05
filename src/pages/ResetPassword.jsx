@@ -64,7 +64,7 @@ export default function ResetPassword() {
     }
   }
 
-  const helpFoot = <HelpFoot onClick={() => navigate('/asknelson')} />
+  const helpFoot = <HelpFoot />
 
   if (tokenState === 'invalid') {
     return (

@@ -13,8 +13,9 @@ export default defineConfig({
         name: 'AskNelson',
         short_name: 'AskNelson',
         description: 'Real support from real people. Content and wellness for your everyday.',
-        theme_color: '#172B5C',
-        background_color: '#F6F7FB',
+        // Brand navy and the V2 page background (see src/index.css).
+        theme_color: '#01253B',
+        background_color: '#FFFFFF',
         display: 'standalone',
         orientation: 'portrait',
         start_url: '/',

@@ -177,7 +177,7 @@ export default function Journeys({ onMenuChange }) {
       <div className="mt-7">
         <div className="mb-3 flex items-baseline justify-between gap-3">
           <h2 className="font-display text-[20px] font-extrabold text-ink lg:text-[24px]">
-            Your {activeJourney.duration_days ?? days.length}-Day Journey
+            Your {activeJourney.duration_days ?? days.length}-day Journey
           </h2>
           <span className="text-[13px] font-bold text-slate-400">
             {completedDays.length}/{days.length} done

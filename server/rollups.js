@@ -21,6 +21,9 @@ export const ROLLUP_DIMENSIONS = {
   assessment_completed: ['assessment', 'band'],
   meditation_completed: ['duration_min', 'sound'],
   booking_clicked: ['service'],
+  // Which surface raised Get Help (tabbar, sidebar, home, result, ...).
+  help_opened: ['source'],
+  sos_pressed: ['source'],
 }
 
 /** The dims object for one event, or null when it has no configured dims. */

@@ -221,7 +221,7 @@ function FlowHeader({ title, onClose }) {
         type="button"
         onClick={onClose}
         aria-label="Close assessment"
-        className="grid h-10 w-10 shrink-0 place-items-center rounded-full text-slate-400 transition hover:bg-canvas"
+        className="grid h-10 w-10 shrink-0 place-items-center rounded-full text-slate-400 transition hover:bg-surface-sunken"
       >
         <CloseIcon className="h-6 w-6" />
       </button>

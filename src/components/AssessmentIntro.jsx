@@ -15,11 +15,11 @@ export default function AssessmentIntro({ assessment, retake, onStart }) {
   return (
     <div>
       <div className="relative -mx-5 lg:-mx-8">
-        <CoverImage src={assessment.cover} width={16} height={9} className="h-[150px] w-full" />
+        <CoverImage src={assessment.cover} width={16} height={9} className="h-[224px] w-full lg:h-[300px]" />
         <div aria-hidden className="absolute inset-0 bg-navy/55" />
       </div>
 
-      <div className="relative -mt-14">
+      <div className="relative -mt-[124px] lg:-mt-40">
         <div className="rounded-card bg-surface p-6 shadow-card">
           <span
             aria-hidden
@@ -28,7 +28,7 @@ export default function AssessmentIntro({ assessment, retake, onStart }) {
           >
             <Icon className="h-7 w-7" />
           </span>
-          <h1 className="mt-4 font-display text-[28px] font-extrabold leading-tight text-ink">
+          <h1 className="mt-4 font-display text-[32px] font-extrabold leading-tight text-ink lg:text-[40px]">
             {assessment.title}
           </h1>
           <div className="mt-3 flex flex-wrap gap-2">
@@ -71,14 +71,26 @@ export default function AssessmentIntro({ assessment, retake, onStart }) {
           </p>
         ) : null}
 
-        <button
-          type="button"
-          onClick={onStart}
-          className="mt-8 grid min-h-[52px] w-full place-items-center rounded-btn text-[15px] font-extrabold text-white transition active:scale-[0.99]"
-          style={{ backgroundColor: color }}
+        {/* On mobile the start action stays in reach at the foot of the screen,
+            over a fade into the page. Sticky rather than fixed: the page
+            wrapper keeps a transform from .page-enter, which would anchor a
+            fixed bar to the wrapper instead of the viewport. */}
+        <div
+          className={[
+            'sticky bottom-0 -mx-5 mt-8 px-5 pt-6 pb-[calc(1.5rem+env(safe-area-inset-bottom,0px))]',
+            'bg-[linear-gradient(transparent,rgb(var(--surface))_30%)]',
+            'lg:static lg:mx-0 lg:bg-none lg:p-0',
+          ].join(' ')}
         >
-          {retake?.hasHistory ? 'Take It Again' : 'Start Assessment'}
-        </button>
+          <button
+            type="button"
+            onClick={onStart}
+            className="grid min-h-[56px] w-full place-items-center rounded-btn text-[18px] font-extrabold text-white transition active:scale-[0.99] lg:min-h-[52px] lg:text-[15px]"
+            style={{ backgroundColor: color }}
+          >
+            {retake?.hasHistory ? 'Take It Again' : 'Start Assessment'}
+          </button>
+        </div>
       </div>
     </div>
   )

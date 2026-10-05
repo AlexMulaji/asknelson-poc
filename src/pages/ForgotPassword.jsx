@@ -93,7 +93,7 @@ export default function ForgotPassword() {
   const [devLink, setDevLink] = useState(null)
 
   const c = COPY[method]
-  const helpFoot = <HelpFoot onClick={() => navigate('/asknelson')} />
+  const helpFoot = <HelpFoot />
 
   async function send() {
     if (!c.isValid(contact)) {

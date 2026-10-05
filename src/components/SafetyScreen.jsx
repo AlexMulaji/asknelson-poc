@@ -2,6 +2,7 @@ import { useNavigate } from 'react-router-dom'
 import { AlertIcon } from './Icons.jsx'
 import { useJourneyProgress } from '../hooks/useJourneyProgress.js'
 import { runCta } from '../lib/assessmentCta.js'
+import { useGetHelp } from './GetHelp.jsx'
 
 // HARD SAFETY GATE.
 // When a safety item is triggered (e.g. PHQ-9 q9 > 0), this screen is shown
@@ -11,6 +12,7 @@ import { runCta } from '../lib/assessmentCta.js'
 export default function SafetyScreen({ safety, onExit }) {
   const navigate = useNavigate()
   const { switchJourney } = useJourneyProgress()
+  const { openHelp } = useGetHelp()
 
   if (!safety) return null
 
@@ -30,7 +32,7 @@ export default function SafetyScreen({ safety, onExit }) {
       {/* Primary action — reach out now */}
       <button
         type="button"
-        onClick={() => runCta(safety.cta, { navigate, switchJourney })}
+        onClick={() => runCta(safety.cta, { navigate, switchJourney, openHelp, source: 'safety' })}
         className="flex min-h-[56px] w-full items-center justify-center rounded-btn bg-danger px-5
                    text-[15px] font-extrabold text-white transition active:scale-[0.98]"
       >

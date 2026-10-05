@@ -46,7 +46,7 @@ export default function QuestionCard({
       </div>
 
       {/* Question */}
-      <h2 className="mt-8 font-display text-[24px] font-extrabold leading-snug text-ink">
+      <h2 className="mt-8 font-display text-[21px] font-extrabold leading-snug text-ink lg:text-[28px]">
         {question.text}
       </h2>
 
@@ -61,7 +61,7 @@ export default function QuestionCard({
               onClick={() => onSelect(opt.value)}
               aria-pressed={isSelected}
               className={[
-                'flex min-h-[58px] w-full items-center justify-between gap-3 rounded-card border px-5 py-4 text-left',
+                'flex min-h-[60px] w-full items-center justify-between gap-3 rounded-card border px-5 py-4 text-left',
                 'text-[15px] font-bold transition-all duration-150 active:scale-[0.99]',
                 isSelected ? '' : 'border-line bg-surface text-slate-600 hover:border-slate-300',
               ].join(' ')}

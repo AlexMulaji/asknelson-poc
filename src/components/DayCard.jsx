@@ -47,11 +47,11 @@ export default function DayCard({ day, status, onOpen, onMarkDone, onOpenResourc
             <span className="text-[13px] font-extrabold text-brand">Day {day.day}</span>
             {day.type ? <Pill label={titleCase(day.type)} /> : null}
           </div>
-          <h3 className="mt-1.5 font-display text-[17px] font-extrabold leading-snug text-ink">
+          <h3 className="mt-1.5 font-display text-[16px] font-extrabold leading-snug text-ink lg:text-[22px]">
             {day.title}
           </h3>
           {day.task ? (
-            <p className="mt-1 text-[13px] leading-relaxed text-slate-500">{day.task}</p>
+            <p className="mt-1 text-[12px] leading-relaxed text-ink-soft lg:text-[14px]">{day.task}</p>
           ) : null}
         </div>
 

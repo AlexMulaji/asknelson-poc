@@ -6,7 +6,8 @@ function format(seconds) {
   return `${m}:${String(s).padStart(2, '0')}`
 }
 
-export default function MeditationTimer({ remaining, progress, isRunning, size = 260 }) {
+// `state` is the word under the clock: Ready, In Progress, Paused or Complete.
+export default function MeditationTimer({ remaining, progress, state, size = 268 }) {
   const stroke = 8
   const radius = (size - stroke) / 2
   const circumference = 2 * Math.PI * radius
@@ -43,7 +44,7 @@ export default function MeditationTimer({ remaining, progress, isRunning, size =
           {format(remaining)}
         </span>
         <span className="mt-2.5 text-[12px] font-bold uppercase tracking-[0.18em] text-white/75">
-          {isRunning ? 'Breathe' : 'Ready'}
+          {state}
         </span>
       </div>
     </div>

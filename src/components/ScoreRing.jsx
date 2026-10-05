@@ -4,7 +4,7 @@ import { withAlpha } from '../lib/colorUtils.js'
 
 // Animated circular score gauge for the results screen (lever 6).
 // The arc sweeps in on mount and the number counts up to the total.
-export default function ScoreRing({ value, max, color = '#89BA16', size = 132, stroke = 12 }) {
+export default function ScoreRing({ value, max, color = '#89BA17', size = 132, stroke = 12 }) {
   const radius = (size - stroke) / 2
   const circumference = 2 * Math.PI * radius
   const pct = max ? Math.min(1, Math.max(0, value / max)) : 0

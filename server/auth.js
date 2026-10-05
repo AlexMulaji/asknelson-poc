@@ -128,6 +128,9 @@ function publicUser(row) {
     employeeNo: userField(row, 'employee_no'),
     status: row.status,
     createdAt: row.created_at,
+    // False until the one-time "this is your anonymous username" screen has
+    // been dismissed (see POST /me/username-ack).
+    usernameAcknowledged: Boolean(row.username_acknowledged_at),
   }
 }
 
@@ -527,6 +530,23 @@ export function createAuthRouter() {
       res.json({ user: user ? publicUser(user) : null, otpEcho, privacyNoticeVersion: PRIVACY_NOTICE_VERSION })
     } catch {
       res.json({ user: null })
+    }
+  })
+
+  // The member has read the one-time "this is your anonymous username" screen.
+  // Idempotent: only the first call stamps the time, so a double tap or a
+  // retry never moves it.
+  router.post('/me/username-ack', requireUser, async (req, res) => {
+    try {
+      await query(
+        `UPDATE auth_users SET username_acknowledged_at = now()
+          WHERE id = $1 AND username_acknowledged_at IS NULL`,
+        [req.user.id]
+      )
+      res.json({ user: publicUser(await loadUser(req.user.id)) })
+    } catch (err) {
+      console.error('[asknelson][auth] username ack failed:', err.message)
+      res.status(500).json({ error: 'Could not save that. Please try again.' })
     }
   })
 

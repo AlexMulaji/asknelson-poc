@@ -92,6 +92,13 @@ export function AuthProvider({ children }) {
     await restoreProgress()
   }, [])
 
+  // Dismisses the one-time "this is your anonymous username" screen. The server
+  // answers with the updated account, which is what lifts the gate in App.
+  const acknowledgeUsername = useCallback(async () => {
+    const data = await api.acknowledgeUsername()
+    setUser(data.user)
+  }, [])
+
   const value = useMemo(
     () => ({
       user,
@@ -102,8 +109,9 @@ export function AuthProvider({ children }) {
       signIn,
       signOut,
       adoptUser,
+      acknowledgeUsername,
     }),
-    [user, status, unavailable, signIn, signOut, adoptUser]
+    [user, status, unavailable, signIn, signOut, adoptUser, acknowledgeUsername]
   )
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>

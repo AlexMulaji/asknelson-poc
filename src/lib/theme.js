@@ -14,7 +14,7 @@ export const PREFERENCES = ['light', 'dark', 'system']
 // Matches --navy in each theme: the colour behind the status bar and the PWA
 // title bar. Kept here rather than read from the stylesheet because it has to
 // be written to a <meta> tag, which takes a hex, not a token.
-const THEME_COLOR = { light: '#01243B', dark: '#0D1D28' }
+const THEME_COLOR = { light: '#01253B', dark: '#0D1D28' }
 
 const query = () =>
   typeof window !== 'undefined' && typeof window.matchMedia === 'function'

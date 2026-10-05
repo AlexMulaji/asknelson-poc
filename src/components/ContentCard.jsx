@@ -41,7 +41,7 @@ export default function ContentCard({ item }) {
       // card-press gives a physical scale-down on tap (defined in index.css).
       className="card-press flex overflow-hidden rounded-card bg-surface shadow-card"
     >
-      <CoverImage src={item.image} alt="" className="w-[104px] shrink-0 self-stretch sm:w-[116px]" />
+      <CoverImage src={item.image} alt="" className="w-[100px] shrink-0 self-stretch lg:w-[113px]" />
 
       <div className="flex min-w-0 flex-1 flex-col px-4 py-4">
         {item.theme ? (
@@ -53,7 +53,7 @@ export default function ContentCard({ item }) {
           />
         ) : null}
 
-        <h3 className="mt-2 font-display text-[17px] font-extrabold leading-snug text-ink">
+        <h3 className="mt-2 font-display text-[18px] font-extrabold leading-snug text-ink lg:text-[24px]">
           {item.title}
         </h3>
 

@@ -15,7 +15,7 @@ export default function JourneyHero({ journey, day, onStart, finished, dayCount 
         className="absolute inset-0"
         style={{
           background:
-            'linear-gradient(90deg, rgba(1,36,59,0.96) 0%, rgba(1,36,59,0.88) 42%, rgba(1,36,59,0.45) 100%)',
+            'linear-gradient(90deg, rgba(1,37,59,0.96) 0%, rgba(1,37,59,0.88) 42%, rgba(1,37,59,0.45) 100%)',
         }}
       />
 

@@ -6,9 +6,12 @@ export default function PageHeader({ title, subtitle, logo, action, className = 
     <div
       className={[
         'flex items-start justify-between gap-3',
+        // No side padding of its own: every page already pads its column, and
+        // a px-5 here could not be undone by a caller's px-0 (Tailwind emits
+        // .px-5 after .px-0, so it always won) -- which double-indented titles.
         // Extra top padding on iOS where the status bar sits inside the webview.
-        'px-5 pt-[calc(1.5rem+env(safe-area-inset-top,0px))]',
-        'lg:px-0 lg:pt-0',
+        'pt-[calc(1.5rem+env(safe-area-inset-top,0px))]',
+        'lg:pt-0',
         className,
       ].join(' ')}
     >
@@ -18,7 +21,7 @@ export default function PageHeader({ title, subtitle, logo, action, className = 
             <img src={logo} alt={title} className="h-8 w-auto" />
           </h1>
         ) : (
-          <h1 className="font-display text-[30px] font-extrabold leading-tight text-ink lg:text-[38px]">
+          <h1 className="font-display text-[32px] font-extrabold leading-tight text-ink lg:text-[38px]">
             {title}
           </h1>
         )}

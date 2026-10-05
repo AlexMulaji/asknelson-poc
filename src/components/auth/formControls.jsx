@@ -110,7 +110,7 @@ export function SecondaryButton({ children, className = '', ...props }) {
 }
 
 /** A large tappable choice — used for anonymous/identified and OTP channel. */
-export function ChoiceCard({ title, description, onClick, accent = '#89BA16' }) {
+export function ChoiceCard({ title, description, onClick, accent = '#89BA17' }) {
   return (
     <button
       type="button"

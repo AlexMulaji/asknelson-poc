@@ -2,6 +2,7 @@ import React from 'react'
 import ReactDOM from 'react-dom/client'
 import { BrowserRouter } from 'react-router-dom'
 import App from './App.jsx'
+import { GetHelpProvider } from './components/GetHelp.jsx'
 import { AuthProvider } from './hooks/useAuth.jsx'
 import { ThemeProvider } from './hooks/useTheme.jsx'
 import { initAnalytics } from './lib/analytics.js'
@@ -19,7 +20,11 @@ ReactDOM.createRoot(document.getElementById('root')).render(
     <BrowserRouter>
       <ThemeProvider>
         <AuthProvider>
-          <App />
+          {/* Wraps the whole of App, not just the member shell, so Get Help
+              can be raised from every screen -- signed-out auth pages too. */}
+          <GetHelpProvider>
+            <App />
+          </GetHelpProvider>
         </AuthProvider>
       </ThemeProvider>
     </BrowserRouter>

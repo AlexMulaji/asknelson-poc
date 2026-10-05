@@ -5,6 +5,8 @@ import ScoreRing from './ScoreRing.jsx'
 import Sparkline from './Sparkline.jsx'
 import { useJourneyProgress } from '../hooks/useJourneyProgress.js'
 import { runCta } from '../lib/assessmentCta.js'
+import { useGetHelp } from './GetHelp.jsx'
+import { AlertIcon, CallIcon } from './Icons.jsx'
 import { meshGradient } from '../lib/colorUtils.js'
 import { listContainer, listItem } from '../lib/motion.js'
 
@@ -18,6 +20,7 @@ import { listContainer, listItem } from '../lib/motion.js'
 export default function AssessmentResult({ assessment, result, history, onRetake, onExit }) {
   const navigate = useNavigate()
   const { switchJourney } = useJourneyProgress()
+  const { openHelp } = useGetHelp()
   const color = assessment.color || '#FF751C'
   const scoreMax = assessment.scoring?.max
 
@@ -122,12 +125,36 @@ export default function AssessmentResult({ assessment, result, history, onRetake
         </motion.div>
       ) : null}
 
-      {/* Primary CTA */}
-      {band?.cta ? (
+      {/* Bands that point to professional support get the design's red help
+          card in place of a plain button, so the route to a person is
+          unmistakable. Other CTAs (a journey, an Explore theme) stay buttons. */}
+      {band?.cta?.type === 'asknelson' ? (
+        <motion.div
+          variants={listItem}
+          className="flex items-start gap-4 rounded-[8px] border border-danger bg-pill-red px-5 py-[18px]"
+        >
+          <AlertIcon className="h-9 w-9 shrink-0 text-danger" />
+          <div className="min-w-0">
+            <h3 className="text-[16px] font-bold text-ink">Talk to someone who can help</h3>
+            <p className="mt-1 text-[15px] font-light leading-relaxed text-ink-soft">
+              A qualified professional can help you make sense of these results and find support that
+              works for you.
+            </p>
+            <button
+              type="button"
+              onClick={() => openHelp('result')}
+              className="mt-3.5 inline-flex min-h-[44px] items-center gap-2.5 rounded-[6px] bg-danger px-5 text-[16px] font-bold text-white transition hover:brightness-95"
+            >
+              <CallIcon className="h-5 w-5" />
+              Get Help Now
+            </button>
+          </div>
+        </motion.div>
+      ) : band?.cta ? (
         <motion.button
           variants={listItem}
           type="button"
-          onClick={() => runCta(band.cta, { navigate, switchJourney })}
+          onClick={() => runCta(band.cta, { navigate, switchJourney, openHelp })}
           className="min-h-[52px] w-full rounded-btn text-[15px] font-semibold text-white
                      transition-transform duration-100 active:scale-[0.98]"
           style={{ backgroundColor: color }}
@@ -142,7 +169,7 @@ export default function AssessmentResult({ assessment, result, history, onRetake
           type="button"
           onClick={onRetake}
           className="min-h-[48px] flex-1 rounded-btn border border-line text-[14px] font-semibold
-                     text-slate-500 hover:bg-canvas"
+                     text-slate-500 hover:bg-surface-sunken"
         >
           Retake
         </button>
@@ -150,7 +177,7 @@ export default function AssessmentResult({ assessment, result, history, onRetake
           type="button"
           onClick={onExit}
           className="min-h-[48px] flex-1 rounded-btn border border-line text-[14px] font-semibold
-                     text-slate-500 hover:bg-canvas"
+                     text-slate-500 hover:bg-surface-sunken"
         >
           Done
         </button>

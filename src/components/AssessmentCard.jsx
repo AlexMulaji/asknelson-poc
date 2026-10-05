@@ -13,25 +13,26 @@ export default function AssessmentCard({ assessment, record, retake, onOpen }) {
     <button
       type="button"
       onClick={() => onOpen(assessment.id)}
-      className="card-press flex w-full items-center gap-4 rounded-card bg-surface p-5 text-left shadow-card"
+      className="card-press flex w-full items-start gap-3.5 rounded-card bg-surface p-5 text-left shadow-card lg:items-center lg:gap-6"
     >
       <span
         aria-hidden
-        className="grid h-12 w-12 shrink-0 place-items-center rounded-btn"
+        className="grid h-10 w-10 shrink-0 place-items-center rounded-[4px] lg:h-20 lg:w-20"
         style={{ backgroundColor: assessment.bg || '#FFEADD', color }}
       >
-        <Icon className="h-6 w-6" />
+        <Icon className="h-6 w-6 lg:h-[52px] lg:w-[52px]" />
       </span>
 
       <div className="min-w-0 flex-1">
-        <h3 className="font-display text-[18px] font-extrabold leading-snug text-ink">
+        <h3 className="font-display text-[22px] font-extrabold leading-tight text-ink lg:text-[28px]">
           {assessment.title}
         </h3>
-        <p className="mt-1 text-[13px] leading-relaxed text-slate-500">
+        <p className="mt-1.5 text-[14px] leading-relaxed text-ink-soft lg:text-[16px]">
           {assessment.subtitle || assessment.description}
         </p>
-        <p className="mt-2.5 text-[12px] font-bold" style={{ color }}>
+        <p className="mt-4 text-[12px] font-bold lg:mt-3 lg:text-[14px]" style={{ color }}>
           {assessment.time_mins} min · {questionCount} Questions
+          {record?.lastBand ? <> · Last result: {record.lastBand}</> : null}
           {record?.lastDate && retake && !retake.due ? (
             <span className="text-slate-400">
               {' '}
@@ -41,7 +42,7 @@ export default function AssessmentCard({ assessment, record, retake, onOpen }) {
         </p>
       </div>
 
-      <ChevronRightIcon className="h-5 w-5 shrink-0 text-slate-400" />
+      <ChevronRightIcon className="h-5 w-5 shrink-0 self-center text-muted" />
     </button>
   )
 }

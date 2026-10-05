@@ -117,7 +117,6 @@ export default function Explore() {
     <div className="page-enter px-5 pb-6 lg:px-0">
       <PageHeader
         title="Explore"
-        className="px-0"
         action={
           <>
             {/* Desktop keeps the field visible; mobile reveals it from the icon. */}
@@ -127,7 +126,7 @@ export default function Explore() {
               onClick={() => setSearchOpen((o) => !o)}
               aria-label="Search resources"
               aria-expanded={searchOpen}
-              className="grid h-10 w-10 place-items-center rounded-full text-ink transition hover:bg-canvas lg:hidden"
+              className="grid h-10 w-10 place-items-center rounded-full text-ink transition hover:bg-surface-sunken lg:hidden"
             >
               <SearchIcon className="h-6 w-6" />
             </button>
@@ -151,10 +150,12 @@ export default function Explore() {
                   track('theme_filtered', { theme: chip.id, label: chip.title })
                 }}
                 className={[
-                  'h-10 shrink-0 whitespace-nowrap rounded-pill border px-4 text-[13px] font-bold transition-colors duration-150',
+                  'h-[30px] shrink-0 whitespace-nowrap rounded-pill border px-3 text-[15px] font-semibold transition-colors duration-150 lg:h-[35px] lg:px-[15px] lg:text-[16px]',
+                  // Navy when active; green in dark, where navy would sink
+                  // into the page.
                   isActive
-                    ? 'border-ink bg-navy text-white'
-                    : 'border-line bg-surface text-slate-500 hover:border-slate-300',
+                    ? 'min-w-[72px] border-navy bg-navy text-white dark:border-brand dark:bg-brand'
+                    : 'border-slate-300 bg-surface text-ink-soft hover:border-ink-soft',
                 ].join(' ')}
               >
                 {chip.title}

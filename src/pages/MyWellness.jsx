@@ -3,6 +3,7 @@ import { useSearchParams } from 'react-router-dom'
 import PageHeader from '../components/PageHeader.jsx'
 import SegmentedTabs from '../components/SegmentedTabs.jsx'
 import OverflowMenu from '../components/OverflowMenu.jsx'
+import ConfirmDialog from '../components/ConfirmDialog.jsx'
 import { RestartIcon, SwapIcon } from '../components/Icons.jsx'
 import Journeys from './Journeys.jsx'
 import Meditate from './Meditate.jsx'
@@ -24,6 +25,9 @@ export default function MyWellness() {
   // "Change / Restart journey" only when those actions mean something.
   const [journeyMenu, setJourneyMenu] = useState(null)
   const handleMenuChange = useCallback((next) => setJourneyMenu(next), [])
+  // Restarting wipes the programme's progress, so it asks first.
+  const [confirmRestart, setConfirmRestart] = useState(false)
+  const closeConfirm = useCallback(() => setConfirmRestart(false), [])
 
   const setTab = (id) => {
     const next = new URLSearchParams(searchParams)
@@ -36,7 +40,7 @@ export default function MyWellness() {
   const menuItems = showMenu
     ? [
         { label: 'Change Journey', Icon: SwapIcon, onSelect: journeyMenu.onChange },
-        { label: 'Restart Journey', Icon: RestartIcon, onSelect: journeyMenu.onRestart },
+        { label: 'Restart Journey', Icon: RestartIcon, onSelect: () => setConfirmRestart(true) },
       ]
     : []
 
@@ -44,11 +48,10 @@ export default function MyWellness() {
     <div className="page-enter px-5 lg:px-0">
       <PageHeader
         title="My Wellness"
-        className="px-0 lg:px-0"
         action={showMenu ? <OverflowMenu items={menuItems} label="Journey options" /> : null}
       />
 
-      <div className="mt-5">
+      <div className="-mx-5 mt-6 lg:mx-0 lg:mt-10">
         <SegmentedTabs tabs={TABS} value={active} onChange={setTab} />
       </div>
 
@@ -57,6 +60,15 @@ export default function MyWellness() {
       ) : (
         <Meditate />
       )}
+
+      <ConfirmDialog
+        open={confirmRestart}
+        title="Restart Journey?"
+        body="Your progress on this journey will be cleared and you’ll begin again from Day 1."
+        confirmLabel="Restart Journey"
+        onConfirm={() => journeyMenu?.onRestart()}
+        onClose={closeConfirm}
+      />
     </div>
   )
 }

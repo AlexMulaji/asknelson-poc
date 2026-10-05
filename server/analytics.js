@@ -57,6 +57,7 @@ const EVENT_CATEGORIES = {
   meditation_started: 'meditation',
   meditation_completed: 'meditation',
   meditation_stopped: 'meditation',
+  help_opened: 'support',
   sos_pressed: 'support',
   booking_clicked: 'support',
   registration_started: 'auth',

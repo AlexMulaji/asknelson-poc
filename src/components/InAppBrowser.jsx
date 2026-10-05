@@ -199,7 +199,7 @@ function Viewer({ viewer, onClose, onHandOff }) {
           type="button"
           onClick={onClose}
           aria-label="Close"
-          className="grid h-11 w-11 shrink-0 place-items-center rounded-full text-ink transition hover:bg-canvas"
+          className="grid h-11 w-11 shrink-0 place-items-center rounded-full text-ink transition hover:bg-surface-sunken"
         >
           <CloseIcon className="h-6 w-6" />
         </button>
@@ -214,7 +214,7 @@ function Viewer({ viewer, onClose, onHandOff }) {
           onClick={() => openOutside('header')}
           aria-label="Open in browser"
           title="Open in browser"
-          className="grid h-11 w-11 shrink-0 place-items-center rounded-full text-slate-500 transition hover:bg-canvas"
+          className="grid h-11 w-11 shrink-0 place-items-center rounded-full text-slate-500 transition hover:bg-surface-sunken"
         >
           <ExternalLinkIcon className="h-5 w-5" />
         </a>

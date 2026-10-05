@@ -48,6 +48,9 @@ export const login = (identifier, password, remember = true) =>
 
 export const logout = () => request('/logout', { method: 'POST' })
 
+/** Records that the one-time anonymous-username screen has been seen. */
+export const acknowledgeUsername = () => request('/me/username-ack', { method: 'POST' })
+
 export const checkUsername = (username) => request(`/username-available?username=${enc(username)}`)
 
 /** Send a reset link. `channel` is 'sms' or 'email'; `identifier` what they typed. */

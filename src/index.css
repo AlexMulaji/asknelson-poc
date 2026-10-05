@@ -46,37 +46,41 @@
 /* ─── Colour tokens ──────────────────────────────────────────────────────── */
 /* Every Tailwind colour resolves to one of these (see tailwind.config.js).
    Defined as "R G B" triples rather than hex so the utilities keep their
-   opacity modifiers. Light values are the original Figma palette unchanged. */
+   opacity modifiers. Values follow the V2 HTML prototype (AN_styles.css); the
+   prototype's variable each one came from is noted alongside. */
 :root {
   color-scheme: light;
 
-  --brand: 137 186 22;
-  --brand-dark: 120 164 23;
-  --brand-tint: 237 244 220;
-  --brand-wash: 249 251 244;
-  /* Label on a brand fill. The light-mode green is dark enough for white. */
+  --brand: 137 186 23; /* --green #89BA17 */
+  --brand-dark: 121 165 19; /* --green-d #79A513 */
+  --brand-tint: 237 244 220; /* --green-nav #EDF4DC */
+  --brand-wash: 248 251 243; /* --green-sel #F8FBF3 */
+  /* Label on a brand fill. */
   --on-brand: 255 255 255;
 
-  --navy: 1 36 59;
+  --navy: 1 37 59; /* --navy #01253B */
   --navy-soft: 18 56 79;
 
-  --accent: 255 117 28;
-  --danger: 225 35 31;
-  --muted: 147 161 170;
+  --accent: 255 118 28; /* --orange #FF761C */
+  --danger: 225 35 31; /* --red #E1231F */
+  --muted: 141 157 167; /* --nav-in #8D9DA7: inactive nav, meta */
 
-  --canvas: 244 246 247;
-  --surface: 255 255 255;
-  --surface-sunken: 248 250 252;
-  --line: 230 235 237;
+  /* The page itself is white in V2; cards separate by border and shadow. */
+  --canvas: 255 255 255; /* --bg */
+  --surface: 255 255 255; /* --surface */
+  /* A step off white for hover fills, empty states and neutral chips -- the
+     jobs the old grey canvas used to do. */
+  --surface-sunken: 244 246 247;
+  --line: 233 236 238; /* --line-2 #E9ECEE */
 
-  --ink: 1 36 59;
-  --ink-soft: 100 116 139;
-  --ink-faint: 148 163 184;
+  --ink: 1 37 59; /* --text = --navy */
+  --ink-soft: 99 120 133; /* --gray #637885 */
+  --ink-faint: 166 178 186; /* --muted #A6B2BA */
 
   /* Placeholder tint behind photos, so cards don't flash white while loading. */
   --media: 223 230 233;
   /* Shadows are cast in the brand navy rather than pure black. */
-  --shadow: 1 36 59;
+  --shadow: 1 37 59;
 
   /* Shared neutral ramp behind both gray-* and slate-*: Tailwind's slate. */
   --n-50: 248 250 252;
@@ -91,18 +95,19 @@
   --n-900: 15 23 42;
   --n-950: 2 6 23;
 
-  --pill-orange: 255 234 221;
-  --pill-orange-fg: 196 85 26;
-  --pill-purple: 235 226 241;
-  --pill-purple-fg: 107 74 138;
-  --pill-green: 226 239 225;
-  --pill-green-fg: 61 122 63;
-  --pill-lime: 232 241 211;
-  --pill-lime-fg: 94 127 20;
-  --pill-red: 252 233 233;
-  --pill-red-fg: 179 58 54;
-  --pill-blue: 221 235 245;
-  --pill-blue-fg: 47 98 136;
+  /* The prototype's .t-* tags: a tint with the full-strength hue on top. */
+  --pill-orange: 255 234 221; /* --orange-t */
+  --pill-orange-fg: 255 118 28;
+  --pill-purple: 235 226 241; /* --purple-t */
+  --pill-purple-fg: 121 65 164;
+  --pill-green: 226 239 225; /* --green2-t */
+  --pill-green-fg: 64 151 60;
+  --pill-lime: 231 241 210; /* --green-t */
+  --pill-lime-fg: 137 186 23;
+  --pill-red: 250 222 221; /* --red-t */
+  --pill-red-fg: 225 35 31;
+  --pill-blue: 219 233 243; /* --blue-t */
+  --pill-blue-fg: 17 113 178;
   /* Status hues. Scoped the same way as the neutral ramp so a warning chip or
      an error message inverts with everything else instead of staying a bright
      patch on a dark page. Light values are Tailwind's own. */
@@ -151,37 +156,34 @@
 .dark {
   color-scheme: dark;
 
-  /* Lifted off the light-mode green: #89BA16 on a dark surface is muddy and
-     fails contrast for small text. */
-  --brand: 158 208 40;
-  /* Hover goes *lighter* here. On a dark UI, "darker on press" reads as the
-     control switching off. */
-  --brand-dark: 181 226 78;
-  --brand-tint: 33 48 18;
-  --brand-wash: 22 32 14;
-  /* The brighter green is far too light for white text (~2:1), so the label
-     on a brand button flips to near-black. */
-  --on-brand: 8 18 4;
+  /* V2 keeps the brand green identical in both themes, with white labels on
+     it, so a green button is the same object with the lights on or off. The
+     trade-off: small green *text* on the dark surface sits near 3:1, so keep
+     green for fills, icons and bold labels rather than body copy. */
+  --brand: 137 186 23; /* --green #89BA17 */
+  --brand-dark: 121 165 19; /* --green-d */
+  --brand-tint: 29 58 34; /* --green-nav #1D3A22 */
+  --brand-wash: 18 44 32; /* --green-sel #122C20 */
+  --on-brand: 255 255 255;
 
-  /* The hero card, one step above the canvas so it still reads as a card. */
+  /* The hero card, one step above the canvas so it still reads as a card.
+     (The prototype has no dark --navy; this keeps the app's.) */
   --navy: 13 29 40;
   --navy-soft: 24 45 59;
 
-  --accent: 255 146 79;
-  /* Barely lifted, unlike the other hues: danger is used as a solid fill with
-     a white label (SafetyScreen, the SOS button), and brightening it far
-     enough to read well as *text* would drop that label below 3:1. */
-  --danger: 230 70 66;
-  --muted: 125 143 158;
+  --accent: 254 135 31; /* dark --orange #FE871F */
+  --danger: 225 35 31; /* --red, unchanged: a solid fill under white labels */
+  --muted: 127 149 162; /* --nav-in #7F95A2 */
 
-  --canvas: 7 15 22;
-  --surface: 15 27 37;
-  --surface-sunken: 21 35 46;
-  --line: 32 49 63;
+  --canvas: 7 26 38; /* --bg #071A26 */
+  --surface: 14 37 52; /* --surface #0E2534 */
+  /* Hover/neutral fill: a step *lighter* than the surface on a dark UI. */
+  --surface-sunken: 27 54 71;
+  --line: 27 54 71; /* --line-2 #1B3647 */
 
-  --ink: 232 239 243;
-  --ink-soft: 152 170 184;
-  --ink-faint: 125 143 158;
+  --ink: 238 243 245; /* --text #EEF3F5 */
+  --ink-soft: 157 176 187; /* --gray #9DB0BB */
+  --ink-faint: 111 133 147; /* --muted #6F8593 */
 
   --media: 26 40 51;
   --shadow: 0 0 0;
@@ -201,18 +203,21 @@
   --n-900: 237 243 247;
   --n-950: 248 251 253;
 
-  --pill-orange: 61 35 18;
-  --pill-orange-fg: 255 178 124;
-  --pill-purple: 48 36 61;
-  --pill-purple-fg: 201 172 228;
-  --pill-green: 25 48 29;
-  --pill-green-fg: 143 202 148;
-  --pill-lime: 38 48 18;
-  --pill-lime-fg: 186 216 110;
-  --pill-red: 58 28 28;
-  --pill-red-fg: 246 156 152;
-  --pill-blue: 22 45 62;
-  --pill-blue-fg: 145 196 230;
+  /* The prototype's dark tags are translucent (e.g. orange at 30%). Tokens
+     here must be opaque triples, so each tint is pre-blended over --surface:
+     out = surface + alpha * (hue - surface). */
+  --pill-orange: 86 66 46; /* #FE871F @ .30 */
+  --pill-orange-fg: 254 135 31;
+  --pill-purple: 59 40 113; /* #A42FFF @ .30 */
+  --pill-purple-fg: 164 47 255;
+  --pill-green: 22 82 46; /* #28BC21 @ .30 */
+  --pill-green-fg: 40 188 33;
+  --pill-lime: 34 64 31; /* --green-t #22401F */
+  --pill-lime-fg: 137 186 23;
+  --pill-red: 67 36 47; /* #E1231F @ .25 */
+  --pill-red-fg: 225 35 31;
+  --pill-blue: 15 51 74; /* #1480C9 @ .15 */
+  --pill-blue-fg: 20 128 201;
   /* Status hues inverted: the 50-300 end becomes a deep tint to fill a chip,
      the 500-900 end becomes the light text that sits on it. 400 is left at its
      light-mode value in each -- it is the one step used as a standalone accent
@@ -375,6 +380,16 @@ a {
 }
 .animate-ring {
   animation: ring-pulse 4s ease-in-out infinite;
+}
+
+/* Dialog backdrops and popovers (Modal.jsx, AccountMenu.jsx). */
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+}
+.animate-fade {
+  animation: fade-in 0.15s ease-out;
 }
 
 /* ─── Card press states ──────────────────────────────────────────────────── */

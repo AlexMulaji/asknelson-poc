@@ -305,13 +305,13 @@ export default function Register() {
               setErrors((prev) => ({ ...prev, consent: null }))
             }}
           >
-            We use cookies for this app {' '}
+            I acknowldge that cookies are used for this app according to the {''}
             <a href="/Kaelo_Cookie_Policy.pdf">
-            cookie policy
+            Kaelo Cookie Policy
             </a>
-            . Your data is anonymous and only ever used according to our {''}
+            . Data is anonymous and only ever used according to the {''}
             <a href="/Kaelo-Privacy-Policy_V2.pdf">
-            privacy notice
+            Kaelo Privacy Notice
             </a>.
           </Check>
           {errors.consent ? <p className="field__error">{errors.consent}</p> : null}

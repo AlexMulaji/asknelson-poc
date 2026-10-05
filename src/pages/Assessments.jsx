@@ -17,7 +17,7 @@ export default function Assessments() {
 
   return (
     <div className="page-enter px-5 pb-8 lg:px-0">
-      <PageHeader title="Assessments" className="px-0" />
+      <PageHeader title="Assessments" />
 
       {assessments.length === 0 ? (
         <div className="pt-6">

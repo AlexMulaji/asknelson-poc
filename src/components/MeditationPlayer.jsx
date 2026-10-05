@@ -71,7 +71,7 @@ export default function MeditationPlayer({ m, onClose }) {
         </div>
 
         <div className="mt-2 max-w-md">
-          <h2 className="font-display text-[28px] font-extrabold leading-tight text-white">
+          <h2 className="font-display text-[26px] font-extrabold leading-tight text-white lg:text-[44px]">
             Time to Meditate
           </h2>
           <p className="mt-2 text-[14px] leading-relaxed text-white/80">
@@ -83,7 +83,15 @@ export default function MeditationPlayer({ m, onClose }) {
           <MeditationTimer
             remaining={m.remaining}
             progress={m.progress}
-            isRunning={m.isRunning}
+            state={
+              m.isComplete
+                ? 'Complete'
+                : m.isRunning
+                  ? 'In Progress'
+                  : m.remaining < m.total
+                    ? 'Paused'
+                    : 'Ready'
+            }
           />
         </div>
 
@@ -108,7 +116,7 @@ export default function MeditationPlayer({ m, onClose }) {
 
             <button
               type="button"
-              onClick={m.stop}
+              onClick={m.restart}
               aria-label="Restart"
               className={ghostBtn}
             >

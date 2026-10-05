@@ -17,17 +17,17 @@ export default function JourneyCard({ journey, onStart }) {
     >
       <CoverImage
         src={journey.cover}
-        className="w-[104px] shrink-0 self-stretch sm:w-[124px]"
+        className="w-[91px] shrink-0 self-stretch lg:w-[144px]"
         alt=""
       />
 
       <div className="flex min-w-0 flex-1 items-center gap-2 px-4 py-4">
         <div className="min-w-0 flex-1">
-          <h3 className="font-display text-[18px] font-extrabold leading-snug text-ink">
+          <h3 className="font-display text-[16px] font-extrabold leading-snug text-ink lg:text-[22px]">
             {journey.title}
           </h3>
           {/* Clamped so cards keep an even rhythm regardless of copy length. */}
-          <p className="mt-1 line-clamp-3 text-[13px] leading-relaxed text-slate-500">
+          <p className="mt-1 line-clamp-3 text-[12px] leading-relaxed text-ink-soft lg:text-[14px]">
             {journey.description}
           </p>
 

@@ -9,14 +9,12 @@ import MyWellness from './pages/MyWellness.jsx'
 import Explore from './pages/Explore.jsx'
 import Assessments from './pages/Assessments.jsx'
 import AssessmentFlow from './pages/AssessmentFlow.jsx'
-import AskNelson from './pages/AskNelson.jsx'
 import Admin from './pages/Admin.jsx'
 import Login from './pages/Login.jsx'
 import Register from './pages/Register.jsx'
-import Meditate from './pages/Meditate.jsx'
-import Journeys from './pages/Journeys.jsx'
 import Reset from './pages/ResetPassword.jsx'
 import Forgot from './pages/ForgotPassword.jsx'
+import UsernameWelcome from './pages/UsernameWelcome.jsx'
 import InAppBrowser from './components/InAppBrowser.jsx'
 import { useAuth } from './hooks/useAuth.jsx'
 import {
@@ -63,7 +61,7 @@ function RouteTracker() {
 
 export default function App() {
   const { pathname, search } = useLocation()
-  const { status, isSignedIn } = useAuth()
+  const { status, isSignedIn, user } = useAuth()
   // The admin console lives outside the member-facing shell.
   const isAdmin = pathname.startsWith('/admin')
   // Taking an assessment is a full-screen task: the mockups drop the nav so the
@@ -139,11 +137,23 @@ export default function App() {
     return <Navigate to="/login" replace state={{ from: pathname + search }} />
   }
 
+  // One time only: introduce the member's anonymous username before the app.
+  // The URL is left alone, so Continue reveals the page they were headed for.
+  // Strictly `false`, so a server that predates the flag never shows it.
+  if (user.usernameAcknowledged === false) {
+    return (
+      <MotionConfig reducedMotion="user">
+        <RouteTracker />
+        <UsernameWelcome />
+      </MotionConfig>
+    )
+  }
+
   return (
     // Mobile: a single column. Desktop (lg+): a flex row with a fixed sidebar
     // on the left and a wide, centered content column on the right.
     <MotionConfig reducedMotion="user">
-    <div className="min-h-screen bg-canvas lg:flex lg:bg-surface">
+    <div className="min-h-screen bg-canvas lg:flex">
       <ScrollToTop />
       <RouteTracker />
       <Sidebar />
@@ -165,12 +175,9 @@ export default function App() {
               <Route path="/my-wellness" element={<MyWellness />} />
               <Route path="/assessments" element={<Assessments />} />
               <Route path="/explore" element={<Explore />} />
-              <Route path="/journeys" element={<Journeys />} />
-              <Route path="/assessments" element={<Assessments />} />
               <Route path="/assessments/:id" element={<AssessmentFlow />} />
-              <Route path="/meditate" element={<Meditate />} />
-              <Route path="/asknelson" element={<AskNelson />} />
-              {/* Pre-V1 routes, kept working. */}
+              {/* Pre-V1 routes, kept working. /asknelson (now the Get Help
+                  dialog) falls through to the catch-all below. */}
               <Route path="/journeys" element={<RedirectWithQuery to="/my-wellness" />} />
               <Route
                 path="/meditate"
